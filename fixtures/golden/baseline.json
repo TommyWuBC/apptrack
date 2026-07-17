@@ -1,116 +1,116 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-17T06:36:21.078Z",
-  "classifierVersion": null,
+  "generatedAt": "2026-07-17T08:01:28.861Z",
+  "classifierVersion": "clf-2026.07.0",
   "overall": {
-    "precision": 0,
-    "recall": 0,
-    "f1": 0,
+    "precision": 0.9852941176470589,
+    "recall": 0.9855072463768116,
+    "f1": 0.9719887955182072,
     "support": 69
   },
   "perEventType": {
     "application_confirmation": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 9
     },
     "oa_invitation": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 7
     },
     "oa_reminder": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 6
     },
     "recruiter_outreach": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 7
     },
     "interview_invitation": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 6
     },
     "interview_scheduled": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 7
     },
     "interview_rescheduled": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 1
     },
     "interview_cancelled": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 1
     },
     "followup_request": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 1
     },
     "info_request": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 2
     },
     "rejection": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 7
     },
     "offer": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 7
     },
     "waitlist_or_freeze": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 1
     },
     "withdrawal_confirmation": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 1
     },
     "duplicate_application_notice": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
       "support": 1
     },
     "newsletter_ignore": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 1,
+      "recall": 0.5,
+      "f1": 0.6666666666666666,
       "support": 2
     },
     "unknown": {
-      "precision": 0,
-      "recall": 0,
-      "f1": 0,
+      "precision": 0.75,
+      "recall": 1,
+      "f1": 0.8571428571428571,
       "support": 3
     }
   },
-  "notes": "M3 skeleton: classifier not implemented. All predictions null → F1=0. Replace classifyStub in M7."
+  "notes": "Deterministic classifier clf-2026.07.0. Macro-F1 over event types with support."
 }

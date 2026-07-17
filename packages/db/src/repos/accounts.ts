@@ -71,3 +71,23 @@ export async function setAccountStatus(
     .returning();
   return row ?? null;
 }
+
+export async function updateBackfillState(
+  db: Database,
+  accountId: string,
+  backfillState: Record<string, unknown> | null,
+) {
+  const [row] = await db
+    .update(connectedEmailAccounts)
+    .set({ backfillState })
+    .where(eq(connectedEmailAccounts.id, accountId))
+    .returning();
+  return row ?? null;
+}
+
+export async function listActiveAccounts(db: Database) {
+  return db
+    .select()
+    .from(connectedEmailAccounts)
+    .where(eq(connectedEmailAccounts.status, "active"));
+}
