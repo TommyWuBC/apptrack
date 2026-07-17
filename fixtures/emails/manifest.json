@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-07-17T06:21:29.985Z",
+  "count": 69,
+  "byAts": {
+    "greenhouse": 17,
+    "lever": 8,
+    "workday": 8,
+    "ashby": 8,
+    "icims": 8,
+    "smartrecruiters": 8,
+    "_edge": 12
+  },
+  "byEventType": {
+    "application_confirmation": 9,
+    "oa_invitation": 7,
+    "oa_reminder": 6,
+    "interview_invitation": 6,
+    "interview_scheduled": 7,
+    "rejection": 7,
+    "offer": 7,
+    "recruiter_outreach": 7,
+    "interview_rescheduled": 1,
+    "interview_cancelled": 1,
+    "followup_request": 1,
+    "info_request": 2,
+    "waitlist_or_freeze": 1,
+    "withdrawal_confirmation": 1,
+    "duplicate_application_notice": 1,
+    "newsletter_ignore": 2,
+    "unknown": 3
+  },
+  "root": "fixtures/emails"
+}

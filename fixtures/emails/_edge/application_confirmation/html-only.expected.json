@@ -1,0 +1,13 @@
+{
+  "eventType": "application_confirmation",
+  "extraction": {
+    "company": "Pied Piper",
+    "roleTitle": "Backend Intern",
+    "atsPlatform": "lever"
+  },
+  "minConfidence": 0.7,
+  "tags": [
+    "edge",
+    "html_only"
+  ]
+}

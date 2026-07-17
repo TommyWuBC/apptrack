@@ -1,0 +1,16 @@
+{
+  "eventType": "oa_reminder",
+  "extraction": {
+    "company": "Initech",
+    "roleTitle": "Software Engineering Intern",
+    "applicationType": "internship",
+    "portalUrl": "https://jobs.initech.example/portal/abc123",
+    "atsPlatform": "workday",
+    "confidence": 0.9
+  },
+  "minConfidence": 0.75,
+  "tags": [
+    "synthetic",
+    "ats_template"
+  ]
+}

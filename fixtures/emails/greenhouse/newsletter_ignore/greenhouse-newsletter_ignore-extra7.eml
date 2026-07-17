@@ -1,0 +1,21 @@
+From: Greenhouse <no-reply@hooli.example.mail.greenhouse.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: Hooli Careers Weekly
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <greenhouse-newsletter_ignore-extra7@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_greenhousenewsletterignoreextra7_001"
+
+------=_Part_greenhousenewsletterignoreextra7_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+This week's Hooli careers newsletter — new openings you might like.
+
+------=_Part_greenhousenewsletterignoreextra7_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>This week's Hooli careers newsletter — new openings you might like.</p><p><a href="https://jobs.hooli.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_greenhousenewsletterignoreextra7_001--

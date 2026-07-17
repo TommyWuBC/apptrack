@@ -1,0 +1,21 @@
+From: Greenhouse <no-reply@piedpiper.example.mail.greenhouse.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: Message from Pied Piper
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <greenhouse-unknown-extra8@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_greenhouseunknownextra8_001"
+
+------=_Part_greenhouseunknownextra8_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+A message from Pied Piper regarding your candidacy.
+
+------=_Part_greenhouseunknownextra8_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>A message from Pied Piper regarding your candidacy.</p><p><a href="https://jobs.piedpiper.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_greenhouseunknownextra8_001--

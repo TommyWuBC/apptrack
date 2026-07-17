@@ -1,0 +1,21 @@
+From: Lever <no-reply@hire.lever.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?SW50ZXJ2aWV3IGludml0YXRpb24g4oCUIE5ldyBHcmFkIFNvZnR3YXJlIEVuZ2luZWVyLCBHbG9iZXg=?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <lever-interview_invitation-v11@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_leverinterviewinvitationv11_001"
+
+------=_Part_leverinterviewinvitationv11_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+We'd like to invite you to interview for New Grad Software Engineer at Globex. Please pick a time: https://jobs.globex.example/portal/abc123
+
+------=_Part_leverinterviewinvitationv11_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>We'd like to invite you to interview for New Grad Software Engineer at Globex. Please pick a time: https://jobs.globex.example/portal/abc123</p><p><a href="https://jobs.globex.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_leverinterviewinvitationv11_001--

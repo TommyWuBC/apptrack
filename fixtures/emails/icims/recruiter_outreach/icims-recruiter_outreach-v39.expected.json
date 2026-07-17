@@ -1,0 +1,16 @@
+{
+  "eventType": "recruiter_outreach",
+  "extraction": {
+    "company": "Massive Dynamic",
+    "roleTitle": "New Grad Software Engineer",
+    "applicationType": "internship",
+    "portalUrl": "https://jobs.massivedynamic.example/portal/abc123",
+    "atsPlatform": "icims",
+    "confidence": 0.9
+  },
+  "minConfidence": 0.75,
+  "tags": [
+    "synthetic",
+    "ats_template"
+  ]
+}

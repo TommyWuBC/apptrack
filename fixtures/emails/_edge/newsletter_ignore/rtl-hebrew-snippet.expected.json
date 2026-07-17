@@ -1,0 +1,12 @@
+{
+  "eventType": "newsletter_ignore",
+  "extraction": {
+    "company": "Initech",
+    "source": "newsletter"
+  },
+  "minConfidence": 0.8,
+  "tags": [
+    "edge",
+    "rtl"
+  ]
+}

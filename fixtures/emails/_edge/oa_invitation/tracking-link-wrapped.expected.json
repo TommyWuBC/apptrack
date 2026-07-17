@@ -1,0 +1,14 @@
+{
+  "eventType": "oa_invitation",
+  "extraction": {
+    "company": "Hooli",
+    "roleTitle": "Software Engineering Intern",
+    "assessmentProvider": "codesignal",
+    "assessmentDeadline": "2026-03-22"
+  },
+  "minConfidence": 0.7,
+  "tags": [
+    "edge",
+    "tracking_link"
+  ]
+}

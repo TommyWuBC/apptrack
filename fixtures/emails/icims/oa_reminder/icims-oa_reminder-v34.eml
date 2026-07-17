@@ -1,0 +1,21 @@
+From: Acme Corp via iCIMS <donotreply@icims.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: Reminder: complete your Acme Corp assessment
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <icims-oa_reminder-v34@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_icimsoareminderv34_001"
+
+------=_Part_icimsoareminderv34_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Reminder: your Acme Corp assessment for Software Engineering Intern is due soon. Complete it at https://jobs.acmecorp.example/portal/abc123
+
+------=_Part_icimsoareminderv34_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Reminder: your Acme Corp assessment for Software Engineering Intern is due soon. Complete it at https://jobs.acmecorp.example/portal/abc123</p><p><a href="https://jobs.acmecorp.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_icimsoareminderv34_001--

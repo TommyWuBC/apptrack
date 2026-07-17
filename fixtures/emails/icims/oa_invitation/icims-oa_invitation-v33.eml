@@ -1,0 +1,21 @@
+From: Massive Dynamic via iCIMS <donotreply@icims.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?T25saW5lIGFzc2Vzc21lbnQgaW52aXRhdGlvbiDigJQgTWFzc2l2ZSBEeW5hbWlj?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <icims-oa_invitation-v33@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_icimsoainvitationv33_001"
+
+------=_Part_icimsoainvitationv33_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Massive Dynamic invited you to complete an online assessment for Software Engineering Intern. Deadline: 2026-03-22. Start here: https://jobs.massivedynamic.example/portal/abc123
+
+------=_Part_icimsoainvitationv33_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Massive Dynamic invited you to complete an online assessment for Software Engineering Intern. Deadline: 2026-03-22. Start here: https://jobs.massivedynamic.example/portal/abc123</p><p><a href="https://jobs.massivedynamic.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_icimsoainvitationv33_001--

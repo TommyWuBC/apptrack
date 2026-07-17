@@ -1,0 +1,21 @@
+From: SmartRecruiters <no-reply@smartrecruiters.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?R2xvYmV4IHJlY3J1aXRpbmcg4oCUIHF1aWNrIGNoYXQ/?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <smartrecruiters-recruiter_outreach-v47@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_smartrecruitersrecruiteroutreachv47_001"
+
+------=_Part_smartrecruitersrecruiteroutreachv47_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Hi Alex — I'm Pat from Globex recruiting. Are you open to a chat about New Grad Software Engineer?
+
+------=_Part_smartrecruitersrecruiteroutreachv47_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Hi Alex — I'm Pat from Globex recruiting. Are you open to a chat about New Grad Software Engineer?</p><p><a href="https://jobs.globex.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_smartrecruitersrecruiteroutreachv47_001--

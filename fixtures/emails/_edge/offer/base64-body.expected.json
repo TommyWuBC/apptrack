@@ -1,0 +1,13 @@
+{
+  "eventType": "offer",
+  "extraction": {
+    "company": "Globex",
+    "roleTitle": "Software Engineering Intern",
+    "applicationType": "internship"
+  },
+  "minConfidence": 0.7,
+  "tags": [
+    "edge",
+    "base64_body"
+  ]
+}

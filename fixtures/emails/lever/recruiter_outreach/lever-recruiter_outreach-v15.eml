@@ -1,0 +1,21 @@
+From: Lever <no-reply@hire.lever.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?TWFzc2l2ZSBEeW5hbWljIHJlY3J1aXRpbmcg4oCUIHF1aWNrIGNoYXQ/?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <lever-recruiter_outreach-v15@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_leverrecruiteroutreachv15_001"
+
+------=_Part_leverrecruiteroutreachv15_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Hi Alex — I'm Pat from Massive Dynamic recruiting. Are you open to a chat about New Grad Software Engineer?
+
+------=_Part_leverrecruiteroutreachv15_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Hi Alex — I'm Pat from Massive Dynamic recruiting. Are you open to a chat about New Grad Software Engineer?</p><p><a href="https://jobs.massivedynamic.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_leverrecruiteroutreachv15_001--

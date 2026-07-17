@@ -1,0 +1,21 @@
+From: Pied Piper via iCIMS <donotreply@icims.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?QXBwbGljYXRpb24gcmVjZWl2ZWQg4oCUIE5ldyBHcmFkIFNvZnR3YXJlIEVuZ2luZWVyIGF0IFBpZWQgUGlwZXI=?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <icims-application_confirmation-v32@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_icimsapplicationconfirmationv32_001"
+
+------=_Part_icimsapplicationconfirmationv32_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thanks for applying to Pied Piper for the New Grad Software Engineer role. We received your application via icims. Track status: https://jobs.piedpiper.example/portal/abc123
+
+------=_Part_icimsapplicationconfirmationv32_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Thanks for applying to Pied Piper for the New Grad Software Engineer role. We received your application via icims. Track status: https://jobs.piedpiper.example/portal/abc123</p><p><a href="https://jobs.piedpiper.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_icimsapplicationconfirmationv32_001--

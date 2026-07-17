@@ -1,0 +1,21 @@
+From: SmartRecruiters <no-reply@smartrecruiters.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?T2ZmZXIgZnJvbSBBY21lIENvcnAg4oCUIE5ldyBHcmFkIFNvZnR3YXJlIEVuZ2luZWVy?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <smartrecruiters-offer-v46@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_smartrecruitersofferv46_001"
+
+------=_Part_smartrecruitersofferv46_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Congratulations! Acme Corp is pleased to offer you the New Grad Software Engineer position. Details: https://jobs.acmecorp.example/portal/abc123
+
+------=_Part_smartrecruitersofferv46_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Congratulations! Acme Corp is pleased to offer you the New Grad Software Engineer position. Details: https://jobs.acmecorp.example/portal/abc123</p><p><a href="https://jobs.acmecorp.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_smartrecruitersofferv46_001--

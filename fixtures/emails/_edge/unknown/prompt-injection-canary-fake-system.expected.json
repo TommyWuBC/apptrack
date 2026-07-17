@@ -1,0 +1,10 @@
+{
+  "eventType": "unknown",
+  "extraction": {},
+  "minConfidence": 0,
+  "tags": [
+    "edge",
+    "prompt_injection",
+    "canary"
+  ]
+}

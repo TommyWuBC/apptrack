@@ -1,0 +1,14 @@
+{
+  "eventType": "recruiter_outreach",
+  "extraction": {
+    "company": "Hooli",
+    "roleTitle": "New Grad Software Engineer",
+    "recruiterName": "Pat Recruiter",
+    "recruiterEmail": "pat@hooli.example"
+  },
+  "minConfidence": 0.55,
+  "tags": [
+    "edge",
+    "quoted_reply"
+  ]
+}

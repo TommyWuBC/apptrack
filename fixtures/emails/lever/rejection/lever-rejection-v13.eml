@@ -1,0 +1,21 @@
+From: Lever <no-reply@hire.lever.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: Update on your application to Hooli
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <lever-rejection-v13@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_leverrejectionv13_001"
+
+------=_Part_leverrejectionv13_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thank you for your interest in New Grad Software Engineer at Hooli. After careful review, we will not be moving forward.
+
+------=_Part_leverrejectionv13_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Thank you for your interest in New Grad Software Engineer at Hooli. After careful review, we will not be moving forward.</p><p><a href="https://jobs.hooli.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_leverrejectionv13_001--

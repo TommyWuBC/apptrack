@@ -1,0 +1,21 @@
+From: Ashby <noreply@ashbyhq.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?QXBwbGljYXRpb24gcmVjZWl2ZWQg4oCUIE5ldyBHcmFkIFNvZnR3YXJlIEVuZ2luZWVyIGF0IEluaXRlY2g=?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <ashby-application_confirmation-v24@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_ashbyapplicationconfirmationv24_001"
+
+------=_Part_ashbyapplicationconfirmationv24_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thanks for applying to Initech for the New Grad Software Engineer role. We received your application via ashby. Track status: https://jobs.initech.example/portal/abc123
+
+------=_Part_ashbyapplicationconfirmationv24_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Thanks for applying to Initech for the New Grad Software Engineer role. We received your application via ashby. Track status: https://jobs.initech.example/portal/abc123</p><p><a href="https://jobs.initech.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_ashbyapplicationconfirmationv24_001--
