@@ -1,0 +1,21 @@
+From: Greenhouse <no-reply@hooli.example.mail.greenhouse.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?T25saW5lIGFzc2Vzc21lbnQgaW52aXRhdGlvbiDigJQgSG9vbGk=?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <greenhouse-oa_invitation-v1@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_greenhouseoainvitationv1_001"
+
+------=_Part_greenhouseoainvitationv1_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Hooli invited you to complete an online assessment for Software Engineering Intern. Deadline: 2026-03-22. Start here: https://jobs.hooli.example/portal/abc123
+
+------=_Part_greenhouseoainvitationv1_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Hooli invited you to complete an online assessment for Software Engineering Intern. Deadline: 2026-03-22. Start here: https://jobs.hooli.example/portal/abc123</p><p><a href="https://jobs.hooli.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_greenhouseoainvitationv1_001--

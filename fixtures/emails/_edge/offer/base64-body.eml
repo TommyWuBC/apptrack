@@ -1,0 +1,10 @@
+From: Globex HR <hr@globex.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: Offer from Globex
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <base64-body@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+
+Q29uZ3JhdHVsYXRpb25zISBHbG9iZXggaXMgcGxlYXNlZCB0byBvZmZlciB5b3UgdGhlIFNvZnR3YXJlIEVuZ2luZWVyaW5nIEludGVybiBwb3NpdGlvbi4=

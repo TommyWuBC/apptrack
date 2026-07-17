@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-apptrack}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apptrack}
+      POSTGRES_DB: ${POSTGRES_DB:-apptrack}
+    volumes:
+      - apptrack_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-apptrack}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  apptrack-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-apptrack}:${POSTGRES_PASSWORD:-apptrack}@postgres:5432/${POSTGRES_DB:-apptrack}
+    ports:
+      - "${PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  apptrack-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-apptrack}:${POSTGRES_PASSWORD:-apptrack}@postgres:5432/${POSTGRES_DB:-apptrack}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  apptrack_pg:

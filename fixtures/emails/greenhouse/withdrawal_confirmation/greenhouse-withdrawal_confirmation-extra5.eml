@@ -1,0 +1,21 @@
+From: Greenhouse <no-reply@globex.example.mail.greenhouse.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?V2l0aGRyYXdhbCBjb25maXJtZWQg4oCUIEdsb2JleA==?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <greenhouse-withdrawal_confirmation-extra5@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_greenhousewithdrawalconfirmationextra5_001"
+
+------=_Part_greenhousewithdrawalconfirmationextra5_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+We confirmed withdrawal of your application for Software Engineering Intern at Globex.
+
+------=_Part_greenhousewithdrawalconfirmationextra5_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>We confirmed withdrawal of your application for Software Engineering Intern at Globex.</p><p><a href="https://jobs.globex.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_greenhousewithdrawalconfirmationextra5_001--

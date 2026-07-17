@@ -1,0 +1,23 @@
+From: CodeSignal <noreply@codesignal.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?T25saW5lIGFzc2Vzc21lbnQgaW52aXRhdGlvbiDigJQgSG9vbGk=?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <tracking-link-wrapped@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_trackinglinkwrapped_001"
+
+------=_Part_trackinglinkwrapped_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Hooli invited you to an assessment.
+
+Start: https://click.sendgrid.example/ss/u?u=https%3A%2F%2Fapp.codesignal.example%2Ftest%2Fabc&d=xxxx
+
+------=_Part_trackinglinkwrapped_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<p>Hooli assessment</p><a href="https://click.sendgrid.example/ss/u?u=https%3A%2F%2Fapp.codesignal.example%2Ftest%2Fabc">Start</a>
+
+------=_Part_trackinglinkwrapped_001--

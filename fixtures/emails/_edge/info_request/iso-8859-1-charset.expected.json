@@ -1,0 +1,12 @@
+{
+  "eventType": "info_request",
+  "extraction": {
+    "company": "Massive Dynamic",
+    "roleTitle": "Software Engineering Intern"
+  },
+  "minConfidence": 0.65,
+  "tags": [
+    "edge",
+    "non_utf8_charset"
+  ]
+}

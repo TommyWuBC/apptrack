@@ -1,0 +1,21 @@
+From: Ashby <noreply@ashbyhq.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?T2ZmZXIgZnJvbSBJbml0ZWNoIOKAlCBOZXcgR3JhZCBTb2Z0d2FyZSBFbmdpbmVlcg==?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <ashby-offer-v30@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_ashbyofferv30_001"
+
+------=_Part_ashbyofferv30_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Congratulations! Initech is pleased to offer you the New Grad Software Engineer position. Details: https://jobs.initech.example/portal/abc123
+
+------=_Part_ashbyofferv30_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Congratulations! Initech is pleased to offer you the New Grad Software Engineer position. Details: https://jobs.initech.example/portal/abc123</p><p><a href="https://jobs.initech.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_ashbyofferv30_001--

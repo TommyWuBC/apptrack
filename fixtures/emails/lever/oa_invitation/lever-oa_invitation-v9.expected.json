@@ -1,0 +1,16 @@
+{
+  "eventType": "oa_invitation",
+  "extraction": {
+    "company": "Massive Dynamic",
+    "roleTitle": "Software Engineering Intern",
+    "applicationType": "internship",
+    "portalUrl": "https://jobs.massivedynamic.example/portal/abc123",
+    "atsPlatform": "lever",
+    "confidence": 0.9
+  },
+  "minConfidence": 0.75,
+  "tags": [
+    "synthetic",
+    "ats_template"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "eventType": "rejection",
+  "extraction": {
+    "company": "Acme Corp",
+    "roleTitle": "Software Engineering Intern"
+  },
+  "minConfidence": 0.7,
+  "tags": [
+    "edge",
+    "plain_only"
+  ]
+}

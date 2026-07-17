@@ -1,0 +1,116 @@
+{
+  "version": "1",
+  "generatedAt": "2026-07-17T06:36:21.078Z",
+  "classifierVersion": null,
+  "overall": {
+    "precision": 0,
+    "recall": 0,
+    "f1": 0,
+    "support": 69
+  },
+  "perEventType": {
+    "application_confirmation": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 9
+    },
+    "oa_invitation": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 7
+    },
+    "oa_reminder": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 6
+    },
+    "recruiter_outreach": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 7
+    },
+    "interview_invitation": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 6
+    },
+    "interview_scheduled": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 7
+    },
+    "interview_rescheduled": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 1
+    },
+    "interview_cancelled": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 1
+    },
+    "followup_request": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 1
+    },
+    "info_request": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 2
+    },
+    "rejection": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 7
+    },
+    "offer": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 7
+    },
+    "waitlist_or_freeze": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 1
+    },
+    "withdrawal_confirmation": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 1
+    },
+    "duplicate_application_notice": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 1
+    },
+    "newsletter_ignore": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 2
+    },
+    "unknown": {
+      "precision": 0,
+      "recall": 0,
+      "f1": 0,
+      "support": 3
+    }
+  },
+  "notes": "M3 skeleton: classifier not implemented. All predictions null → F1=0. Replace classifyStub in M7."
+}

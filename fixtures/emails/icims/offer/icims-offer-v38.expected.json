@@ -1,0 +1,16 @@
+{
+  "eventType": "offer",
+  "extraction": {
+    "company": "Pied Piper",
+    "roleTitle": "New Grad Software Engineer",
+    "applicationType": "internship",
+    "portalUrl": "https://jobs.piedpiper.example/portal/abc123",
+    "atsPlatform": "icims",
+    "confidence": 0.9
+  },
+  "minConfidence": 0.75,
+  "tags": [
+    "synthetic",
+    "ats_template"
+  ]
+}

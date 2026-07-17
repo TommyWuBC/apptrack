@@ -1,0 +1,14 @@
+{
+  "eventType": "application_confirmation",
+  "extraction": {
+    "company": "Initech",
+    "roleTitle": "Software Engineering Intern",
+    "applicationType": "internship",
+    "atsPlatform": "greenhouse"
+  },
+  "minConfidence": 0.6,
+  "tags": [
+    "edge",
+    "forwarded"
+  ]
+}

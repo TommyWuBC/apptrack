@@ -1,0 +1,21 @@
+From: Greenhouse <no-reply@acme.example.mail.greenhouse.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?SW50ZXJ2aWV3IGNvbmZpcm1lZCDigJQgQWNtZSBDb3Jw?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <greenhouse-interview_scheduled-v4@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_greenhouseinterviewscheduledv4_001"
+
+------=_Part_greenhouseinterviewscheduledv4_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Your interview for New Grad Software Engineer at Acme Corp is confirmed for 2026-03-20 10:00 America/Los_Angeles (video).
+
+------=_Part_greenhouseinterviewscheduledv4_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Your interview for New Grad Software Engineer at Acme Corp is confirmed for 2026-03-20 10:00 America/Los_Angeles (video).</p><p><a href="https://jobs.acmecorp.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_greenhouseinterviewscheduledv4_001--

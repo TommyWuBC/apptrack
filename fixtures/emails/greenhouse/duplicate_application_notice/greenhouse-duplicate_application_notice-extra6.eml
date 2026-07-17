@@ -1,0 +1,21 @@
+From: Greenhouse <no-reply@initech.example.mail.greenhouse.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?RHVwbGljYXRlIGFwcGxpY2F0aW9uIG5vdGljZSDigJQgSW5pdGVjaA==?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <greenhouse-duplicate_application_notice-extra6@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_greenhouseduplicateapplicationnoticeextra6_001"
+
+------=_Part_greenhouseduplicateapplicationnoticeextra6_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+We noticed a duplicate application for Software Engineering Intern at Initech. We will keep the most recent submission.
+
+------=_Part_greenhouseduplicateapplicationnoticeextra6_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>We noticed a duplicate application for Software Engineering Intern at Initech. We will keep the most recent submission.</p><p><a href="https://jobs.initech.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_greenhouseduplicateapplicationnoticeextra6_001--

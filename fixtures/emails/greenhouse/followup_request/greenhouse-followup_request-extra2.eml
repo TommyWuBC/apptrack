@@ -1,0 +1,21 @@
+From: Greenhouse <no-reply@piedpiper.example.mail.greenhouse.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?Rm9sbG93LXVwIHJlcXVlc3RlZCDigJQgUGllZCBQaXBlcg==?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <greenhouse-followup_request-extra2@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_greenhousefollowuprequestextra2_001"
+
+------=_Part_greenhousefollowuprequestextra2_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Following up on your application for Software Engineering Intern at Pied Piper. Please reply with your availability.
+
+------=_Part_greenhousefollowuprequestextra2_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Following up on your application for Software Engineering Intern at Pied Piper. Please reply with your availability.</p><p><a href="https://jobs.piedpiper.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_greenhousefollowuprequestextra2_001--

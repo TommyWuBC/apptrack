@@ -1,0 +1,16 @@
+{
+  "eventType": "interview_invitation",
+  "extraction": {
+    "company": "Massive Dynamic",
+    "roleTitle": "New Grad Software Engineer",
+    "applicationType": "internship",
+    "portalUrl": "https://jobs.massivedynamic.example/portal/abc123",
+    "atsPlatform": "ashby",
+    "confidence": 0.9
+  },
+  "minConfidence": 0.75,
+  "tags": [
+    "synthetic",
+    "ats_template"
+  ]
+}

@@ -1,0 +1,21 @@
+From: Greenhouse <no-reply@initech.example.mail.greenhouse.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?SW50ZXJ2aWV3IHJlc2NoZWR1bGVkIOKAlCBJbml0ZWNo?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <greenhouse-interview_rescheduled-extra0@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_greenhouseinterviewrescheduledextra0_001"
+
+------=_Part_greenhouseinterviewrescheduledextra0_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Your Initech interview for Software Engineering Intern has been moved to 2026-03-21 14:00 America/Los_Angeles.
+
+------=_Part_greenhouseinterviewrescheduledextra0_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Your Initech interview for Software Engineering Intern has been moved to 2026-03-21 14:00 America/Los_Angeles.</p><p><a href="https://jobs.initech.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_greenhouseinterviewrescheduledextra0_001--

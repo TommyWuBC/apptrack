@@ -1,0 +1,21 @@
+From: Greenhouse <no-reply@hooli.example.mail.greenhouse.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?SW50ZXJ2aWV3IGNhbmNlbGxlZCDigJQgSG9vbGk=?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <greenhouse-interview_cancelled-extra1@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_greenhouseinterviewcancelledextra1_001"
+
+------=_Part_greenhouseinterviewcancelledextra1_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Your upcoming interview for Software Engineering Intern at Hooli has been cancelled. We will follow up if plans change.
+
+------=_Part_greenhouseinterviewcancelledextra1_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Your upcoming interview for Software Engineering Intern at Hooli has been cancelled. We will follow up if plans change.</p><p><a href="https://jobs.hooli.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_greenhouseinterviewcancelledextra1_001--

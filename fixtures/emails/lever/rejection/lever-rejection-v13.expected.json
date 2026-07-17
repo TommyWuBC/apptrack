@@ -1,0 +1,16 @@
+{
+  "eventType": "rejection",
+  "extraction": {
+    "company": "Hooli",
+    "roleTitle": "New Grad Software Engineer",
+    "applicationType": "internship",
+    "portalUrl": "https://jobs.hooli.example/portal/abc123",
+    "atsPlatform": "lever",
+    "confidence": 0.9
+  },
+  "minConfidence": 0.75,
+  "tags": [
+    "synthetic",
+    "ats_template"
+  ]
+}

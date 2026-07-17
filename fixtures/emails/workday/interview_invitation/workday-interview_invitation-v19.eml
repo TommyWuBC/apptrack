@@ -1,0 +1,21 @@
+From: Hooli Careers <noreply@myworkday.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?SW50ZXJ2aWV3IGludml0YXRpb24g4oCUIE5ldyBHcmFkIFNvZnR3YXJlIEVuZ2luZWVyLCBIb29saQ==?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <workday-interview_invitation-v19@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_workdayinterviewinvitationv19_001"
+
+------=_Part_workdayinterviewinvitationv19_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+We'd like to invite you to interview for New Grad Software Engineer at Hooli. Please pick a time: https://jobs.hooli.example/portal/abc123
+
+------=_Part_workdayinterviewinvitationv19_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>We'd like to invite you to interview for New Grad Software Engineer at Hooli. Please pick a time: https://jobs.hooli.example/portal/abc123</p><p><a href="https://jobs.hooli.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_workdayinterviewinvitationv19_001--

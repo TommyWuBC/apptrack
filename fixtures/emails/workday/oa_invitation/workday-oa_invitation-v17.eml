@@ -1,0 +1,21 @@
+From: Globex Careers <noreply@myworkday.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?T25saW5lIGFzc2Vzc21lbnQgaW52aXRhdGlvbiDigJQgR2xvYmV4?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <workday-oa_invitation-v17@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_workdayoainvitationv17_001"
+
+------=_Part_workdayoainvitationv17_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Globex invited you to complete an online assessment for Software Engineering Intern. Deadline: 2026-03-22. Start here: https://jobs.globex.example/portal/abc123
+
+------=_Part_workdayoainvitationv17_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Globex invited you to complete an online assessment for Software Engineering Intern. Deadline: 2026-03-22. Start here: https://jobs.globex.example/portal/abc123</p><p><a href="https://jobs.globex.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_workdayoainvitationv17_001--

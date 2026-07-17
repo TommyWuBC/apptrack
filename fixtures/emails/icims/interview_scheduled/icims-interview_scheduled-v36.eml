@@ -1,0 +1,21 @@
+From: Initech via iCIMS <donotreply@icims.example>
+To: Alex Rivera <alex.rivera@example.com>
+Subject: =?UTF-8?B?SW50ZXJ2aWV3IGNvbmZpcm1lZCDigJQgSW5pdGVjaA==?=
+Date: Sun, 15 Mar 2026 14:30:00 +0000
+Message-ID: <icims-interview_scheduled-v36@fixtures.apptrack.example>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_icimsinterviewscheduledv36_001"
+
+------=_Part_icimsinterviewscheduledv36_001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Your interview for New Grad Software Engineer at Initech is confirmed for 2026-03-20 10:00 America/Los_Angeles (video).
+
+------=_Part_icimsinterviewscheduledv36_001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Your interview for New Grad Software Engineer at Initech is confirmed for 2026-03-20 10:00 America/Los_Angeles (video).</p><p><a href="https://jobs.initech.example/portal/abc123">Open portal</a></p></body></html>
+
+------=_Part_icimsinterviewscheduledv36_001--
