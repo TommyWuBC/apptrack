@@ -15,3 +15,12 @@ export {
   fetchUserEmail,
 } from "./oauth.js";
 export type { GoogleOAuthConfig, TokenSet } from "./oauth.js";
+export {
+  createGmailEmailProvider,
+  GmailEmailProvider,
+  HistoryExpiredError,
+} from "./adapter.js";
+export type {
+  GmailAccessTokenProvider,
+  GmailEmailProviderOpts,
+} from "./adapter.js";

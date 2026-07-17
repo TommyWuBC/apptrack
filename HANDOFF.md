@@ -1,26 +1,25 @@
 # HANDOFF
 
 ## Current state
-**M4 complete.** Gmail OAuth (PKCE connect/callback/disconnect/refresh), encrypted credential storage, `docs/gmail-oauth.md`, nock unit tests + INV-4 static guards. Integration OAuth tests skip without `DATABASE_URL`. See `PROGRESS.md`.
+**M7 complete.** Deterministic classification (L1+L2), golden eval F1≈0.97, sync auto-classify, `docs/classification.md`. M5–M7 verified green; pushed to GitHub.
 
 ## Last action taken
-Finished M4; ran `typecheck` / `lint` / `test` / `boundaries` / `test:fixtures` / `eval` (all green); committed and pushed to GitHub.
+Implemented M7; ran full gate + eval; committed and pushed.
 
 ## Next action
-**M5 — Incremental Gmail sync:** gmail adapter (`history` + backfill + fetch), `email.sync` / `email.backfill` jobs, cursor management, L0 prefilter hook, provider contract tests.
+**M8 — Application matching:** matcher signals/thresholds, `application.match` + review items, match_candidates audit.
 
-Optional beforehand: clear M2 ⚠️ with Docker migrate + db integration (unblocks M4 integration suite too).
+Optional: Docker → live Postgres proof for M2/M4–M7 integration.
 
 ## Open blockers
-- Docker Desktop (blocks live Postgres proof for M2 + M4 integration tests).
+- Docker Desktop (live DB proof).
 
 ## Gotchas
-- Gmail routes register only when `APP_ENCRYPTION_KEY` + `GOOGLE_CLIENT_ID/SECRET` are set (or config injected in tests).
-- Testing-mode Google consent expires refresh tokens ~7 days — see `docs/gmail-oauth.md`.
-- Tokens never in API JSON (INV-4); encrypt in apps before `oauthCredentialsRepo`.
+- Classifier `clf-2026.07.0` / rules `rules-2026.07.0` — bump on behavior change; update `fixtures/golden/baseline.json` in same PR.
+- `pnpm eval` fails CI if core-type F1 < 0.85 or any type drops >2pts vs baseline.
+- Prompt-injection canaries must stay `unknown` (do not follow body instructions).
 
 ## Do not
-- Import `googleapis` outside `packages/providers`.
-- Store plaintext OAuth tokens.
-- Start sync/history jobs without finishing OAuth credential path (already done).
+- Make LLM classification the default (L3 is M13, opt-in).
+- Fetch URLs from email (INV-6).
 - Commit real emails or `.env` secrets.

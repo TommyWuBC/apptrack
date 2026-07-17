@@ -5,6 +5,9 @@ import { loadServerConfig, type ServerConfig } from "./config.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerHelloRoutes } from "./routes/hello.js";
 import { registerGmailRoutes } from "./routes/gmail.js";
+import { registerSyncRoutes } from "./routes/sync.js";
+import { registerNormalizeRoutes } from "./routes/normalize.js";
+import { registerClassifyRoutes } from "./routes/classify.js";
 
 export type AppDb = Database | null;
 
@@ -75,6 +78,11 @@ export async function buildApp(
   if (config) {
     await registerGmailRoutes(app, config);
   }
+
+  // Sync works with mock provider even without Google OAuth config.
+  await registerSyncRoutes(app, config);
+  await registerNormalizeRoutes(app);
+  await registerClassifyRoutes(app);
 
   app.get("/api/v1/core-ping", async () => coreHealth());
   app.get("/api/v1/db-ping", async () => dbHealth(db ?? undefined));

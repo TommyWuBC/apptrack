@@ -12,9 +12,6 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@apptrack/core": "workspace:*",
-    "@apptrack/db": "workspace:*",
-    "@apptrack/providers": "workspace:*",
     "@apptrack/shared": "workspace:*"
   },
   "devDependencies": {

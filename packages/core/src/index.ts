@@ -11,3 +11,38 @@ export {
   decodeEncryptionKey,
 } from "./crypto/index.js";
 export type { EncryptedPayload } from "./crypto/index.js";
+export {
+  prefilterEmail,
+  type PrefilterDecision,
+  type PrefilterHeaders,
+} from "./classification/prefilter.js";
+export {
+  ATS_SENDER_DOMAINS,
+  domainOfAddress,
+  isAtsSenderDomain,
+} from "./classification/ats/senders.js";
+export {
+  classifyEmail,
+  CLASSIFIER_VERSION,
+  RULES_VERSION,
+  type ClassifyInput,
+} from "./classification/classify.js";
+export { detectAtsPlatform } from "./classification/ats/detect.js";
+export { EXTRACTION_SCHEMA_VERSION } from "./classification/version.js";
+export {
+  normalizeEmail,
+  NORMALIZER_VERSION,
+  sanitizeEmailHtml,
+  stripQuotesAndSignatures,
+  extractLinks,
+  isTrackingUrl,
+  unwrapTrackingUrl,
+  parseCalendarIcs,
+  detectLanguageHeuristic,
+} from "./normalize/index.js";
+export type {
+  NormalizeEmailInput,
+  NormalizedEmailV1,
+  ExtractedLink,
+  CalendarEventNormalized,
+} from "./normalize/index.js";

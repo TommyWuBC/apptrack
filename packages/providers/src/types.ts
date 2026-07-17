@@ -21,6 +21,9 @@ export type RawEmail = {
   fromName?: string;
   toAddresses?: string[];
   snippet?: string;
+  /** Structured body when MIME not available (Gmail format=full). */
+  textPlain?: string;
+  html?: string;
 };
 
 export type ChangeBatch = {
@@ -42,6 +45,10 @@ export interface EmailProvider {
   ): AsyncIterable<ChangeBatch>;
   listHistorical(query: BackfillQuery): AsyncIterable<RawEmailRef[]>;
   fetchMessage(ref: RawEmailRef): Promise<RawEmail>;
+  /** Optional: headers-only fetch for L0 prefilter (Gmail metadata). */
+  fetchMetadata?(ref: RawEmailRef): Promise<RawEmail>;
+  /** Current mailbox watermark (Gmail profile historyId / mock index). */
+  getMailboxCursor?(): Promise<SyncCursor>;
   refreshAuth(): Promise<void>;
   readonly capabilities: {
     push: boolean;

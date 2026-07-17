@@ -9,6 +9,7 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@apptrack/core": "workspace:^",
     "@apptrack/shared": "workspace:*"
   },
   "scripts": {
