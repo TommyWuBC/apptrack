@@ -9,6 +9,7 @@ import { registerSyncRoutes } from "./routes/sync.js";
 import { registerNormalizeRoutes } from "./routes/normalize.js";
 import { registerClassifyRoutes } from "./routes/classify.js";
 import { registerMatchRoutes } from "./routes/match.js";
+import { registerApplicationRoutes } from "./routes/applications.js";
 
 export type AppDb = Database | null;
 
@@ -85,6 +86,7 @@ export async function buildApp(
   await registerNormalizeRoutes(app);
   await registerClassifyRoutes(app);
   await registerMatchRoutes(app);
+  await registerApplicationRoutes(app);
 
   app.get("/api/v1/core-ping", async () => coreHealth());
   app.get("/api/v1/db-ping", async () => dbHealth(db ?? undefined));

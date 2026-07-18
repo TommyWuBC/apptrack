@@ -4,6 +4,7 @@ export {
   ClassifierMode,
   MatchDecision,
   ReviewKind,
+  ApplicationEventType,
 } from "./enums.js";
 export type {
   EventType as EventTypeT,
@@ -11,6 +12,7 @@ export type {
   ClassifierMode as ClassifierModeT,
   MatchDecision as MatchDecisionT,
   ReviewKind as ReviewKindT,
+  ApplicationEventType as ApplicationEventTypeT,
 } from "./enums.js";
 export { ErrorCode, AppError } from "./errors.js";
 export {
@@ -20,6 +22,9 @@ export {
   MatchSignalSchema,
   MatchCandidateScoreSchema,
   MatchResultV1Schema,
+  ReducerEventV1Schema,
+  StateTimelineEntryV1Schema,
+  ReduceResultV1Schema,
 } from "./schemas.js";
 export type {
   ExtractionV1,
@@ -28,6 +33,9 @@ export type {
   MatchSignal,
   MatchCandidateScore,
   MatchResultV1,
+  ReducerEventV1,
+  StateTimelineEntryV1,
+  ReduceResultV1,
 } from "./schemas.js";
 export {
   FixtureExpectedV1Schema,
