@@ -62,3 +62,43 @@ export const ClassificationResultV1Schema = z.object({
 export type ClassificationResultV1 = z.infer<
   typeof ClassificationResultV1Schema
 >;
+
+/** Per-signal contribution for match explainability. AGENTS.md §15.1 */
+export const MatchSignalSchema = z.object({
+  name: z.string(),
+  weight: z.number(),
+  fired: z.boolean(),
+  contribution: z.number(),
+  detail: z.string().optional(),
+});
+
+export type MatchSignal = z.infer<typeof MatchSignalSchema>;
+
+export const MatchCandidateScoreSchema = z.object({
+  applicationId: z.string(),
+  score: z.number().min(0).max(1),
+  signals: z.array(MatchSignalSchema),
+});
+
+export type MatchCandidateScore = z.infer<typeof MatchCandidateScoreSchema>;
+
+/**
+ * Pure matcher output (before persistence). AGENTS.md §15.2
+ * Breaking changes → MatchResultV2.
+ */
+export const MatchResultV1Schema = z.object({
+  matcherVersion: z.string(),
+  decision: z.enum([
+    "auto_attached",
+    "review",
+    "rejected",
+    "new_application",
+  ]),
+  selectedApplicationId: z.string().nullable(),
+  score: z.number().min(0).max(1),
+  margin: z.number().min(0).max(1),
+  candidates: z.array(MatchCandidateScoreSchema),
+  reason: z.string(),
+});
+
+export type MatchResultV1 = z.infer<typeof MatchResultV1Schema>;

@@ -1,15 +1,33 @@
-export { EventType, ApplicationState, ClassifierMode } from "./enums.js";
-export type { EventType as EventTypeT, ApplicationState as ApplicationStateT, ClassifierMode as ClassifierModeT } from "./enums.js";
+export {
+  EventType,
+  ApplicationState,
+  ClassifierMode,
+  MatchDecision,
+  ReviewKind,
+} from "./enums.js";
+export type {
+  EventType as EventTypeT,
+  ApplicationState as ApplicationStateT,
+  ClassifierMode as ClassifierModeT,
+  MatchDecision as MatchDecisionT,
+  ReviewKind as ReviewKindT,
+} from "./enums.js";
 export { ErrorCode, AppError } from "./errors.js";
 export {
   ExtractionV1Schema,
   EvidenceItemSchema,
   ClassificationResultV1Schema,
+  MatchSignalSchema,
+  MatchCandidateScoreSchema,
+  MatchResultV1Schema,
 } from "./schemas.js";
 export type {
   ExtractionV1,
   EvidenceItem,
   ClassificationResultV1,
+  MatchSignal,
+  MatchCandidateScore,
+  MatchResultV1,
 } from "./schemas.js";
 export {
   FixtureExpectedV1Schema,

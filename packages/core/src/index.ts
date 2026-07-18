@@ -46,3 +46,34 @@ export type {
   ExtractedLink,
   CalendarEventNormalized,
 } from "./normalize/index.js";
+export {
+  matchApplication,
+  MATCHER_VERSION,
+  MATCH_WEIGHTS,
+  AUTO_ATTACH_THRESHOLD,
+  AUTO_ATTACH_MARGIN,
+  REVIEW_FLOOR,
+  computeSignals,
+  clampScore,
+} from "./matching/index.js";
+export type {
+  MatchInput,
+  MatchCandidateContext,
+  MatchEmailContext,
+} from "./matching/index.js";
+export {
+  resolveCompany,
+  FUZZY_MERGE_THRESHOLD,
+  jaroWinkler,
+  normalizeRoleTitle,
+  inferRoleLevel,
+  roleTitleSimilarity,
+  SEED_COMPANY_ALIASES,
+} from "./resolution/index.js";
+export type {
+  AliasRecord,
+  ResolveCompanyInput,
+  ResolveCompanyResult,
+  RoleLevel,
+  SeedAlias,
+} from "./resolution/index.js";

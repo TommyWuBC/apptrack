@@ -8,6 +8,7 @@ import { registerGmailRoutes } from "./routes/gmail.js";
 import { registerSyncRoutes } from "./routes/sync.js";
 import { registerNormalizeRoutes } from "./routes/normalize.js";
 import { registerClassifyRoutes } from "./routes/classify.js";
+import { registerMatchRoutes } from "./routes/match.js";
 
 export type AppDb = Database | null;
 
@@ -83,6 +84,7 @@ export async function buildApp(
   await registerSyncRoutes(app, config);
   await registerNormalizeRoutes(app);
   await registerClassifyRoutes(app);
+  await registerMatchRoutes(app);
 
   app.get("/api/v1/core-ping", async () => coreHealth());
   app.get("/api/v1/db-ping", async () => dbHealth(db ?? undefined));

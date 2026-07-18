@@ -124,3 +124,18 @@ export async function getClassification(
     .limit(1);
   return row ?? null;
 }
+
+/** Latest classification for a message (any version). */
+export async function getLatestClassification(db: Database, messageId: string) {
+  const rows = await db
+    .select()
+    .from(classificationResults)
+    .where(eq(classificationResults.messageId, messageId));
+  if (rows.length === 0) return null;
+  // Prefer most recently created
+  rows.sort(
+    (a, b) =>
+      (b.createdAt?.getTime?.() ?? 0) - (a.createdAt?.getTime?.() ?? 0),
+  );
+  return rows[0]!;
+}

@@ -53,3 +53,25 @@ export const ClassifierMode = {
 
 export type ClassifierMode =
   (typeof ClassifierMode)[keyof typeof ClassifierMode];
+
+/** Application match decisions. AGENTS.md §15.2 */
+export const MatchDecision = {
+  auto_attached: "auto_attached",
+  review: "review",
+  rejected: "rejected",
+  new_application: "new_application",
+} as const;
+
+export type MatchDecision =
+  (typeof MatchDecision)[keyof typeof MatchDecision];
+
+/** Review queue item kinds. AGENTS.md §10.5 / §18.3 */
+export const ReviewKind = {
+  uncertain_classification: "uncertain_classification",
+  ambiguous_match: "ambiguous_match",
+  entity_merge_suggestion: "entity_merge_suggestion",
+  ghost_confirm: "ghost_confirm",
+  unmatched_email: "unmatched_email",
+} as const;
+
+export type ReviewKind = (typeof ReviewKind)[keyof typeof ReviewKind];
