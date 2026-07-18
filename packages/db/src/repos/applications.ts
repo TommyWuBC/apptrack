@@ -115,6 +115,16 @@ export async function listEventsForApplication(
     .orderBy(asc(applicationEvents.occurredAt), asc(applicationEvents.ingestedAt));
 }
 
+/** Find any event already attached to this message (idempotency for match). */
+export async function findEventByMessageId(db: Database, messageId: string) {
+  const [row] = await db
+    .select()
+    .from(applicationEvents)
+    .where(eq(applicationEvents.messageId, messageId))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function updateApplicationProjection(
   db: Database,
   applicationId: string,

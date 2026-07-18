@@ -13,6 +13,7 @@ import {
 } from "@apptrack/providers";
 import { normalizeAndStoreFromRaw } from "./email-normalize-service.js";
 import { classifyAndStoreMessage } from "./email-classify-service.js";
+import { matchAndStoreMessage } from "./application-match-service.js";
 
 const { accountsRepo, emailsRepo } = repos;
 
@@ -85,8 +86,9 @@ async function ingestRef(
     try {
       await normalizeAndStoreFromRaw(db, row.id, full);
       await classifyAndStoreMessage(db, row.id);
+      await matchAndStoreMessage(db, row.id);
     } catch {
-      // Normalize/classify failure must not roll back ingest; re-run via API
+      // Normalize/classify/match failure must not roll back ingest; re-run via API
     }
   }
 }

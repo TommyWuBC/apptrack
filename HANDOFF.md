@@ -1,25 +1,28 @@
 # HANDOFF
 
 ## Current state
-**M7 complete.** Deterministic classification (L1+L2), golden eval F1≈0.97, sync auto-classify, `docs/classification.md`. M5–M7 verified green; pushed to GitHub.
+**M8 complete.** Application matching (`match-v1`): signals/thresholds, company resolution (no silent merges), `application.match` + `match.reevaluate`, match_candidates audit, review queue items. Sync pipeline: normalize → classify → match.
 
 ## Last action taken
-Implemented M7; ran full gate + eval; committed and pushed.
+Implemented M8; ran typecheck/lint/test/boundaries (green); docs `docs/application-matching.md`.
 
 ## Next action
-**M8 — Application matching:** matcher signals/thresholds, `application.match` + review items, match_candidates audit.
+**M9 — Timeline & state machine:** pure reducer, all states/transitions, `application.recompute`, corrections-overlay stub, timeline API. Replace M8’s minimal `stateForEvent` projection poke.
 
-Optional: Docker → live Postgres proof for M2/M4–M7 integration.
+Optional: Docker → live Postgres proof for match persistence / review queue.
 
 ## Open blockers
-- Docker Desktop (live DB proof).
+- Docker Desktop (live DB proof). Integration tests skip without `DATABASE_URL`.
 
 ## Gotchas
-- Classifier `clf-2026.07.0` / rules `rules-2026.07.0` — bump on behavior change; update `fixtures/golden/baseline.json` in same PR.
-- `pnpm eval` fails CI if core-type F1 < 0.85 or any type drops >2pts vs baseline.
-- Prompt-injection canaries must stay `unknown` (do not follow body instructions).
+- Matcher `match-v1` — bump on behavior change (R-8).
+- Auto-attach requires score ≥ 0.75 **and** margin ≥ 0.2; otherwise review (never guess).
+- Fuzzy company names ≥ 0.85 Jaro-Winkler → `entity_merge_suggestion`, not silent merge.
+- Classifier `clf-2026.07.0` / rules `rules-2026.07.0` unchanged this milestone.
+- `pnpm eval` still required if touching classification.
 
 ## Do not
-- Make LLM classification the default (L3 is M13, opt-in).
+- Silent company merges (§14.4).
 - Fetch URLs from email (INV-6).
+- Overwrite user corrections (INV-7) — corrections UI is M11; do not poke locked fields.
 - Commit real emails or `.env` secrets.

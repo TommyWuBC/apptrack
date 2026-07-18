@@ -624,3 +624,87 @@ Deterministic-only (NFR-6). INV-5: short evidence strings only. Canaries verifie
 ### Follow-up
 
 **M8 — application matching** (attach classified emails to the right application or open a review item).
+
+## 2026-07-18 — cursor — Matching classified emails to applications
+
+**Meta:** branch `cursor/m8-application-matching-6a25` · milestone M8 · status completed
+
+### Problem being solved
+
+Classification alone labels an email ("this is an OA reminder") but does not say *which* application it belongs to. A person may have three open roles at the same company. Without matching, the timeline cannot form. Matching must attach confidently when evidence is strong, create a new application for confirmations when nothing fits, and otherwise ask the user — never guess.
+
+### Background concepts
+
+**Weighted signal scoring.** Each candidate application is scored by independent signals (same Gmail thread, shared requisition ID, recruiter address, role-title overlap, assessment provider continuity, recency, state fit). Weights sum and clamp to `[0, 1]`. The UI (later) can show each signal as evidence.
+
+**Threshold + margin.** High score alone is not enough if two applications score nearly the same. Auto-attach requires score ≥ 0.75 *and* a ≥ 0.2 gap over the runner-up. Mid-band or thin-margin cases become `ambiguous_match` review items.
+
+**No silent company merges.** Exact alias/domain hits attach to a known company. Fuzzy name similarity (Jaro-Winkler ≥ 0.85) opens an `entity_merge_suggestion` instead of merging automatically — wrong merges are hard to undo.
+
+**Idempotent attach.** A message that already has an `application_events` row is not attached again. Re-running match is safe; audit rows in `application_match_candidates` remain append-only.
+
+### Design decision
+
+1. Pure `matchApplication()` in `@apptrack/core` (testable without DB); orchestration in `apps/server` services.
+2. Minimal company/role resolution in `packages/core/resolution` so matching has a candidate set — full merge/split UX deferred to M11.
+3. Projection `current_state` updated with a tiny `stateForEvent` map; the real event-sourced reducer is **M9**.
+4. **Dependency:** `fast-check` (devDependency on `@apptrack/core`) for a property test that candidate order does not change the decision. Justification: blueprint §24.1 lists fast-check for determinism properties; ~weekly downloads in the millions; MIT; no runtime impact.
+
+### Implementation
+
+- `packages/shared` — `MatchDecision`, `ReviewKind`, `MatchResultV1` schemas.
+- `packages/core/matching` — weights, signals, `matchApplication`, version `match-v1`.
+- `packages/core/resolution` — Jaro-Winkler, seed aliases, `resolveCompany`, role normalization.
+- `packages/db/repos/matching.ts` — match candidates, review queue, aliases, roles, thread→application helpers.
+- `apps/server` — `application-match-service`, routes `/api/v1/match/*` + `/api/v1/review`; sync wires match after classify.
+- Docs — `docs/application-matching.md`.
+
+### Runtime flow
+
+1. Sync inserts a message → normalize → classify.
+2. `matchAndStoreMessage` resolves company, loads same-company applications, scores them.
+3. Decision:
+   - `auto_attached` → append `application_events` + bump projection state.
+   - `new_application` → create company/role/application + first event (confirmations).
+   - `review` → `review_queue_items` (`ambiguous_match` or `unmatched_email`).
+4. Every scored candidate writes `application_match_candidates` (signals JSON).
+5. A successful attach/create triggers `match.reevaluate` for open ambiguities at that company (nested reevaluate disabled to avoid recursion).
+
+### Bugs & failed approaches
+
+- Early draft called `reevaluate` from inside every `matchAndStoreMessage` *and* from reevaluate itself → risk of recursive fan-out. Fixed with `opts.reevaluate` (false when called from reevaluate).
+- Route order: registered `/match/reevaluate/:companyId` before `/match/:messageId` so `"reevaluate"` is not captured as a message id.
+
+### Tests
+
+Commands: `pnpm typecheck && pnpm lint && pnpm test && pnpm boundaries` — all green.
+
+- Core: threshold/margin, multi-role + thread continuity, reapplication via req ID, assessment continuity, confirmation→new app, fast-check determinism (40 runs).
+- Resolution: exact/fuzzy/create_new, role norm.
+- Server: match version + 503-without-DB routes.
+- DB integration still skips without live Postgres.
+
+### Security & privacy review
+
+No OAuth/token changes. Match audit stores signal names/scores/details — no full email bodies. INV-6 unchanged (URLs compared as strings, never fetched). Company merge suggestions require human confirmation.
+
+### Performance notes
+
+Candidate set is per-company applications for one user (NFR-1: ≤1000 apps). Thread sibling lookup is a single indexed query. Fine at envelope scale.
+
+### Interview prep
+
+**Q: Why require a margin over the runner-up, not just a high score?**  
+**A:** Two roles at the same company can both look plausible (same recruiter domain, similar titles). A score of 0.8 with a 0.01 gap means the model is guessing. The margin rule forces those into the review queue so the user decides — which is cheaper than undoing a wrong auto-attach later.
+
+**Follow-up:** How do you keep matching reproducible after rule changes?  
+**A:** `matcher_version` is stored on every `application_match_candidates` row (`match-v1`). Behavior changes bump the version (R-8). Historical audit rows keep their version string.
+
+**Q: Why not silently merge "Initech" and "Initechh"?**  
+**A:** Entity resolution errors poison every downstream timeline. Fuzzy hits become review suggestions; only exact alias/domain evidence auto-attaches. That trades a little more review volume for trust.
+
+**What I'd improve:** Extract requisition IDs into `ExtractionV1` explicitly (today we parse tokens from URLs/strings in the matcher); wire pg-boss job names `application.match` / `match.reevaluate` once the worker queue is more than HTTP polling.
+
+### Follow-up
+
+**M9 — timeline & state machine** replaces the stub `stateForEvent` with a pure reducer and `application.recompute`. Review UI resolution actions are M11.

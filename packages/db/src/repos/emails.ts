@@ -138,3 +138,16 @@ export async function countMessages(db: Database): Promise<number> {
     .from(emailMessages);
   return row?.n ?? 0;
 }
+
+/** Sibling message ids sharing the same provider thread (for match sameThread). */
+export async function listMessageIdsInThread(
+  db: Database,
+  threadId: string | null | undefined,
+): Promise<string[]> {
+  if (!threadId) return [];
+  const rows = await db
+    .select({ id: emailMessages.id })
+    .from(emailMessages)
+    .where(eq(emailMessages.threadId, threadId));
+  return rows.map((r) => r.id);
+}
