@@ -77,3 +77,16 @@ export type {
   RoleLevel,
   SeedAlias,
 } from "./resolution/index.js";
+export {
+  reduce,
+  REDUCER_VERSION,
+  orderEvents,
+  compareReducerEvents,
+  applyCorrections,
+  MEANINGFUL,
+  TERMINAL,
+} from "./statemachine/index.js";
+export type {
+  UserCorrection,
+  ProjectionFields,
+} from "./statemachine/index.js";

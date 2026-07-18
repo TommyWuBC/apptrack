@@ -142,3 +142,52 @@ export async function updateApplicationProjection(
     .returning();
   return row ?? null;
 }
+
+/** Set last_event_at from reducer (handles out-of-order appends). */
+export async function touchLastEventAt(
+  db: Database,
+  applicationId: string,
+  lastEventAt: Date,
+) {
+  const [row] = await db
+    .update(applications)
+    .set({ lastEventAt })
+    .where(eq(applications.id, applicationId))
+    .returning();
+  return row ?? null;
+}
+
+export async function getCompanyById(db: Database, id: string) {
+  const [row] = await db
+    .select()
+    .from(companies)
+    .where(eq(companies.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function listApplicationsWithCompany(
+  db: Database,
+  userId: string,
+) {
+  return db
+    .select({
+      id: applications.id,
+      userId: applications.userId,
+      companyId: applications.companyId,
+      companyName: companies.canonicalName,
+      roleId: applications.roleId,
+      currentState: applications.currentState,
+      appliedAt: applications.appliedAt,
+      source: applications.source,
+      lastEventAt: applications.lastEventAt,
+      ghostStatus: applications.ghostStatus,
+      actionRequired: applications.actionRequired,
+      stateVersion: applications.stateVersion,
+      createdAt: applications.createdAt,
+      updatedAt: applications.updatedAt,
+    })
+    .from(applications)
+    .innerJoin(companies, eq(companies.id, applications.companyId))
+    .where(eq(applications.userId, userId));
+}

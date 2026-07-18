@@ -72,6 +72,24 @@ export const ReviewKind = {
   entity_merge_suggestion: "entity_merge_suggestion",
   ghost_confirm: "ghost_confirm",
   unmatched_email: "unmatched_email",
+  /** Conflicting same-day events (e.g. reject + interview). §16.4 F14 */
+  state_conflict: "state_conflict",
 } as const;
 
 export type ReviewKind = (typeof ReviewKind)[keyof typeof ReviewKind];
+
+/**
+ * Timeline event types = FR-1 + system/user control events. AGENTS.md §10.4
+ */
+export const ApplicationEventType = {
+  ...EventType,
+  manual_override: "manual_override",
+  match_reassigned: "match_reassigned",
+  created_manually: "created_manually",
+  ghost_flagged: "ghost_flagged",
+  ghost_dismissed: "ghost_dismissed",
+  ghost_cleared: "ghost_cleared",
+} as const;
+
+export type ApplicationEventType =
+  (typeof ApplicationEventType)[keyof typeof ApplicationEventType];

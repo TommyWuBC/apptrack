@@ -708,3 +708,72 @@ Candidate set is per-company applications for one user (NFR-1: ≤1000 apps). Th
 ### Follow-up
 
 **M9 — timeline & state machine** replaces the stub `stateForEvent` with a pure reducer and `application.recompute`. Review UI resolution actions are M11.
+
+## 2026-07-18 — cursor — Event-sourced application timeline (reducer)
+
+**Meta:** branch `cursor/m9-timeline-state-machine-6a25` · milestone M9 · status completed
+
+### Problem being solved
+
+Matching appends events, but "current status" was a one-shot map from the latest event type. That breaks when mail arrives out of order, when a rejection is followed by a later interview, or when the user asks "how did you get to interviewing?" The product needs a replayable history: events are truth; status is derived.
+
+### Background concepts
+
+**Event sourcing (lite).** Instead of updating a status column in place, we append facts (`application_confirmation`, `rejection`, …). A pure function — the **reducer** — walks those facts in order and returns the current state. Delete the projection, re-run the reducer, get the same answer (INV-9).
+
+**Ordering key.** Emails are not arrival-ordered. We sort by `(occurred_at, ingested_at, id)` so backfill and live sync commute.
+
+**Conflict flag, not drop.** Same-day rejection + interview invite both stay in the log; the reducer sets `flags.conflict` and opens a review item. Dropping either would erase evidence.
+
+**Corrections overlay.** After the machine computes a projection, user corrections/locks are applied on top (INV-7). M9 ships the stub hook; the full UI is M11.
+
+### Design decision
+
+1. Pure `reduce()` in `@apptrack/core` with version `state-v1`.
+2. `recomputeApplication` in the server loads events, reduces, overlays corrections, writes projection + optional `state_conflict` review item.
+3. Match attach/create calls recompute instead of `stateForEvent` — one projection path.
+4. Timeline API returns stored events plus the reduce result for explainability.
+
+### Implementation
+
+- `packages/core/src/statemachine/*` — order, reduce, apply-corrections stub, tests (incl. fast-check permutations).
+- `packages/shared` — `ApplicationEventType`, `ReduceResultV1`, `ReducerEventV1`.
+- `apps/server` — `application-recompute-service`, routes under `/api/v1/applications`.
+- Docs — `docs/application-timeline.md`.
+
+### Runtime flow
+
+1. Match appends an `application_events` row.
+2. `recomputeApplication` lists events → `reduce` → `applyCorrections` → update `applications.current_state` / `action_required` / `state_version`.
+3. UI (M10) loads `GET /applications/:id/timeline`.
+
+### Bugs & failed approaches
+
+- Lint `prefer-const` on reducer step object (mutated fields, not reassigned) — fixed.
+- Avoided double-pop on `interview_cancelled` so cancel from interviewing returns to confirmation, not applied.
+
+### Tests
+
+`pnpm typecheck && pnpm lint && pnpm test && pnpm boundaries` — green.
+
+- Transitions: confirmation, OA, interview/final, cancel fallback, on_hold, reopen-after-rejection, conflict, manual_override, ghost clear.
+- Property: permutation independence when sorted; no crash on arbitrary event type strings.
+- Corrections stub overlays locked fields.
+
+### Security & privacy review
+
+No new token/email egress. Timeline payloads include event metadata + classification ids, not raw MIME. INV-9 / INV-7 posture documented.
+
+### Interview prep
+
+**Q: Why event-source the application instead of a status column?**  
+**A:** Out-of-order email, reprocessing, and "explain this state" all need history. A status column forces destructive updates. At this scale we do not need a full CQRS framework — a pure reducer over Postgres rows is enough.
+
+**Follow-up:** How do you prove the projection is correct?  
+**A:** INV-9: wipe `current_state`, run recompute, assert equality. Property tests ensure any insert order yields the same sorted replay.
+
+**What I'd improve:** Persist `stateTimeline` snapshots for faster UI; wire pg-boss singleton debounce for `application.recompute` once the worker owns jobs directly.
+
+### Follow-up
+
+**M10 — Dashboard** consumes the timeline API. Ghost job (M12) will emit `ghost_flagged` events the reducer already understands.
