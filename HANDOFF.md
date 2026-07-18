@@ -1,28 +1,28 @@
 # HANDOFF
 
 ## Current state
-**M8 complete.** Application matching (`match-v1`): signals/thresholds, company resolution (no silent merges), `application.match` + `match.reevaluate`, match_candidates audit, review queue items. Sync pipeline: normalize → classify → match.
+**M9 complete.** Event-sourced timeline + pure reducer (`state-v1`), `application.recompute`, corrections-overlay stub (INV-7), timeline API. Match attach/create now recomputes projection instead of `stateForEvent`.
 
 ## Last action taken
-Implemented M8; ran typecheck/lint/test/boundaries (green); docs `docs/application-matching.md`.
+Implemented M9; typecheck/lint/test/boundaries green; docs `docs/application-timeline.md`.
 
 ## Next action
-**M9 — Timeline & state machine:** pure reducer, all states/transitions, `application.recompute`, corrections-overlay stub, timeline API. Replace M8’s minimal `stateForEvent` projection poke.
+**M10 — Dashboard:** SPA routes per §19 (except review/settings-analytics); typed API client; evidence viewer (sandboxed); stats with small-sample guard.
 
-Optional: Docker → live Postgres proof for match persistence / review queue.
+Optional: Docker → live Postgres proof that delete-projection + recompute yields identical state (INV-9).
 
 ## Open blockers
 - Docker Desktop (live DB proof). Integration tests skip without `DATABASE_URL`.
 
 ## Gotchas
-- Matcher `match-v1` — bump on behavior change (R-8).
-- Auto-attach requires score ≥ 0.75 **and** margin ≥ 0.2; otherwise review (never guess).
-- Fuzzy company names ≥ 0.85 Jaro-Winkler → `entity_merge_suggestion`, not silent merge.
-- Classifier `clf-2026.07.0` / rules `rules-2026.07.0` unchanged this milestone.
-- `pnpm eval` still required if touching classification.
+- Reducer `state-v1` — bump on behavior change (R-8).
+- Matcher `match-v1` unchanged this milestone.
+- Same-day reject + interview → `flags.conflict` + `state_conflict` review item; events never dropped (F14).
+- Corrections overlay is a **stub** — full lock/undo/merge UX is M11.
+- Ghost evaluation job is M12; reducer only handles ghost_flagged/cleared events if present.
 
 ## Do not
+- Mutate `application_events` (INV-9) — reattach via new event + `superseded_by`.
 - Silent company merges (§14.4).
 - Fetch URLs from email (INV-6).
-- Overwrite user corrections (INV-7) — corrections UI is M11; do not poke locked fields.
 - Commit real emails or `.env` secrets.

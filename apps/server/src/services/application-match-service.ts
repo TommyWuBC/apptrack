@@ -22,6 +22,7 @@ import {
   type MatchResultV1,
 } from "@apptrack/shared";
 import { repos, type Database } from "@apptrack/db";
+import { recomputeApplication } from "./application-recompute-service.js";
 
 const {
   emailsRepo,
@@ -30,33 +31,6 @@ const {
   applicationsRepo,
   matchingRepo,
 } = repos;
-
-/** Minimal event→state map until M9 reducer owns projections. */
-function stateForEvent(eventType: string): string {
-  switch (eventType) {
-    case EventType.application_confirmation:
-      return "confirmation_received";
-    case EventType.oa_invitation:
-    case EventType.oa_reminder:
-      return "assessment_received";
-    case EventType.recruiter_outreach:
-      return "recruiter_screen";
-    case EventType.interview_invitation:
-    case EventType.interview_scheduled:
-    case EventType.interview_rescheduled:
-      return "interviewing";
-    case EventType.rejection:
-      return "rejected";
-    case EventType.offer:
-      return "offer";
-    case EventType.withdrawal_confirmation:
-      return "withdrawn";
-    case EventType.waitlist_or_freeze:
-      return "on_hold";
-    default:
-      return "applied";
-  }
-}
 
 export type MatchStoredResult = {
   messageId: string;
@@ -286,7 +260,7 @@ async function createApplicationFromEmail(
     userId: input.userId,
     companyId: input.companyId,
     roleId,
-    currentState: stateForEvent(input.eventType),
+    currentState: "applied",
     appliedAt: input.occurredAt,
     source: input.extraction.source ?? "email",
   });
@@ -307,6 +281,8 @@ async function createApplicationFromEmail(
     },
   });
 
+  // Projection from reducer (INV-9), not a one-shot state poke
+  await recomputeApplication(db, app.id);
   return app.id;
 }
 
@@ -337,9 +313,7 @@ async function attachToApplication(
       matcherVersion: MATCHER_VERSION,
     },
   });
-  await applicationsRepo.updateApplicationProjection(db, input.applicationId, {
-    currentState: stateForEvent(input.eventType),
-  });
+  await recomputeApplication(db, input.applicationId);
 }
 
 /**

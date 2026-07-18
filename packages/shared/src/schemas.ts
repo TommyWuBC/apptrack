@@ -102,3 +102,46 @@ export const MatchResultV1Schema = z.object({
 });
 
 export type MatchResultV1 = z.infer<typeof MatchResultV1Schema>;
+
+/** Ordered event fed to the application state reducer. AGENTS.md §16 */
+export const ReducerEventV1Schema = z.object({
+  id: z.string(),
+  eventType: z.string(),
+  occurredAt: z.coerce.date(),
+  ingestedAt: z.coerce.date(),
+  source: z.enum(["email", "user", "system"]),
+  messageId: z.string().nullable().optional(),
+  classificationResultId: z.string().nullable().optional(),
+  payload: z.record(z.unknown()).optional(),
+  supersededBy: z.string().nullable().optional(),
+});
+
+export type ReducerEventV1 = z.infer<typeof ReducerEventV1Schema>;
+
+export const StateTimelineEntryV1Schema = z.object({
+  state: z.string(),
+  at: z.coerce.date(),
+  eventId: z.string(),
+  eventType: z.string(),
+});
+
+export type StateTimelineEntryV1 = z.infer<typeof StateTimelineEntryV1Schema>;
+
+export const ReduceResultV1Schema = z.object({
+  state: z.string(),
+  stateTimeline: z.array(StateTimelineEntryV1Schema),
+  actionRequired: z.boolean(),
+  flags: z.object({
+    conflict: z.boolean(),
+    reopened: z.boolean(),
+    onHold: z.boolean(),
+  }),
+  ghostInputs: z.object({
+    lastMeaningfulAt: z.coerce.date().nullable(),
+    hasFutureScheduled: z.boolean(),
+    terminal: z.boolean(),
+  }),
+  reducerVersion: z.string(),
+});
+
+export type ReduceResultV1 = z.infer<typeof ReduceResultV1Schema>;
