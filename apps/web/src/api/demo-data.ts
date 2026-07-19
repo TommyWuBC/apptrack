@@ -282,6 +282,16 @@ let demoGhostThresholds = {
   perCompany: {},
 };
 
+let demoClassifierSettings: {
+  mode: string;
+  provider: string | null;
+  modelId: string | null;
+} = {
+  mode: "deterministic",
+  provider: null,
+  modelId: null,
+};
+
 const demoNotifications: Array<{
   id: string;
   kind: string;
@@ -399,6 +409,17 @@ export const demoStore = {
         userId: "user-demo",
         thresholds: demoGhostThresholds,
         algorithmVersion: "ghost-v1",
+      };
+    }
+    if (p === "/api/v1/settings/classifier") {
+      return {
+        userId: "user-demo",
+        settings: demoClassifierSettings,
+        keysPresent: { anthropic: false, openai: false, ollamaUrl: false },
+        egressDisclosure:
+          "No email content leaves this machine. Classification uses local rules only.",
+        classifierVersion: "clf-2026.07.1",
+        promptVersion: "extract.v1",
       };
     }
     if (p === "/api/v1/notifications") {
@@ -532,6 +553,27 @@ export const demoStore = {
         userId: "user-demo",
         thresholds: demoGhostThresholds,
         algorithmVersion: "ghost-v1",
+      };
+    }
+    if (method === "PATCH" && p === "/api/v1/settings/classifier") {
+      const s = (body as { settings?: typeof demoClassifierSettings }).settings;
+      if (s) demoClassifierSettings = { ...demoClassifierSettings, ...s };
+      const disclosures: Record<string, string> = {
+        deterministic:
+          "No email content leaves this machine. Classification uses local rules only.",
+        local:
+          "Subject + stripped plain text are sent to your local Ollama endpoint only.",
+        api: "Subject + stripped plain text are sent to the configured cloud provider.",
+        hybrid:
+          "Deterministic first; low-confidence remainder may call the configured provider.",
+      };
+      return {
+        userId: "user-demo",
+        settings: demoClassifierSettings,
+        egressDisclosure:
+          disclosures[demoClassifierSettings.mode] ??
+          disclosures.deterministic,
+        classifierVersion: "clf-2026.07.1",
       };
     }
     if (method === "POST" && p === "/api/v1/ghost/evaluate") {

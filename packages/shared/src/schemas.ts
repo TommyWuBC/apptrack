@@ -63,6 +63,50 @@ export type ClassificationResultV1 = z.infer<
   typeof ClassificationResultV1Schema
 >;
 
+/**
+ * Structured LLM extraction allowlist. AGENTS.md §13.5 / INV-5
+ * Only these fields may be written from model output; everything else discarded.
+ */
+export const LlmExtractionV1Schema = z.object({
+  eventType: z.enum(eventTypeValues).optional(),
+  isJobRelated: z.boolean().optional(),
+  confidence: z.number().min(0).max(1).optional(),
+  /** Concise user-readable justification; never chain-of-thought. INV-5 */
+  justification: z.string().max(200),
+  company: z.string().max(200).nullable().optional(),
+  roleTitle: z.string().max(300).nullable().optional(),
+  applicationType: z
+    .enum(["internship", "new_grad", "contract", "full_time"])
+    .nullable()
+    .optional(),
+  location: z.string().max(200).nullable().optional(),
+  workArrangement: z
+    .enum(["remote", "hybrid", "onsite"])
+    .nullable()
+    .optional(),
+  assessmentProvider: z.string().max(100).nullable().optional(),
+  assessmentDeadline: z.string().max(64).nullable().optional(),
+  interviewDatetime: z.string().max(64).nullable().optional(),
+  interviewFormat: z.string().max(100).nullable().optional(),
+  recruiterName: z.string().max(200).nullable().optional(),
+  recruiterEmail: z.string().max(320).nullable().optional(),
+  portalUrl: z.string().max(2000).nullable().optional(),
+  jobPostingUrl: z.string().max(2000).nullable().optional(),
+  actionRequired: z.boolean().optional(),
+});
+
+export type LlmExtractionV1 = z.infer<typeof LlmExtractionV1Schema>;
+
+export const ClassifierSettingsV1Schema = z.object({
+  mode: z
+    .enum(["deterministic", "local", "api", "hybrid"])
+    .default("deterministic"),
+  provider: z.enum(["anthropic", "openai", "ollama"]).nullable().optional(),
+  modelId: z.string().max(120).nullable().optional(),
+});
+
+export type ClassifierSettingsV1 = z.infer<typeof ClassifierSettingsV1Schema>;
+
 /** Per-signal contribution for match explainability. AGENTS.md §15.1 */
 export const MatchSignalSchema = z.object({
   name: z.string(),
