@@ -513,8 +513,11 @@ export const demoStore = {
     if (method === "PATCH" && /^\/api\/v1\/applications\/[^/]+$/.test(p)) {
       const id = p.split("/")[4]!;
       const fields =
-        (body as { fields?: Array<{ field: string; userValue: unknown; locked?: boolean }> })
-          ?.fields ?? [];
+        (
+          body as {
+            fields?: Array<{ field: string; userValue: unknown; locked?: boolean }>;
+          }
+        )?.fields ?? [];
       for (const f of fields) {
         correctionsStore.push({
           id: `corr-${correctionsStore.length + 1}`,
@@ -532,7 +535,10 @@ export const demoStore = {
       }
       return {
         correctionIds: correctionsStore.slice(-fields.length).map((c) => c.id),
-        recomputed: { applicationId: id, state: applications.find((a) => a.id === id)?.currentState },
+        recomputed: {
+          applicationId: id,
+          state: applications.find((a) => a.id === id)?.currentState,
+        },
       };
     }
     if (method === "POST" && /^\/api\/v1\/corrections\/[^/]+\/undo$/.test(p)) {
@@ -547,7 +553,11 @@ export const demoStore = {
       return b;
     }
     if (method === "POST" && /\/merge$/.test(p)) {
-      return { survivorId: p.split("/")[4], sourceIds: (body as { sourceIds: string[] }).sourceIds, movedEventIds: [] };
+      return {
+        survivorId: p.split("/")[4],
+        sourceIds: (body as { sourceIds: string[] }).sourceIds,
+        movedEventIds: [],
+      };
     }
     if (method === "POST" && /\/split$/.test(p)) {
       return {
@@ -588,8 +598,7 @@ export const demoStore = {
         userId: "user-demo",
         settings: demoClassifierSettings,
         egressDisclosure:
-          disclosures[demoClassifierSettings.mode] ??
-          disclosures.deterministic,
+          disclosures[demoClassifierSettings.mode] ?? disclosures.deterministic,
         classifierVersion: "clf-2026.07.1",
       };
     }

@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  createTracker,
-  endpointFromScriptSrc,
-  readScriptConfig,
-} from "./tracker.js";
+import { createTracker, endpointFromScriptSrc, readScriptConfig } from "./tracker.js";
 import { gzipSync } from "node:zlib";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -109,8 +105,7 @@ describe("script helpers", () => {
   it("readScriptConfig reads data attributes", () => {
     const el = {
       getAttribute: (n: string) =>
-        ({ "data-site-key": "pk_1", "data-mode": "no_geo", src: "" }[n] ??
-        null),
+        ({ "data-site-key": "pk_1", "data-mode": "no_geo", src: "" })[n] ?? null,
       src: "http://localhost:3000/sdk.js",
     } as unknown as HTMLScriptElement;
     const cfg = readScriptConfig(el);
@@ -122,10 +117,7 @@ describe("script helpers", () => {
 
 describe("sdk.js size gate", () => {
   it("gzip size is under 2KB when built", () => {
-    const dist = join(
-      dirname(fileURLToPath(import.meta.url)),
-      "../dist/sdk.js",
-    );
+    const dist = join(dirname(fileURLToPath(import.meta.url)), "../dist/sdk.js");
     expect(existsSync(dist), "dist/sdk.js missing — run build first").toBe(true);
     const gz = gzipSync(readFileSync(dist));
     expect(gz.length).toBeLessThan(2048);

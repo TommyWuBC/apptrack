@@ -2,27 +2,11 @@
  * Classification + classifier settings routes. AGENTS.md §13 / M13
  */
 import type { FastifyInstance } from "fastify";
-import {
-  ClassifierSettingsV1Schema,
-  ErrorCode,
-} from "@apptrack/shared";
-import {
-  CLASSIFIER_VERSION,
-  PROMPT_VERSION,
-  RULES_VERSION,
-} from "@apptrack/core";
+import { ClassifierSettingsV1Schema, ErrorCode, JobName } from "@apptrack/shared";
+import { CLASSIFIER_VERSION, PROMPT_VERSION, RULES_VERSION } from "@apptrack/core";
 import { repos } from "@apptrack/db";
 import { classifyAndStoreMessage } from "../services/email-classify-service.js";
 import { resolveClassifierConfig } from "../services/classifier-config.js";
-
-async function resolveUserId(
-  db: NonNullable<FastifyInstance["db"]>,
-  qUserId?: string,
-): Promise<string | null> {
-  if (qUserId) return qUserId;
-  const owner = await repos.usersRepo.getFirstUser(db);
-  return owner?.id ?? null;
-}
 
 export async function registerClassifyRoutes(app: FastifyInstance) {
   app.get("/api/v1/classify/version", async () => ({
@@ -39,8 +23,25 @@ export async function registerClassifyRoutes(app: FastifyInstance) {
       });
     }
     const { messageId } = req.params as { messageId: string };
+    if (app.jobs && !req.isInternalJob) {
+      const jobId = await app.jobs.send(
+        JobName.EMAIL_CLASSIFY,
+        { messageId },
+        { singletonKey: `classify:${messageId}:${CLASSIFIER_VERSION}` },
+      );
+      return reply.code(202).send({ queued: true, jobId, messageId });
+    }
     try {
-      const out = await classifyAndStoreMessage(app.db, messageId);
+      const out = await classifyAndStoreMessage(app.db, messageId, {
+        userId: req.userId,
+      });
+      if (app.jobs && req.isInternalJob) {
+        await app.jobs.send(
+          JobName.APPLICATION_MATCH,
+          { messageId },
+          { singletonKey: `application.match:${messageId}` },
+        );
+      }
       return {
         messageId: out.messageId,
         inserted: out.inserted,
@@ -65,11 +66,9 @@ export async function registerClassifyRoutes(app: FastifyInstance) {
 
   app.get("/api/v1/settings/classifier", async (req) => {
     // Works without DB for env-only disclosure (demo / first-run)
-    const q = req.query as { userId?: string };
     let settings = null;
-    let userId: string | null = null;
+    const userId = req.userId ?? null;
     if (app.db) {
-      userId = await resolveUserId(app.db, q.userId);
       if (userId) {
         const row = await repos.settingsRepo.getSettingsForUser(app.db, userId);
         settings = row?.classifierSettings
@@ -103,18 +102,8 @@ export async function registerClassifyRoutes(app: FastifyInstance) {
       });
     }
     const body = (req.body ?? {}) as {
-      userId?: string;
       settings?: unknown;
     };
-    const userId = await resolveUserId(app.db, body.userId);
-    if (!userId) {
-      return reply.code(400).send({
-        error: {
-          code: ErrorCode.VALIDATION_ERROR,
-          message: "userId required",
-        },
-      });
-    }
     const parsed = ClassifierSettingsV1Schema.safeParse(body.settings ?? {});
     if (!parsed.success) {
       return reply.code(400).send({
@@ -127,11 +116,11 @@ export async function registerClassifyRoutes(app: FastifyInstance) {
     }
     const row = await repos.settingsRepo.upsertClassifierSettings(
       app.db,
-      userId,
+      req.userId!,
       parsed.data,
     );
     await repos.correctionsRepo.writeAuditLog(app.db, {
-      userId,
+      userId: req.userId,
       actor: "user",
       action: "settings.classifier.update",
       targetType: "user_settings",
@@ -140,7 +129,7 @@ export async function registerClassifyRoutes(app: FastifyInstance) {
     });
     const config = resolveClassifierConfig(parsed.data);
     return {
-      userId,
+      userId: req.userId,
       settings: parsed.data,
       egressDisclosure: config.egressDisclosure,
       classifierVersion: CLASSIFIER_VERSION,

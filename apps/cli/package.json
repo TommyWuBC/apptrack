@@ -17,11 +17,14 @@
     "@apptrack/core": "workspace:*",
     "@apptrack/db": "workspace:*",
     "@apptrack/providers": "workspace:*",
-    "@apptrack/shared": "workspace:*"
+    "@apptrack/shared": "workspace:*",
+    "argon2": "^0.45.0",
+    "commander": "^15.0.0",
+    "pg-boss": "^12.26.1"
   },
   "devDependencies": {
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.10"
   }
 }

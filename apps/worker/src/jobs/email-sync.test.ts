@@ -7,11 +7,12 @@ afterEach(() => {
 
 describe("email.sync poller", () => {
   it("POSTs /api/v1/sync/run", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ result: { inserted: 0 } }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ result: { inserted: 0 } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
     );
     vi.stubGlobal("fetch", fetchMock);
     const body = await triggerSyncRun();

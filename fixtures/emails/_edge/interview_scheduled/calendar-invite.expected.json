@@ -7,8 +7,5 @@
     "interviewFormat": "video"
   },
   "minConfidence": 0.85,
-  "tags": [
-    "edge",
-    "calendar_invite"
-  ]
+  "tags": ["edge", "calendar_invite"]
 }

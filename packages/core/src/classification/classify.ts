@@ -11,13 +11,10 @@ import {
   type ExtractionV1,
 } from "@apptrack/shared";
 import { detectAtsPlatform } from "./ats/detect.js";
+import { detectAtsTemplate } from "./ats/templates.js";
 import { extractFields } from "./extract.js";
 import { RULES } from "./rules/families.js";
-import {
-  CLASSIFIER_VERSION,
-  RULES_VERSION,
-  PROMPT_VERSION,
-} from "./version.js";
+import { CLASSIFIER_VERSION, RULES_VERSION, PROMPT_VERSION } from "./version.js";
 import { isAtsSenderDomain, domainOfAddress } from "./ats/senders.js";
 import type { LlmClient } from "../llm/types.js";
 import {
@@ -51,11 +48,7 @@ function haystack(input: ClassifyInput): string {
     .toLowerCase();
 }
 
-function matchesRule(
-  hay: string,
-  patterns: string[],
-  anti: string[] = [],
-): boolean {
+function matchesRule(hay: string, patterns: string[], anti: string[] = []): boolean {
   if (anti.some((a) => hay.includes(a.toLowerCase()))) return false;
   return patterns.some((p) => hay.includes(p.toLowerCase()));
 }
@@ -93,8 +86,7 @@ function runDeterministic(input: ClassifyInput): {
       evidence: [
         {
           kind: "keyword_rule",
-          detail:
-            "Prompt-injection canary phrasing — classified on merits as unknown",
+          detail: "Prompt-injection canary phrasing — classified on merits as unknown",
         },
       ],
       extraction: {},
@@ -113,12 +105,32 @@ function runDeterministic(input: ClassifyInput): {
     layerTrace.push({ layer: "L1", ats });
   }
 
-  const listId =
-    input.headers?.["List-Id"] ?? input.headers?.["list-id"] ?? "";
+  const atsTemplate = detectAtsTemplate({
+    fromAddress: input.fromAddress,
+    subject: input.subject,
+    text,
+  });
+  if (atsTemplate) {
+    candidates.push({
+      eventType: atsTemplate.eventType,
+      confidence: atsTemplate.confidence,
+      evidence: {
+        kind: "ats_template",
+        detail: atsTemplate.detail,
+      },
+      layer: "L1-template",
+    });
+    layerTrace.push({
+      layer: "L1",
+      ats: atsTemplate.platform,
+      eventType: atsTemplate.eventType,
+    });
+  }
+
+  const listId = input.headers?.["List-Id"] ?? input.headers?.["list-id"] ?? "";
   if (
     listId &&
-    (input.headers?.["List-Unsubscribe"] ||
-      input.headers?.["list-unsubscribe"]) &&
+    (input.headers?.["List-Unsubscribe"] || input.headers?.["list-unsubscribe"]) &&
     !isAtsSenderDomain(domainOfAddress(input.fromAddress))
   ) {
     candidates.push({
@@ -265,8 +277,7 @@ function runDeterministic(input: ClassifyInput): {
   });
 
   if (!best) {
-    const vague =
-      /candidacy|application|recruiting|interview|assessment/i.test(hay);
+    const vague = /candidacy|application|recruiting|interview|assessment/i.test(hay);
     const result = ClassificationResultV1Schema.parse({
       eventType: EventType.unknown,
       isJobRelated: vague,
@@ -297,8 +308,7 @@ function runDeterministic(input: ClassifyInput): {
   const confidence = Math.min(1, best.confidence);
   const eventType = best.eventType;
   const isJobRelated = eventType !== EventType.newsletter_ignore;
-  const needsReview =
-    confidence < 0.6 || eventType === EventType.unknown;
+  const needsReview = confidence < 0.6 || eventType === EventType.unknown;
 
   const result = ClassificationResultV1Schema.parse({
     eventType,
@@ -333,9 +343,7 @@ export async function classifyEmail(
   const { result: det, text } = runDeterministic(input);
 
   // Injection canaries never escalate to LLM (T6)
-  const guarded = det.layerTrace?.some(
-    (t) => t.action === "injection_canary",
-  );
+  const guarded = det.layerTrace?.some((t) => t.action === "injection_canary");
   if (guarded) return det;
 
   const invoke =
@@ -349,10 +357,7 @@ export async function classifyEmail(
   if (!invoke || !opts.llm) {
     return ClassificationResultV1Schema.parse({
       ...det,
-      layerTrace: [
-        ...(det.layerTrace ?? []),
-        { layer: "L3", skipped: true, mode },
-      ],
+      layerTrace: [...(det.layerTrace ?? []), { layer: "L3", skipped: true, mode }],
     });
   }
 
@@ -424,9 +429,7 @@ export async function classifyEmail(
     evidence,
     extraction,
     needsReview:
-      arb.needsReview ||
-      eventType === EventType.unknown ||
-      arb.confidence < 0.6,
+      arb.needsReview || eventType === EventType.unknown || arb.confidence < 0.6,
     layerTrace: [
       ...(det.layerTrace ?? []),
       {

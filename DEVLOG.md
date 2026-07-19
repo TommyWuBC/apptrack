@@ -1118,3 +1118,39 @@ A: All network errors are swallowed; mode `off` is a no-op; transport prefers be
 ### Follow-up
 
 M16 correlation scoring (`corr-v1`), unique links, tracked resume route, banned-phrase tests.
+
+## 2026-07-19 — cursor — Stabilization pass (M1–M15 audit fixes)
+
+**Meta:** branch `cursor/stabilize-m1-m15-6a25` · milestone M15+ · status completed · PR #9
+
+### Problem being solved
+An audit after M15 found gaps that blocked claiming M1–M15 “done”: missing auth/CSRF, jobs still HTTP-polling, analytics session merge bugs, incomplete review/reprocess, stub CLI/seed, CI format/gitleaks/deps issues, and several correctness bugs (Gmail IDOR, silent pipeline swallow, superseded match idempotency, uncertain classification never queued).
+
+### Background concepts
+**Fail-closed auth.** If the session store (Postgres) is down, protected routes must not silently become public. Public health/setup/login and analytics ingest stay reachable; everything else returns 503/401.
+
+**Effective classification.** Machine `classification_results` stay append-only. User corrections (including “mark irrelevant”) overlay at read time so match/evidence/reprocess respect INV-7 without mutating history.
+
+**Compose service DNS.** In Docker Compose, `localhost` inside the worker container is not the API server. `APP_BASE_URL` must point at `http://apptrack-server:3000`.
+
+### Design decision
+1. Keep sync’s inline normalize→classify→match for reliability until an ADR covers transactional MIME staging + pg-boss handoff; still wire discrete job chaining for manual/internal stage runs.
+2. Require a distinct `INTERNAL_JOB_SECRET` in production (no silent fallback to `SESSION_SECRET`).
+3. Prefer ownership checks + audit logs now even though v1 is single-user.
+
+### Implementation
+- Auth fail-closed; Gmail ownership/audit; OAuth callback enqueues `email.sync`.
+- Compose worker `APP_BASE_URL`; sync no longer swallows pipeline errors silently.
+- `getEffectiveClassification`, `uncertain_classification` review create/confirm, extracted entities on insert.
+- Match ignores superseded events; analytics out-of-order attach fix + site ownership; demo seed uses `manual_override`.
+- Docs: README/HANDOFF/PROGRESS/setup; ARCHITECTURE already current.
+
+### Tests
+- Added analytics partition backfill case; gmail disconnect test updated for `userId`.
+- `pnpm typecheck - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). lint - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). format:check - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). test - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). eval - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). boundaries` green.
+
+### Security & privacy review
+- INV-7 classification overlays; INV-8 unchanged; disconnect audit; CSRF/session fail-closed; separate internal job secret in prod.
+
+### Follow-up
+Finish green CI on PR #9; ADR for transactional job handoff; M16 correlation.

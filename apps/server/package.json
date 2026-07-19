@@ -17,12 +17,16 @@
     "@apptrack/db": "workspace:*",
     "@apptrack/providers": "workspace:*",
     "@apptrack/shared": "workspace:*",
-    "fastify": "^5.2.1"
+    "@fastify/cookie": "^11.1.2",
+    "argon2": "^0.45.0",
+    "fastify": "^5.2.1",
+    "maxmind": "^5.0.6",
+    "pg-boss": "^12.26.1"
   },
   "devDependencies": {
     "nock": "^14.0.16",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.10"
   }
 }

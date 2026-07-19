@@ -51,10 +51,7 @@ export function decrypt(payload: EncryptedPayload, key: Buffer): Buffer {
   }
   const decipher = createDecipheriv("aes-256-gcm", key, payload.iv);
   decipher.setAuthTag(payload.tag);
-  return Buffer.concat([
-    decipher.update(payload.ciphertext),
-    decipher.final(),
-  ]);
+  return Buffer.concat([decipher.update(payload.ciphertext), decipher.final()]);
 }
 
 /** Pack iv|tag|ciphertext into a single bytea. */
@@ -63,10 +60,7 @@ export function packEncrypted(payload: EncryptedPayload): Buffer {
 }
 
 /** Unpack storage blob produced by packEncrypted. */
-export function unpackEncrypted(
-  packed: Buffer,
-  keyId: string,
-): EncryptedPayload {
+export function unpackEncrypted(packed: Buffer, keyId: string): EncryptedPayload {
   if (packed.length < IV_LENGTH + TAG_LENGTH) {
     throw new Error("Encrypted blob too short");
   }

@@ -6,6 +6,7 @@ import {
   AnalyticsSiteCreateV1Schema,
   AnalyticsSiteUpdateV1Schema,
   ErrorCode,
+  JobName,
 } from "@apptrack/shared";
 import { repos } from "@apptrack/db";
 import {
@@ -14,15 +15,6 @@ import {
   MAX_BODY_BYTES,
   runAnalyticsRetention,
 } from "../services/analytics-ingest-service.js";
-
-async function resolveUserId(
-  db: NonNullable<FastifyInstance["db"]>,
-  qUserId?: string,
-): Promise<string | null> {
-  if (qUserId) return qUserId;
-  const owner = await repos.usersRepo.getFirstUser(db);
-  return owner?.id ?? null;
-}
 
 function clientIp(req: FastifyRequest): string {
   const xf = req.headers["x-forwarded-for"];
@@ -67,6 +59,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         origin: req.headers.origin,
         headers: req.headers as Record<string, string | string[] | undefined>,
         bodyBytes,
+        geoLookup: app.geoLookup,
       });
       const origin = req.headers.origin;
       if (origin) {
@@ -75,6 +68,11 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       }
       return reply.code(202).send(out);
     } catch (err) {
+      const origin = req.headers.origin;
+      if (origin) {
+        reply.header("access-control-allow-origin", origin);
+        reply.header("vary", "Origin");
+      }
       const status = (err as { statusCode?: number }).statusCode ?? 500;
       const msg = (err as Error).message;
       if (status === 429) {
@@ -106,11 +104,8 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const q = req.query as { userId?: string };
-    const userId = await resolveUserId(app.db, q.userId);
-    if (!userId) return { sites: [], userId: null };
-    const sites = await repos.analyticsRepo.listSitesForUser(app.db, userId);
-    return { sites, userId };
+    const sites = await repos.analyticsRepo.listSitesForUser(app.db, req.userId!);
+    return { sites, userId: req.userId };
   });
 
   app.post("/api/v1/analytics/sites", async (req, reply) => {
@@ -120,19 +115,9 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       });
     }
     const body = (req.body ?? {}) as {
-      userId?: string;
       originAllowlist?: string[];
       mode?: string;
     };
-    const userId = await resolveUserId(app.db, body.userId);
-    if (!userId) {
-      return reply.code(400).send({
-        error: {
-          code: ErrorCode.VALIDATION_ERROR,
-          message: "userId required",
-        },
-      });
-    }
     const parsed = AnalyticsSiteCreateV1Schema.safeParse(body);
     if (!parsed.success) {
       return reply.code(400).send({
@@ -144,12 +129,12 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       });
     }
     const site = await repos.analyticsRepo.createSite(app.db, {
-      userId,
+      userId: req.userId!,
       originAllowlist: parsed.data.originAllowlist,
       mode: parsed.data.mode,
     });
     await repos.correctionsRepo.writeAuditLog(app.db, {
-      userId,
+      userId: req.userId,
       actor: "user",
       action: "analytics.site.create",
       targetType: "analytics_site",
@@ -177,7 +162,12 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         },
       });
     }
-    const site = await repos.analyticsRepo.updateSite(app.db, id, parsed.data);
+    const site = await repos.analyticsRepo.updateSite(
+      app.db,
+      id,
+      req.userId!,
+      parsed.data,
+    );
     if (!site) {
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },
@@ -193,7 +183,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
-    const site = await repos.analyticsRepo.deleteSite(app.db, id);
+    const site = await repos.analyticsRepo.deleteSite(app.db, id, req.userId!);
     if (!site) {
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },
@@ -217,10 +207,13 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         },
       });
     }
-    const sessions = await repos.analyticsRepo.listSessionsForSite(
-      app.db,
-      q.siteId,
-    );
+    const owned = await repos.analyticsRepo.getSiteForUser(app.db, q.siteId, req.userId!);
+    if (!owned) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },
+      });
+    }
+    const sessions = await repos.analyticsRepo.listSessionsForSite(app.db, q.siteId);
     return { sessions };
   });
 
@@ -239,6 +232,12 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         },
       });
     }
+    const owned = await repos.analyticsRepo.getSiteForUser(app.db, q.siteId, req.userId!);
+    if (!owned) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },
+      });
+    }
     const summary = await repos.analyticsRepo.summarizeSite(app.db, q.siteId);
     return { siteId: q.siteId, ...summary };
   });
@@ -249,6 +248,15 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
+    if (app.jobs && !req.isInternalJob) {
+      const window = Math.floor(Date.now() / 300_000);
+      const jobId = await app.jobs.send(
+        JobName.ANALYTICS_AGGREGATE,
+        {},
+        { singletonKey: `analytics.aggregate:${window}` },
+      );
+      return reply.code(202).send({ queued: true, jobId });
+    }
     const out = await aggregateAnalyticsSessions(app.db);
     return out;
   });
@@ -258,6 +266,15 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       return reply.code(503).send({
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
+    }
+    if (app.jobs && !req.isInternalJob) {
+      const date = new Date().toISOString().slice(0, 10);
+      const jobId = await app.jobs.send(
+        JobName.RETENTION_CLEANUP,
+        {},
+        { singletonKey: `retention.cleanup:${date}` },
+      );
+      return reply.code(202).send({ queued: true, jobId });
     }
     const body = (req.body ?? {}) as { retentionDays?: number };
     const out = await runAnalyticsRetention(app.db, {

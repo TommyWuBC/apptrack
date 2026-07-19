@@ -59,9 +59,7 @@ export function parseEmlLite(raw: Buffer, filePath: string): MockFixtureMessage 
   return {
     providerMessageId: messageId,
     providerThreadId: `thread-${slug}`,
-    internalDate: Number.isNaN(internalDate.getTime())
-      ? new Date()
-      : internalDate,
+    internalDate: Number.isNaN(internalDate.getTime()) ? new Date() : internalDate,
     fromAddress,
     fromName,
     subject,
@@ -166,9 +164,7 @@ export class MockEmailProvider implements EmailProvider {
     }
   }
 
-  async *listHistorical(
-    query: BackfillQuery,
-  ): AsyncIterable<RawEmailRef[]> {
+  async *listHistorical(query: BackfillQuery): AsyncIterable<RawEmailRef[]> {
     const after = query.afterDate.getTime();
     const before = query.beforeDate?.getTime() ?? Number.POSITIVE_INFINITY;
     const matched = this.messages.filter((m) => {
@@ -185,9 +181,7 @@ export class MockEmailProvider implements EmailProvider {
   }
 
   async fetchMessage(ref: RawEmailRef): Promise<RawEmail> {
-    const m = this.messages.find(
-      (x) => x.providerMessageId === ref.providerMessageId,
-    );
+    const m = this.messages.find((x) => x.providerMessageId === ref.providerMessageId);
     if (!m) {
       throw Object.assign(new Error("not_found"), { status: 404 });
     }
@@ -206,8 +200,6 @@ export class MockEmailProvider implements EmailProvider {
   }
 }
 
-export function createMockEmailProvider(
-  fixturesRoot: string,
-): MockEmailProvider {
+export function createMockEmailProvider(fixturesRoot: string): MockEmailProvider {
   return new MockEmailProvider({ fixturesRoot });
 }

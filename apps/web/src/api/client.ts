@@ -48,18 +48,24 @@ async function apiGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-async function apiSend<T>(
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<T> {
+async function apiSend<T>(method: string, path: string, body?: unknown): Promise<T> {
   if (demoEnabled()) {
     return demoStore.mutate(method, path, body) as T;
   }
+  const csrfToken =
+    typeof document === "undefined"
+      ? null
+      : document.cookie
+          .split("; ")
+          .find((part) => part.startsWith("apptrack_csrf="))
+          ?.slice("apptrack_csrf=".length);
   const res = await fetch(path, {
     method,
     credentials: "include",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(csrfToken ? { "x-csrf-token": decodeURIComponent(csrfToken) } : {}),
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!res.ok) {
@@ -89,7 +95,26 @@ export type CorrectionRow = {
 
 export const api = {
   me: () =>
-    apiGet<{ userId: string | null; setupRequired: boolean }>("/api/v1/me"),
+    apiGet<{
+      userId: string;
+      email: string;
+      role: "owner";
+      csrfToken: string;
+    }>("/api/v1/auth/me"),
+  authStatus: () => apiGet<{ setupRequired: boolean }>("/api/v1/auth/status"),
+  setup: (email: string, password: string) =>
+    apiSend<{ userId: string; email: string; role: "owner"; csrfToken: string }>(
+      "POST",
+      "/api/v1/auth/setup",
+      { email, password },
+    ),
+  login: (email: string, password: string) =>
+    apiSend<{ userId: string; email: string; role: "owner"; csrfToken: string }>(
+      "POST",
+      "/api/v1/auth/login",
+      { email, password },
+    ),
+  logout: () => apiSend<void>("POST", "/api/v1/auth/logout"),
   applications: (userId?: string) =>
     apiGet<{ applications: ApplicationRow[]; userId?: string }>(
       userId
@@ -106,18 +131,26 @@ export const api = {
     apiGet<TimelineResponse>(`/api/v1/applications/${id}/timeline`),
   stats: (userId?: string) =>
     apiGet<StatsResponse>(
-      userId
-        ? `/api/v1/stats?userId=${encodeURIComponent(userId)}`
-        : "/api/v1/stats",
+      userId ? `/api/v1/stats?userId=${encodeURIComponent(userId)}` : "/api/v1/stats",
     ),
   companies: () => apiGet<{ companies: CompanyRow[] }>("/api/v1/companies"),
   evidence: (messageId: string) =>
     apiGet<EvidenceResponse>(`/api/v1/emails/${messageId}/evidence`),
+  markEmailIrrelevant: (messageId: string) =>
+    apiSend<unknown>(
+      "POST",
+      `/api/v1/emails/${encodeURIComponent(messageId)}/mark-irrelevant`,
+      {},
+    ),
+  reprocess: (body: {
+    scope: "all" | "message_ids" | "date_range";
+    messageIds?: string[];
+    afterDate?: string;
+    beforeDate?: string;
+  }) => apiSend<unknown>("POST", "/api/v1/reprocess", body),
   review: (kind?: string) =>
     apiGet<{ items: ReviewItem[] }>(
-      kind
-        ? `/api/v1/review?kind=${encodeURIComponent(kind)}`
-        : "/api/v1/review",
+      kind ? `/api/v1/review?kind=${encodeURIComponent(kind)}` : "/api/v1/review",
     ),
   resolveReview: (id: string, body: unknown) =>
     apiSend<unknown>("POST", `/api/v1/review/${id}/resolve`, body),
@@ -184,11 +217,7 @@ export const api = {
       transitions: unknown[];
     }>("POST", "/api/v1/ghost/evaluate", {}),
   dismissGhost: (applicationId: string) =>
-    apiSend<unknown>(
-      "POST",
-      `/api/v1/applications/${applicationId}/ghost/dismiss`,
-      {},
-    ),
+    apiSend<unknown>("POST", `/api/v1/applications/${applicationId}/ghost/dismiss`, {}),
   notifications: () =>
     apiGet<{
       notifications: Array<{

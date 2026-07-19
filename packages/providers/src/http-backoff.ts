@@ -19,8 +19,7 @@ export async function withBackoff<T>(
   const maxAttempts = opts.maxAttempts ?? 5;
   const baseMs = opts.baseMs ?? 200;
   const sleep =
-    opts.sleep ??
-    ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+    opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
 
   let lastErr: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -32,8 +31,7 @@ export async function withBackoff<T>(
       const code = (err as { code?: string }).code;
       // Never retry history-expired (F1) or client errors other than 429
       if (code === "HISTORY_EXPIRED") throw err;
-      const retryable =
-        status != null ? isRetryableStatus(status) : true;
+      const retryable = status != null ? isRetryableStatus(status) : true;
       if (!retryable || attempt === maxAttempts) throw err;
       const jitter = Math.floor(Math.random() * baseMs);
       await sleep(baseMs * 2 ** (attempt - 1) + jitter);

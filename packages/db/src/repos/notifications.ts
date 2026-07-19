@@ -1,7 +1,7 @@
 /**
  * In-app notifications. AGENTS.md §10.5 / §17
  */
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, lt } from "drizzle-orm";
 import type { Database } from "../client.js";
 import { uuidv7 } from "../ids.js";
 import { notifications } from "../schema/index.js";
@@ -49,16 +49,21 @@ export async function listNotificationsForUser(
   return q;
 }
 
-export async function markNotificationRead(
-  db: Database,
-  notificationId: string,
-) {
+export async function markNotificationRead(db: Database, notificationId: string) {
   const [row] = await db
     .update(notifications)
     .set({ readAt: new Date() })
     .where(eq(notifications.id, notificationId))
     .returning();
   return row ?? null;
+}
+
+export async function deleteOldReadNotifications(db: Database, cutoff: Date) {
+  const rows = await db
+    .delete(notifications)
+    .where(and(isNotNull(notifications.readAt), lt(notifications.readAt, cutoff)))
+    .returning({ id: notifications.id });
+  return rows.length;
 }
 
 /** Idempotency helper: recent notification for same kind+link. */

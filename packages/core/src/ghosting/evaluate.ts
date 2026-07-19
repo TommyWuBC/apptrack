@@ -52,9 +52,7 @@ function asStatus(raw: string): string {
  * Evaluate whether an application should be stale / possibly ghosted / cleared.
  * // AGENTS.md §17
  */
-export function evaluateGhost(
-  input: GhostEvaluateInput,
-): GhostEvaluateResultV1 {
+export function evaluateGhost(input: GhostEvaluateInput): GhostEvaluateResultV1 {
   const now = input.now ?? new Date();
   const current = asStatus(input.currentGhostStatus);
   const anchor = input.lastMeaningfulAt ?? input.appliedAt ?? null;
@@ -98,8 +96,7 @@ export function evaluateGhost(
         action: "keep_dismissed",
         daysInactive,
         paused: false,
-        evidence:
-          "User dismissed ghosting — suppressed until application state changes",
+        evidence: "User dismissed ghosting — suppressed until application state changes",
         algorithmVersion: GHOST_VERSION,
       });
     }
@@ -109,17 +106,14 @@ export function evaluateGhost(
   // Timer pauses while a future interview / OA deadline exists.
   if (input.hasFutureScheduled) {
     return GhostEvaluateResultV1Schema.parse({
-      nextStatus:
-        current === GhostStatus.dismissed ? GhostStatus.none : current,
+      nextStatus: current === GhostStatus.dismissed ? GhostStatus.none : current,
       action:
-        current === GhostStatus.dismissed &&
-        input.dismissedAtState !== input.currentState
+        current === GhostStatus.dismissed && input.dismissedAtState !== input.currentState
           ? "clear"
           : "none",
       daysInactive,
       paused: true,
-      evidence:
-        "Ghost timer paused — future interview or assessment deadline scheduled",
+      evidence: "Ghost timer paused — future interview or assessment deadline scheduled",
       algorithmVersion: GHOST_VERSION,
     });
   }
@@ -141,8 +135,7 @@ export function evaluateGhost(
     if (
       current === GhostStatus.stale ||
       current === GhostStatus.possibly_ghosted ||
-      (current === GhostStatus.dismissed &&
-        input.dismissedAtState !== input.currentState)
+      (current === GhostStatus.dismissed && input.dismissedAtState !== input.currentState)
     ) {
       return GhostEvaluateResultV1Schema.parse({
         nextStatus: GhostStatus.none,

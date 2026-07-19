@@ -13,9 +13,7 @@ export type CalendarEventNormalized = {
   method?: string;
 };
 
-export function parseCalendarIcs(
-  icsText: string,
-): CalendarEventNormalized | null {
+export function parseCalendarIcs(icsText: string): CalendarEventNormalized | null {
   try {
     const jcal = ICAL.parse(icsText);
     const comp = new ICAL.Component(jcal);

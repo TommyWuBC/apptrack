@@ -18,7 +18,7 @@
     "test": "vitest run",
     "generate": "drizzle-kit generate",
     "migrate": "tsx src/migrate.ts",
-    "migrate:down": "echo 'Use drizzle-kit drop / restore from backup — see docs/setup.md'",
+    "migrate:down": "tsx src/migrate-down.ts",
     "migrate:new": "drizzle-kit generate --name"
   },
   "dependencies": {
@@ -30,6 +30,6 @@
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.10"
   }
 }

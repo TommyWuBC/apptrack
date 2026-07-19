@@ -13,10 +13,7 @@ const DEFAULT_MODEL = "llama3.2";
 export function createOllamaClient(opts: CreateLlmClientOptions): LlmClient {
   const modelId = opts.modelId ?? DEFAULT_MODEL;
   const fetchImpl = opts.fetchImpl ?? fetch;
-  const baseUrl = (opts.baseUrl ?? "http://127.0.0.1:11434").replace(
-    /\/$/,
-    "",
-  );
+  const baseUrl = (opts.baseUrl ?? "http://127.0.0.1:11434").replace(/\/$/, "");
 
   return {
     providerId: "ollama",

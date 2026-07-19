@@ -42,12 +42,7 @@ export const RULES: RuleDef[] = [
   {
     id: "R-OA-REM-1",
     eventType: EventType.oa_reminder,
-    patterns: [
-      "reminder: your",
-      "assessment for",
-      "complete your",
-      "due soon",
-    ],
+    patterns: ["reminder: your", "assessment for", "complete your", "due soon"],
     antiPatterns: [],
     weight: 0.88,
     evidenceTemplate: "OA reminder phrasing (rule R-OA-REM-1)",
@@ -55,11 +50,7 @@ export const RULES: RuleDef[] = [
   {
     id: "R-INT-INV-1",
     eventType: EventType.interview_invitation,
-    patterns: [
-      "invite you to interview",
-      "interview invitation",
-      "please pick a time",
-    ],
+    patterns: ["invite you to interview", "interview invitation", "please pick a time"],
     antiPatterns: ["is confirmed", "has been moved", "has been cancelled"],
     weight: 0.92,
     evidenceTemplate: "Interview invitation phrasing (rule R-INT-INV-1)",
@@ -67,11 +58,7 @@ export const RULES: RuleDef[] = [
   {
     id: "R-INT-SCHED-1",
     eventType: EventType.interview_scheduled,
-    patterns: [
-      "interview confirmed",
-      "is confirmed for",
-      "your interview for",
-    ],
+    patterns: ["interview confirmed", "is confirmed for", "your interview for"],
     antiPatterns: ["has been moved", "has been cancelled", "invite you to interview"],
     weight: 0.9,
     evidenceTemplate: "Interview scheduled phrasing (rule R-INT-SCHED-1)",
@@ -124,11 +111,7 @@ export const RULES: RuleDef[] = [
   {
     id: "R-RECR-1",
     eventType: EventType.recruiter_outreach,
-    patterns: [
-      "recruiting",
-      "are you open to a chat",
-      "quick chat",
-    ],
+    patterns: ["recruiting", "are you open to a chat", "quick chat"],
     antiPatterns: ["thanks for applying", "online assessment"],
     weight: 0.85,
     evidenceTemplate: "Recruiter outreach phrasing (rule R-RECR-1)",

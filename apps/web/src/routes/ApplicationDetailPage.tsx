@@ -3,6 +3,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import { api } from "../api/client.js";
 import { TimelineView } from "../components/TimelineView.js";
 import { CorrectionsPanel } from "../components/CorrectionsPanel.js";
+import { ApplicationActions } from "../components/ApplicationActions.js";
 
 function ghostBadgeClass(status: string): string {
   if (status === "possibly_ghosted") return "badge badge-ghosted";
@@ -46,8 +47,7 @@ export function ApplicationDetailPage() {
   if (detail.error || timeline.error) {
     return (
       <p className="text-sm text-red-700">
-        {(detail.error as Error)?.message ??
-          (timeline.error as Error)?.message}
+        {(detail.error as Error)?.message ?? (timeline.error as Error)?.message}
       </p>
     );
   }
@@ -56,8 +56,7 @@ export function ApplicationDetailPage() {
   const company = detail.data!.company;
   const ghostStatus = timeline.data?.ghostStatus ?? app.ghostStatus;
   const label = ghostLabel(ghostStatus);
-  const uncertain =
-    ghostStatus === "stale" || ghostStatus === "possibly_ghosted";
+  const uncertain = ghostStatus === "stale" || ghostStatus === "possibly_ghosted";
 
   return (
     <div
@@ -83,8 +82,8 @@ export function ApplicationDetailPage() {
               {label}
             </span>
             <p className="text-sm text-ink-700">
-              No recent activity — this is an inference, not a confirmed rejection.
-              You can dismiss if you still expect a reply.
+              No recent activity — this is an inference, not a confirmed rejection. You
+              can dismiss if you still expect a reply.
             </p>
             {ghostStatus !== "dismissed" ? (
               <button
@@ -101,7 +100,15 @@ export function ApplicationDetailPage() {
         ) : null}
       </div>
 
-      <CorrectionsPanel applicationId={id} />
+      <CorrectionsPanel
+        applicationId={id}
+        initialState={timeline.data?.currentState ?? app.currentState}
+        initialActionRequired={app.actionRequired}
+        expectedVersion={app.updatedAt}
+      />
+      {timeline.data ? (
+        <ApplicationActions applicationId={id} events={timeline.data.events} />
+      ) : null}
 
       {timeline.data ? <TimelineView timeline={timeline.data} /> : null}
     </div>

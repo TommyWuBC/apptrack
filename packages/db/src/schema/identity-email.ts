@@ -21,9 +21,7 @@ export const bytea = customType<{ data: Buffer; driverData: Buffer }>({
 });
 
 export const timestamps = {
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 };
 
 export const mutableTimestamps = {
@@ -102,7 +100,10 @@ export const oauthCredentials = pgTable(
     accessTokenExpiresAt: timestamp("access_token_expires_at", {
       withTimezone: true,
     }),
-    scopes: text("scopes").array().notNull().default(sql`ARRAY[]::text[]`),
+    scopes: text("scopes")
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
     keyId: text("key_id").notNull(),
     ...mutableTimestamps,
   },
@@ -122,9 +123,7 @@ export const emailThreads = pgTable(
     subjectHash: text("subject_hash"),
     ...timestamps,
   },
-  (t) => [
-    uniqueIndex("email_threads_uidx").on(t.accountId, t.providerThreadId),
-  ],
+  (t) => [uniqueIndex("email_threads_uidx").on(t.accountId, t.providerThreadId)],
 );
 
 export const emailMessages = pgTable(
@@ -150,9 +149,7 @@ export const emailMessages = pgTable(
     deletedAtProvider: timestamp("deleted_at_provider", { withTimezone: true }),
     ...timestamps,
   },
-  (t) => [
-    uniqueIndex("email_messages_uidx").on(t.accountId, t.providerMessageId),
-  ],
+  (t) => [uniqueIndex("email_messages_uidx").on(t.accountId, t.providerMessageId)],
 );
 
 export const normalizedEmails = pgTable(
@@ -172,10 +169,7 @@ export const normalizedEmails = pgTable(
     ...timestamps,
   },
   (t) => [
-    uniqueIndex("normalized_emails_msg_ver_uidx").on(
-      t.messageId,
-      t.normalizerVersion,
-    ),
+    uniqueIndex("normalized_emails_msg_ver_uidx").on(t.messageId, t.normalizerVersion),
   ],
 );
 
@@ -228,10 +222,7 @@ export const classificationResults = pgTable(
     ...timestamps,
   },
   (t) => [
-    uniqueIndex("classification_results_uidx").on(
-      t.messageId,
-      t.classifierVersionId,
-    ),
+    uniqueIndex("classification_results_uidx").on(t.messageId, t.classifierVersionId),
     index("classification_results_review_idx")
       .on(t.needsReview)
       .where(sql`${t.needsReview} = true`),

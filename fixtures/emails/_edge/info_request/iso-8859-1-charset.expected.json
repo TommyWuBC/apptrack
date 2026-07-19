@@ -5,8 +5,5 @@
     "roleTitle": "Software Engineering Intern"
   },
   "minConfidence": 0.65,
-  "tags": [
-    "edge",
-    "non_utf8_charset"
-  ]
+  "tags": ["edge", "non_utf8_charset"]
 }

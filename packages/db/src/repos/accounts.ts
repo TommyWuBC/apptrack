@@ -10,10 +10,7 @@ export type CreateAccountInput = {
   status?: string;
 };
 
-export async function createConnectedAccount(
-  db: Database,
-  input: CreateAccountInput,
-) {
+export async function createConnectedAccount(db: Database, input: CreateAccountInput) {
   const id = uuidv7();
   const [row] = await db
     .insert(connectedEmailAccounts)
@@ -57,17 +54,11 @@ export async function updateSyncCursor(
   return row ?? null;
 }
 
-export async function setAccountStatus(
-  db: Database,
-  accountId: string,
-  status: string,
-) {
+export async function setAccountStatus(db: Database, accountId: string, status: string) {
   const [row] = await db
     .update(connectedEmailAccounts)
     .set({ status })
-    .where(
-      and(eq(connectedEmailAccounts.id, accountId)),
-    )
+    .where(and(eq(connectedEmailAccounts.id, accountId)))
     .returning();
   return row ?? null;
 }

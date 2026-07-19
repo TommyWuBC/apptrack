@@ -6,12 +6,7 @@ import { repos, type Database } from "@apptrack/db";
 import { recomputeApplication } from "./application-recompute-service.js";
 import { matchAndStoreMessage } from "./application-match-service.js";
 
-const {
-  applicationsRepo,
-  correctionsRepo,
-  matchingRepo,
-  classificationRepo,
-} = repos;
+const { applicationsRepo, correctionsRepo, matchingRepo, classificationRepo } = repos;
 
 function toUserCorrections(
   rows: Array<{
@@ -35,10 +30,7 @@ function toUserCorrections(
   }));
 }
 
-export async function loadApplicationCorrections(
-  db: Database,
-  applicationId: string,
-) {
+export async function loadApplicationCorrections(db: Database, applicationId: string) {
   const rows = await correctionsRepo.listCorrectionsForTarget(
     db,
     "application",
@@ -68,11 +60,7 @@ export async function patchApplication(
   const app = await applicationsRepo.getApplicationById(db, applicationId);
   if (!app) throw new Error("application_not_found");
 
-  if (
-    patch.expectedVersion &&
-    app.stateVersion &&
-    patch.expectedVersion !== app.stateVersion
-  ) {
+  if (patch.expectedVersion && patch.expectedVersion !== app.updatedAt.toISOString()) {
     throw Object.assign(new Error("version_conflict"), { code: "CONFLICT" });
   }
 
@@ -83,7 +71,15 @@ export async function patchApplication(
         ? app.currentState
         : f.field === "actionRequired"
           ? app.actionRequired
-          : null;
+          : f.field === "companyId"
+            ? app.companyId
+            : f.field === "roleId"
+              ? app.roleId
+              : f.field === "source"
+                ? app.source
+                : f.field === "appliedAt"
+                  ? (app.appliedAt?.toISOString() ?? null)
+                  : null;
 
     const row = await correctionsRepo.insertCorrection(db, {
       targetType: "application",
@@ -94,6 +90,38 @@ export async function patchApplication(
       locked: f.locked ?? false,
     });
     created.push(row.id);
+
+    if (f.field === "companyId") {
+      if (typeof f.userValue !== "string") {
+        throw new Error("invalid_company_id");
+      }
+      await applicationsRepo.updateApplicationUserFields(db, applicationId, {
+        companyId: f.userValue,
+      });
+    } else if (f.field === "roleId") {
+      if (typeof f.userValue !== "string" && f.userValue !== null) {
+        throw new Error("invalid_role_id");
+      }
+      await applicationsRepo.updateApplicationUserFields(db, applicationId, {
+        roleId: f.userValue,
+      });
+    } else if (f.field === "source") {
+      if (typeof f.userValue !== "string" && f.userValue !== null) {
+        throw new Error("invalid_source");
+      }
+      await applicationsRepo.updateApplicationUserFields(db, applicationId, {
+        source: f.userValue,
+      });
+    } else if (f.field === "appliedAt") {
+      if (typeof f.userValue !== "string") {
+        throw new Error("invalid_applied_at");
+      }
+      const timestamp = Date.parse(f.userValue);
+      if (!Number.isFinite(timestamp)) throw new Error("invalid_applied_at");
+      await applicationsRepo.updateApplicationUserFields(db, applicationId, {
+        appliedAt: new Date(timestamp),
+      });
+    }
 
     if (f.field === "currentState" && typeof f.userValue === "string") {
       await applicationsRepo.appendApplicationEvent(db, {
@@ -147,10 +175,7 @@ export async function undoCorrection(
   });
 
   if (existing.targetType === "application") {
-    const corrections = await loadApplicationCorrections(
-      db,
-      existing.targetId,
-    );
+    const corrections = await loadApplicationCorrections(db, existing.targetId);
     await recomputeApplication(db, existing.targetId, { corrections });
   }
 
@@ -244,10 +269,7 @@ export async function mergeApplications(
       throw new Error("merge_user_mismatch");
     }
 
-    const events = await applicationsRepo.listEventsForApplication(
-      db,
-      sourceId,
-    );
+    const events = await applicationsRepo.listEventsForApplication(db, sourceId);
     for (const ev of events) {
       if (ev.supersededBy) continue;
       if (ev.eventType === ApplicationEventType.match_reassigned) continue;
@@ -355,10 +377,7 @@ export async function mergeCompanies(
   if (survivorCompanyId === sourceCompanyId) {
     throw new Error("merge_same_company");
   }
-  const survivor = await applicationsRepo.getCompanyById(
-    db,
-    survivorCompanyId,
-  );
+  const survivor = await applicationsRepo.getCompanyById(db, survivorCompanyId);
   const source = await applicationsRepo.getCompanyById(db, sourceCompanyId);
   if (!survivor || !source) throw new Error("company_not_found");
 
@@ -367,11 +386,7 @@ export async function mergeCompanies(
     sourceCompanyId,
     survivorCompanyId,
   );
-  await applicationsRepo.reassignCompanyAliases(
-    db,
-    sourceCompanyId,
-    survivorCompanyId,
-  );
+  await applicationsRepo.reassignCompanyAliases(db, sourceCompanyId, survivorCompanyId);
 
   await correctionsRepo.writeAuditLog(db, {
     userId,
@@ -391,10 +406,7 @@ export async function mergeCompanies(
     kind: ReviewKind.entity_merge_suggestion,
   });
   for (const item of open) {
-    if (
-      item.refId === sourceCompanyId ||
-      item.refId === survivorCompanyId
-    ) {
+    if (item.refId === sourceCompanyId || item.refId === survivorCompanyId) {
       await matchingRepo.resolveReviewItem(db, item.id, {
         mergedInto: survivorCompanyId,
         resolvedBy: "user",
@@ -466,23 +478,24 @@ export async function resolveReview(
     const messageId = item.refId;
     if (resolution.action === "attach") {
       // Create attachment by matching path: load classification and append event
-      const classification =
-        await classificationRepo.getLatestClassification(db, messageId);
+      const classification = await classificationRepo.getLatestClassification(
+        db,
+        messageId,
+      );
       if (!classification) throw new Error("classification_not_found");
+      const message = await repos.emailsRepo.getEmailMessageById(db, messageId);
+      if (!message) throw new Error("message_not_found");
       await applicationsRepo.appendApplicationEvent(db, {
         applicationId: resolution.applicationId,
         eventType: classification.eventType,
-        occurredAt: new Date(),
+        occurredAt: message.internalDate,
         source: "user",
         messageId,
         classificationResultId: classification.id,
         payload: { resolvedFromReview: reviewId },
       });
       await recomputeApplication(db, resolution.applicationId, {
-        corrections: await loadApplicationCorrections(
-          db,
-          resolution.applicationId,
-        ),
+        corrections: await loadApplicationCorrections(db, resolution.applicationId),
       });
     } else if (resolution.action === "new_application") {
       // Force a fresh application from this message's classification
@@ -491,8 +504,10 @@ export async function resolveReview(
       });
       // If still review (non-confirmation), create manually via attach to new app
       if (!out.applicationId && out.companyId) {
-        const classification =
-          await classificationRepo.getLatestClassification(db, messageId);
+        const classification = await classificationRepo.getLatestClassification(
+          db,
+          messageId,
+        );
         if (!classification) throw new Error("classification_not_found");
         const owner = await repos.usersRepo.getFirstUser(db);
         if (!owner) throw new Error("no_user");
@@ -556,10 +571,7 @@ export async function resolveReview(
       await matchingRepo.dismissReviewItem(db, reviewId, resolution);
       return { reviewId, status: "dismissed", detail };
     }
-  } else if (
-    resolution.kind === "ghost_confirm" &&
-    resolution.action === "dismiss"
-  ) {
+  } else if (resolution.kind === "ghost_confirm" && resolution.action === "dismiss") {
     const { dismissGhost } = await import("./ghost-evaluate-service.js");
     await dismissGhost(db, item.refId, { userId });
     await matchingRepo.dismissReviewItem(db, reviewId, resolution);
@@ -573,9 +585,37 @@ export async function resolveReview(
     });
     return { reviewId, status: "dismissed", detail };
   } else if (
-    resolution.action === "dismiss" ||
+    resolution.kind === "uncertain_classification" &&
     resolution.action === "confirm"
   ) {
+    const classification = await classificationRepo.getLatestClassification(
+      db,
+      item.refId,
+    );
+    if (classification) {
+      await correctionsRepo.insertCorrection(db, {
+        targetType: "classification",
+        targetId: classification.id,
+        field: "eventType",
+        machineValue: classification.eventType,
+        userValue: classification.eventType,
+        locked: true,
+      });
+      await correctionsRepo.insertCorrection(db, {
+        targetType: "classification",
+        targetId: classification.id,
+        field: "needsReview",
+        machineValue: classification.needsReview,
+        userValue: false,
+        locked: true,
+      });
+    }
+    detail = {
+      ...resolution,
+      classificationResultId: classification?.id ?? null,
+      confirmedEventType: classification?.eventType ?? null,
+    };
+  } else if (resolution.action === "dismiss" || resolution.action === "confirm") {
     if (resolution.action === "dismiss") {
       await matchingRepo.dismissReviewItem(db, reviewId, resolution);
       return { reviewId, status: "dismissed", detail };

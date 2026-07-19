@@ -5,24 +5,22 @@ import type { FastifyInstance } from "fastify";
 import { ErrorCode } from "@apptrack/shared";
 import { repos } from "@apptrack/db";
 import { computeStats, formatRateStat } from "../services/stats-service.js";
-
-async function findSoleOwnerId(db: NonNullable<FastifyInstance["db"]>) {
-  const user = await repos.usersRepo.getFirstUser(db);
-  return user?.id ?? null;
-}
+import { markEmailIrrelevant } from "../services/mark-email-irrelevant-service.js";
 
 export async function registerDashboardRoutes(app: FastifyInstance) {
-  app.get("/api/v1/me", async (_req, reply) => {
+  // Backward-compatible alias; new clients use /api/v1/auth/me.
+  app.get("/api/v1/me", async (req, reply) => {
     if (!app.db) {
       return reply.code(503).send({
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const owner = await findSoleOwnerId(app.db);
-    if (!owner) {
-      return { userId: null, setupRequired: true };
-    }
-    return { userId: owner, setupRequired: false };
+    return {
+      userId: req.userId,
+      email: req.authUser?.email,
+      role: req.authUser?.role,
+      setupRequired: false,
+    };
   });
 
   app.get("/api/v1/stats", async (req, reply) => {
@@ -31,21 +29,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const q = req.query as { userId?: string };
-    let userId = q.userId;
-    if (!userId) {
-      const owner = await findSoleOwnerId(app.db);
-      if (!owner) {
-        return reply.code(400).send({
-          error: {
-            code: ErrorCode.VALIDATION_ERROR,
-            message: "userId query param required",
-          },
-        });
-      }
-      userId = owner;
-    }
-    const stats = await computeStats(app.db, userId);
+    const stats = await computeStats(app.db, req.userId!);
     return {
       ...stats,
       ratesFormatted: Object.fromEntries(
@@ -77,14 +61,12 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.NOT_FOUND, message: "message_not_found" },
       });
     }
-    const norm = await repos.normalizedEmailsRepo.getLatestNormalized(
+    const norm = await repos.normalizedEmailsRepo.getLatestNormalized(app.db, id);
+    const classification = await repos.classificationRepo.getEffectiveClassification(
       app.db,
       id,
     );
-    const classification =
-      await repos.classificationRepo.getLatestClassification(app.db, id);
-    const candidates =
-      await repos.matchingRepo.listMatchCandidatesForMessage(app.db, id);
+    const candidates = await repos.matchingRepo.listMatchCandidatesForMessage(app.db, id);
 
     return {
       messageId: id,
@@ -114,5 +96,28 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
         matcherVersion: c.matcherVersion,
       })),
     };
+  });
+
+  app.post("/api/v1/emails/:id/mark-irrelevant", async (req, reply) => {
+    if (!app.db) {
+      return reply.code(503).send({
+        error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
+      });
+    }
+    const { id } = req.params as { id: string };
+    try {
+      return await markEmailIrrelevant(app.db, id, req.userId!);
+    } catch (error) {
+      if (
+        ["message_not_found", "classification_not_found"].includes(
+          (error as Error).message,
+        )
+      ) {
+        return reply.code(404).send({
+          error: { code: ErrorCode.NOT_FOUND, message: (error as Error).message },
+        });
+      }
+      throw error;
+    }
   });
 }

@@ -1,11 +1,7 @@
 /**
  * Browser IIFE entry — auto-boots from <script data-site-key>.
  */
-import {
-  createTracker,
-  readScriptConfig,
-  type Tracker,
-} from "./tracker.js";
+import { createTracker, readScriptConfig, type Tracker } from "./tracker.js";
 
 declare global {
   interface Window {

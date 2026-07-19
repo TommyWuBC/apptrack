@@ -54,10 +54,7 @@ function stripJsonFences(text: string): string {
  * Call LLM with untrusted email block; validate against allowlist schema.
  * Invalid output → no-answer (never partially trusted). §13.5 / F6
  */
-export async function runL3Extraction(
-  llm: LlmClient,
-  input: L3Input,
-): Promise<L3Result> {
+export async function runL3Extraction(llm: LlmClient, input: L3Input): Promise<L3Result> {
   const user = buildExtractUserPrompt({
     subject: input.subject,
     textPlain: input.textPlain,
@@ -118,7 +115,10 @@ export async function runL3Extraction(
     return {
       ok: false,
       reason: "schema_invalid",
-      detail: parsed.error.issues.map((i) => i.message).join("; ").slice(0, 200),
+      detail: parsed.error.issues
+        .map((i) => i.message)
+        .join("; ")
+        .slice(0, 200),
       modelId,
       providerId,
       promptVersion: PROMPT_VERSION,
@@ -155,10 +155,7 @@ export function llmToExtraction(llm: LlmExtractionV1): ExtractionV1 {
   };
 }
 
-export function mergeExtraction(
-  base: ExtractionV1,
-  overlay: ExtractionV1,
-): ExtractionV1 {
+export function mergeExtraction(base: ExtractionV1, overlay: ExtractionV1): ExtractionV1 {
   const out: ExtractionV1 = { ...base };
   for (const [k, v] of Object.entries(overlay) as Array<
     [keyof ExtractionV1, ExtractionV1[keyof ExtractionV1]]

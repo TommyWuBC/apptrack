@@ -12,29 +12,29 @@ After an email is classified as job-related, attach it to the right application,
 
 ## Signals (AGENTS.md §15.1)
 
-| Signal | Weight | Notes |
-|--------|--------|-------|
-| sameThread | 0.95 | Same Gmail thread as an already-attached email |
-| requisitionOrUrl | 0.9 | Req ID / job URL path token |
-| portalUrl | 0.8 | Unique portal URL |
-| recruiterSender | 0.5 | Same recruiter address on prior events |
-| roleTitleSimilarity | 0.4 | Token overlap on normalized titles |
-| assessmentContinuity | 0.4 | Same OA provider |
-| locationMatch | 0.2 | Location string overlap |
-| recencyPrior | 0.2 | Decays over 45 days |
-| stateCompatibility | 0.3 | Event type fits current stage |
-| terminalPenalty | −0.4 | Terminal state >30d stale |
+| Signal               | Weight | Notes                                          |
+| -------------------- | ------ | ---------------------------------------------- |
+| sameThread           | 0.95   | Same Gmail thread as an already-attached email |
+| requisitionOrUrl     | 0.9    | Req ID / job URL path token                    |
+| portalUrl            | 0.8    | Unique portal URL                              |
+| recruiterSender      | 0.5    | Same recruiter address on prior events         |
+| roleTitleSimilarity  | 0.4    | Token overlap on normalized titles             |
+| assessmentContinuity | 0.4    | Same OA provider                               |
+| locationMatch        | 0.2    | Location string overlap                        |
+| recencyPrior         | 0.2    | Decays over 45 days                            |
+| stateCompatibility   | 0.3    | Event type fits current stage                  |
+| terminalPenalty      | −0.4   | Terminal state >30d stale                      |
 
 Raw weighted sum is clamped to `[0, 1]`.
 
 ## Thresholds (§15.2)
 
-| Outcome | Condition |
-|---------|-----------|
-| `auto_attached` | score ≥ 0.75 **and** margin ≥ 0.2 over runner-up |
-| `review` (ambiguous / unmatched) | 0.45–0.75, or margin < 0.2, or no candidates for non-confirmation |
-| `new_application` | score < 0.45 (or no candidates) **and** event is `application_confirmation` |
-| `rejected` | non-job / newsletter / unknown (skipped) |
+| Outcome                          | Condition                                                                   |
+| -------------------------------- | --------------------------------------------------------------------------- |
+| `auto_attached`                  | score ≥ 0.75 **and** margin ≥ 0.2 over runner-up                            |
+| `review` (ambiguous / unmatched) | 0.45–0.75, or margin < 0.2, or no candidates for non-confirmation           |
+| `new_application`                | score < 0.45 (or no candidates) **and** event is `application_confirmation` |
+| `rejected`                       | non-job / newsletter / unknown (skipped)                                    |
 
 ## Company resolution (§14, minimal for M8)
 
@@ -53,13 +53,13 @@ New attachments at a company trigger `match.reevaluate` for open `ambiguous_matc
 
 ## API
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/api/v1/match/version` | `match-v1` |
-| POST | `/api/v1/match/:messageId` | Run matcher; persist decision |
-| GET | `/api/v1/match/:messageId/candidates` | Audit rows |
-| POST | `/api/v1/match/reevaluate/:companyId` | Re-score open ambiguities |
-| GET | `/api/v1/review?kind=` | Open review queue |
+| Method | Path                                  | Purpose                       |
+| ------ | ------------------------------------- | ----------------------------- |
+| GET    | `/api/v1/match/version`               | `match-v1`                    |
+| POST   | `/api/v1/match/:messageId`            | Run matcher; persist decision |
+| GET    | `/api/v1/match/:messageId/candidates` | Audit rows                    |
+| POST   | `/api/v1/match/reevaluate/:companyId` | Re-score open ambiguities     |
+| GET    | `/api/v1/review?kind=`                | Open review queue             |
 
 ## Tests
 

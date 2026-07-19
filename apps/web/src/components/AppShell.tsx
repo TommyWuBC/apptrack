@@ -47,6 +47,17 @@ export function AppShell({
               </Link>
             );
           })}
+          {!demo ? (
+            <button
+              type="button"
+              className="nav-link"
+              onClick={() => {
+                void api.logout().finally(() => window.location.assign("/login"));
+              }}
+            >
+              Sign out
+            </button>
+          ) : null}
         </nav>
       </header>
       {demo ? (
@@ -55,8 +66,8 @@ export function AppShell({
           data-testid="demo-banner"
         >
           Demo fixtures — add <code className="font-mono">?demo=1</code> (or{" "}
-          <code className="font-mono">VITE_DEMO=1</code>) for offline UI.
-          Analytics settings land in M14.
+          <code className="font-mono">VITE_DEMO=1</code>) for offline UI. Analytics
+          settings are available under Settings.
         </p>
       ) : null}
       <div className="flex-1">{children}</div>

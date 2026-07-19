@@ -225,10 +225,7 @@ export async function evaluateApplicationGhost(
   const app = await repos.applicationsRepo.getApplicationById(db, applicationId);
   if (!app) throw new Error("application_not_found");
 
-  const rows = await repos.applicationsRepo.listEventsForApplication(
-    db,
-    applicationId,
-  );
+  const rows = await repos.applicationsRepo.listEventsForApplication(db, applicationId);
   const reduced = reduce(toReducerEvents(rows), REDUCER_VERSION, {
     now: opts.now,
   });
@@ -261,13 +258,8 @@ export async function evaluateApplicationGhost(
   );
 
   // Recompute projection when events changed current_state path
-  if (
-    transition &&
-    (result.action === "mark_ghosted" || result.action === "clear")
-  ) {
-    const { recomputeApplication } = await import(
-      "./application-recompute-service.js"
-    );
+  if (transition && (result.action === "mark_ghosted" || result.action === "clear")) {
+    const { recomputeApplication } = await import("./application-recompute-service.js");
     await recomputeApplication(db, applicationId, {
       skipGhostEvaluate: true,
     });
@@ -320,18 +312,16 @@ export async function dismissGhost(
       : app.currentState;
 
   // Prefer the state before ghost projection for suppress-until-change.
-  const rows = await repos.applicationsRepo.listEventsForApplication(
-    db,
-    applicationId,
-  );
+  const rows = await repos.applicationsRepo.listEventsForApplication(db, applicationId);
   const reduced = reduce(toReducerEvents(rows), REDUCER_VERSION);
   // If already ghosted, dismissedAtState should be the stage before ghost_flagged
   let dismissedAtState = priorState;
-  if (app.currentState === "ghosted" || app.ghostStatus === GhostStatus.possibly_ghosted) {
+  if (
+    app.currentState === "ghosted" ||
+    app.ghostStatus === GhostStatus.possibly_ghosted
+  ) {
     const timeline = reduced.stateTimeline;
-    const beforeGhost = [...timeline]
-      .reverse()
-      .find((e) => e.state !== "ghosted");
+    const beforeGhost = [...timeline].reverse().find((e) => e.state !== "ghosted");
     dismissedAtState = beforeGhost?.state ?? priorState;
   }
 
@@ -350,9 +340,7 @@ export async function dismissGhost(
     ghostStatus: GhostStatus.dismissed,
   });
 
-  const { recomputeApplication } = await import(
-    "./application-recompute-service.js"
-  );
+  const { recomputeApplication } = await import("./application-recompute-service.js");
   const recomputed = await recomputeApplication(db, applicationId, {
     skipGhostEvaluate: true,
   });

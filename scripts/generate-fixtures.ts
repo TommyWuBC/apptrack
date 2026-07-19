@@ -17,13 +17,7 @@ import {
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "fixtures", "emails");
 
-type Ats =
-  | "greenhouse"
-  | "lever"
-  | "workday"
-  | "ashby"
-  | "icims"
-  | "smartrecruiters";
+type Ats = "greenhouse" | "lever" | "workday" | "ashby" | "icims" | "smartrecruiters";
 
 type Spec = {
   ats: Ats | "_edge";
@@ -85,23 +79,42 @@ function buildSimpleEml(spec: Spec): string {
   if (hasText && hasHtml) {
     lines.push(`Content-Type: multipart/alternative; boundary="${boundary}"`, ``);
     lines.push(`--${boundary}`);
-    lines.push(`Content-Type: text/plain; charset=UTF-8`, `Content-Transfer-Encoding: 7bit`, ``);
+    lines.push(
+      `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Transfer-Encoding: 7bit`,
+      ``,
+    );
     lines.push(spec.text!, ``);
     lines.push(`--${boundary}`);
-    lines.push(`Content-Type: text/html; charset=UTF-8`, `Content-Transfer-Encoding: 7bit`, ``);
+    lines.push(
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: 7bit`,
+      ``,
+    );
     lines.push(spec.html!, ``);
     lines.push(`--${boundary}--`, ``);
   } else if (hasHtml) {
-    lines.push(`Content-Type: text/html; charset=UTF-8`, `Content-Transfer-Encoding: 7bit`, ``);
+    lines.push(
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: 7bit`,
+      ``,
+    );
     lines.push(spec.html!, ``);
   } else {
-    lines.push(`Content-Type: text/plain; charset=UTF-8`, `Content-Transfer-Encoding: 7bit`, ``);
+    lines.push(
+      `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Transfer-Encoding: 7bit`,
+      ``,
+    );
     lines.push(spec.text ?? "", ``);
   }
   return lines.join("\r\n");
 }
 
-function atsSender(ats: Ats, companyKey: keyof typeof COMPANIES): {
+function atsSender(
+  ats: Ats,
+  companyKey: keyof typeof COMPANIES,
+): {
   fromName: string;
   fromEmail: string;
   platform: string;
@@ -532,7 +545,8 @@ function edgeSpecs(): Spec[] {
       extraction: {},
       minConfidence: 0.0,
       tags: ["edge", "prompt_injection", "canary"],
-      notes: "Classifier must NOT follow embedded instructions; treat as unknown/spam on merits.",
+      notes:
+        "Classifier must NOT follow embedded instructions; treat as unknown/spam on merits.",
     },
     {
       ats: "_edge",

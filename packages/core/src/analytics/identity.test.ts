@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeVisitorHash,
   dailyVisitorSalt,
+  partitionIncrementalEvents,
   parseCoarseUa,
   sessionizeEvents,
   ANALYTICS_SESSION_IDLE_MS,
@@ -40,9 +41,7 @@ describe("analytics identity", () => {
     expect(parseCoarseUa("Mozilla/5.0 (iPhone) Safari/604.1").deviceCategory).toBe(
       "mobile",
     );
-    expect(parseCoarseUa("Mozilla/5.0 Chrome/120.0").browserFamily).toBe(
-      "chrome",
-    );
+    expect(parseCoarseUa("Mozilla/5.0 Chrome/120.0").browserFamily).toBe("chrome");
     expect(parseCoarseUa("Googlebot/2.1").deviceCategory).toBe("bot");
   });
 
@@ -60,5 +59,41 @@ describe("analytics identity", () => {
     expect(sessions[0]!.entryPath).toBe("/a");
     expect(sessions[1]!.events).toHaveLength(1);
     expect(sessions[1]!.entryPath).toBe("/b");
+  });
+
+  it("extends a persisted session across aggregate runs", () => {
+    const out = partitionIncrementalEvents(
+      [
+        {
+          occurredAt: new Date("2026-07-19T10:15:00Z"),
+          path: "/projects",
+        },
+        {
+          occurredAt: new Date("2026-07-19T11:00:00Z"),
+          path: "/resume",
+        },
+      ],
+      new Date("2026-07-19T10:10:00Z"),
+    );
+    expect(out.append.map((event) => event.path)).toEqual(["/projects"]);
+    expect(out.remaining.map((event) => event.path)).toEqual(["/resume"]);
+  });
+
+  it("does not attach backfilled events to a newer session", () => {
+    const out = partitionIncrementalEvents(
+      [
+        {
+          occurredAt: new Date("2026-07-19T10:55:00Z"),
+          path: "/late",
+        },
+        {
+          occurredAt: new Date("2026-07-19T11:35:00Z"),
+          path: "/newer",
+        },
+      ],
+      new Date("2026-07-19T11:30:00Z"),
+    );
+    expect(out.append.map((event) => event.path)).toEqual(["/newer"]);
+    expect(out.remaining.map((event) => event.path)).toEqual(["/late"]);
   });
 });

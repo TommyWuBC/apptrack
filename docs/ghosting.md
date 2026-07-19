@@ -6,12 +6,12 @@ Last verified against code: 2026-07-19 (M12).
 
 Ghosting is an **inference**, never a fact. Projection field `applications.ghost_status`:
 
-| Status | Meaning |
-|--------|---------|
-| `none` | Active / within window |
-| `stale` | Past stale threshold; current_state unchanged |
+| Status             | Meaning                                                                    |
+| ------------------ | -------------------------------------------------------------------------- |
+| `none`             | Active / within window                                                     |
+| `stale`            | Past stale threshold; current_state unchanged                              |
 | `possibly_ghosted` | Past ghost threshold; `ghost_flagged` projects `current_state` → `ghosted` |
-| `dismissed` | User dismissed; suppressed until state changes |
+| `dismissed`        | User dismissed; suppressed until state changes                             |
 
 Algorithm version: `ghost-v1` (`packages/core/ghosting`).
 
@@ -33,21 +33,21 @@ Algorithm version: `ghost-v1` (`packages/core/ghosting`).
 
 ## API
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/api/v1/ghost/version` | Algorithm version + defaults |
-| POST | `/api/v1/ghost/evaluate` | Scan all apps for a user |
-| POST | `/api/v1/ghost/evaluate/:applicationId` | Single app |
-| POST | `/api/v1/applications/:id/ghost/dismiss` | User dismiss |
-| GET/PATCH | `/api/v1/settings/ghost` | Threshold settings |
-| GET | `/api/v1/notifications` | In-app notifications |
-| POST | `/api/v1/notifications/:id/read` | Mark read |
+| Method    | Path                                     | Purpose                      |
+| --------- | ---------------------------------------- | ---------------------------- |
+| GET       | `/api/v1/ghost/version`                  | Algorithm version + defaults |
+| POST      | `/api/v1/ghost/evaluate`                 | Scan all apps for a user     |
+| POST      | `/api/v1/ghost/evaluate/:applicationId`  | Single app                   |
+| POST      | `/api/v1/applications/:id/ghost/dismiss` | User dismiss                 |
+| GET/PATCH | `/api/v1/settings/ghost`                 | Threshold settings           |
+| GET       | `/api/v1/notifications`                  | In-app notifications         |
+| POST      | `/api/v1/notifications/:id/read`         | Mark read                    |
 
 Worker polls `POST /api/v1/ghost/evaluate` daily (disable with `GHOST_EVAL_DISABLED=1`).
 
 ## UI
 
-- Applications table / overview: dashed **stale** / *possibly ghosted* badges
+- Applications table / overview: dashed **stale** / _possibly ghosted_ badges
 - Application detail: banner + one-click dismiss
 - Settings: threshold editors + “Run ghost evaluate now”
 - Review queue: `ghost_confirm` items

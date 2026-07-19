@@ -10,13 +10,8 @@ export function ReviewPage() {
   });
 
   const resolve = useMutation({
-    mutationFn: ({
-      id,
-      body,
-    }: {
-      id: string;
-      body: Record<string, unknown>;
-    }) => api.resolveReview(id, body),
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
+      api.resolveReview(id, body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["review"] });
       void qc.invalidateQueries({ queryKey: ["applications"] });
@@ -35,8 +30,7 @@ export function ReviewPage() {
       <div>
         <h2 className="mb-1 font-display text-xl font-semibold">Review</h2>
         <p className="text-sm text-ink-600">
-          Ambiguous matches, merge suggestions, and conflicts — never guess;
-          you decide.
+          Ambiguous matches, merge suggestions, and conflicts — never guess; you decide.
         </p>
       </div>
 
@@ -68,6 +62,14 @@ function ReviewCard({
   onResolve: (body: Record<string, unknown>) => void;
 }) {
   const res = item.resolution as Record<string, unknown> | null;
+  const match = res?.match as
+    | {
+        reason?: string;
+        candidates?: Array<{ applicationId: string; score: number }>;
+      }
+    | undefined;
+  const candidates = match?.candidates ?? [];
+  const conflictState = typeof res?.state === "string" ? res.state : "unknown";
 
   return (
     <li className="panel p-4" data-testid="review-item">
@@ -79,24 +81,27 @@ function ReviewCard({
       {item.kind === "ambiguous_match" ? (
         <div className="space-y-3">
           <p className="text-sm text-ink-700">
-            {(res?.match as { reason?: string } | undefined)?.reason ??
-              "Ambiguous application match"}
+            {match?.reason ?? "Ambiguous application match"}
           </p>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="btn text-xs"
-              disabled={busy}
-              onClick={() =>
-                onResolve({
-                  kind: "ambiguous_match",
-                  action: "attach",
-                  applicationId: "app-1",
-                })
-              }
-            >
-              Attach to app-1
-            </button>
+            {candidates.map((candidate) => (
+              <button
+                key={candidate.applicationId}
+                type="button"
+                className="btn text-xs"
+                disabled={busy}
+                onClick={() =>
+                  onResolve({
+                    kind: "ambiguous_match",
+                    action: "attach",
+                    applicationId: candidate.applicationId,
+                  })
+                }
+              >
+                Attach to {candidate.applicationId} ({(candidate.score * 100).toFixed(0)}
+                %)
+              </button>
+            ))}
             <button
               type="button"
               className="btn-ghost text-xs"
@@ -114,23 +119,24 @@ function ReviewCard({
               type="button"
               className="btn-ghost text-xs"
               disabled={busy}
-              onClick={() =>
-                onResolve({ kind: "ambiguous_match", action: "dismiss" })
-              }
+              onClick={() => onResolve({ kind: "ambiguous_match", action: "dismiss" })}
             >
               Dismiss
             </button>
           </div>
-          <p className="text-xs text-ink-600">
-            Candidates:{" "}
-            <Link to="/applications/$id" params={{ id: "app-1" }}>
-              app-1
-            </Link>
-            {" · "}
-            <Link to="/applications/$id" params={{ id: "app-4" }}>
-              app-4
-            </Link>
-          </p>
+          {candidates.length > 0 ? (
+            <p className="text-xs text-ink-600">
+              Candidates:{" "}
+              {candidates.map((candidate, index) => (
+                <span key={candidate.applicationId}>
+                  {index > 0 ? " · " : null}
+                  <Link to="/applications/$id" params={{ id: candidate.applicationId }}>
+                    {candidate.applicationId}
+                  </Link>
+                </span>
+              ))}
+            </p>
+          ) : null}
         </div>
       ) : null}
 
@@ -153,8 +159,7 @@ function ReviewCard({
                 onResolve({
                   kind: "entity_merge_suggestion",
                   action: "merge",
-                  survivorCompanyId:
-                    (res?.suggestedCompanyId as string) ?? "co-initech",
+                  survivorCompanyId: res?.suggestedCompanyId as string,
                   sourceCompanyId: item.refId,
                 })
               }
@@ -188,20 +193,18 @@ function ReviewCard({
               onResolve({
                 kind: "state_conflict",
                 action: "accept_state",
-                state: "interviewing",
+                state: conflictState,
                 locked: true,
               })
             }
           >
-            Lock as interviewing
+            Lock as {conflictState}
           </button>
           <button
             type="button"
             className="btn-ghost text-xs"
             disabled={busy}
-            onClick={() =>
-              onResolve({ kind: "state_conflict", action: "dismiss" })
-            }
+            onClick={() => onResolve({ kind: "state_conflict", action: "dismiss" })}
           >
             Dismiss
           </button>
@@ -226,9 +229,7 @@ function ReviewCard({
               type="button"
               className="btn-ghost text-xs"
               disabled={busy}
-              onClick={() =>
-                onResolve({ kind: "ghost_confirm", action: "dismiss" })
-              }
+              onClick={() => onResolve({ kind: "ghost_confirm", action: "dismiss" })}
             >
               Dismiss flag
             </button>
@@ -236,16 +237,49 @@ function ReviewCard({
         </div>
       ) : null}
 
-      {!["ambiguous_match", "entity_merge_suggestion", "state_conflict", "ghost_confirm"].includes(
-        item.kind,
-      ) ? (
+      {item.kind === "uncertain_classification" ? (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="btn text-xs"
+            disabled={busy}
+            onClick={() =>
+              onResolve({
+                kind: "uncertain_classification",
+                action: "confirm",
+              })
+            }
+          >
+            Confirm classification
+          </button>
+          <button
+            type="button"
+            className="btn-ghost text-xs"
+            disabled={busy}
+            onClick={() =>
+              onResolve({
+                kind: "uncertain_classification",
+                action: "dismiss",
+              })
+            }
+          >
+            Dismiss
+          </button>
+        </div>
+      ) : null}
+
+      {![
+        "ambiguous_match",
+        "entity_merge_suggestion",
+        "state_conflict",
+        "ghost_confirm",
+        "uncertain_classification",
+      ].includes(item.kind) ? (
         <button
           type="button"
           className="btn-ghost text-xs"
           disabled={busy}
-          onClick={() =>
-            onResolve({ kind: item.kind, action: "dismiss" })
-          }
+          onClick={() => onResolve({ kind: item.kind, action: "dismiss" })}
         >
           Dismiss
         </button>

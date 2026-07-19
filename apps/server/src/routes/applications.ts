@@ -2,7 +2,7 @@
  * Applications + timeline API. AGENTS.md §16 / §22 / M9
  */
 import type { FastifyInstance } from "fastify";
-import { ErrorCode } from "@apptrack/shared";
+import { ErrorCode, JobName } from "@apptrack/shared";
 import { REDUCER_VERSION } from "@apptrack/core";
 import { repos } from "@apptrack/db";
 import {
@@ -21,26 +21,11 @@ export async function registerApplicationRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const q = req.query as { userId?: string };
-    let userId = q.userId;
-    if (!userId) {
-      const owner = await repos.usersRepo.getFirstUser(app.db);
-      if (!owner) {
-        return reply.code(400).send({
-          error: {
-            code: ErrorCode.VALIDATION_ERROR,
-            message: "userId query param required",
-          },
-        });
-      }
-      userId = owner.id;
-    }
-    const applications =
-      await repos.applicationsRepo.listApplicationsWithCompany(
-        app.db,
-        userId,
-      );
-    return { applications, userId };
+    const applications = await repos.applicationsRepo.listApplicationsWithCompany(
+      app.db,
+      req.userId!,
+    );
+    return { applications, userId: req.userId };
   });
 
   app.get("/api/v1/applications/:id", async (req, reply) => {
@@ -50,10 +35,7 @@ export async function registerApplicationRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
-    const application = await repos.applicationsRepo.getApplicationById(
-      app.db,
-      id,
-    );
+    const application = await repos.applicationsRepo.getApplicationById(app.db, id);
     if (!application) {
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "application_not_found" },
@@ -93,6 +75,14 @@ export async function registerApplicationRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
+    if (app.jobs && !req.isInternalJob) {
+      const jobId = await app.jobs.send(
+        JobName.APPLICATION_RECOMPUTE,
+        { applicationId: id },
+        { singletonKey: `application.recompute:${id}` },
+      );
+      return reply.code(202).send({ queued: true, jobId, applicationId: id });
+    }
     try {
       const out = await recomputeApplication(app.db, id);
       return out;

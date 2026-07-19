@@ -2,11 +2,7 @@ import { useState } from "react";
 import type { TimelineEvent, TimelineResponse } from "../api/client.js";
 import { EvidenceViewer } from "./EvidenceViewer.js";
 
-export function TimelineView({
-  timeline,
-}: {
-  timeline: TimelineResponse;
-}) {
+export function TimelineView({ timeline }: { timeline: TimelineResponse }) {
   const [openEvidence, setOpenEvidence] = useState<string | null>(null);
 
   return (
@@ -18,9 +14,7 @@ export function TimelineView({
         </div>
         <div>
           <p className="text-xs uppercase text-ink-600">Reducer</p>
-          <p className="font-mono text-lg">
-            {timeline.reduce.reducerVersion}
-          </p>
+          <p className="font-mono text-lg">{timeline.reduce.reducerVersion}</p>
         </div>
         {timeline.reduce.flags.conflict ? (
           <p className="badge badge-action self-center">conflict flagged</p>
@@ -35,9 +29,7 @@ export function TimelineView({
           <TimelineItem
             key={ev.id}
             event={ev}
-            onEvidence={() =>
-              ev.messageId ? setOpenEvidence(ev.messageId) : undefined
-            }
+            onEvidence={() => (ev.messageId ? setOpenEvidence(ev.messageId) : undefined)}
           />
         ))}
         {timeline.events.length === 0 ? (
@@ -46,10 +38,7 @@ export function TimelineView({
       </ol>
 
       {openEvidence ? (
-        <EvidenceViewer
-          messageId={openEvidence}
-          onClose={() => setOpenEvidence(null)}
-        />
+        <EvidenceViewer messageId={openEvidence} onClose={() => setOpenEvidence(null)} />
       ) : null}
     </div>
   );

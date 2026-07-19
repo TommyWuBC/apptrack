@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import type { Database } from "../client.js";
 import { uuidv7 } from "../ids.js";
 import {
@@ -105,10 +105,7 @@ export async function appendApplicationEvent(
   return row!;
 }
 
-export async function listEventsForApplication(
-  db: Database,
-  applicationId: string,
-) {
+export async function listEventsForApplication(db: Database, applicationId: string) {
   return db
     .select()
     .from(applicationEvents)
@@ -116,14 +113,31 @@ export async function listEventsForApplication(
     .orderBy(asc(applicationEvents.occurredAt), asc(applicationEvents.ingestedAt));
 }
 
-/** Find any event already attached to this message (idempotency for match). */
+/** Find an active (non-superseded) event for this message. AGENTS.md §16 / INV-9 */
 export async function findEventByMessageId(db: Database, messageId: string) {
   const [row] = await db
     .select()
     .from(applicationEvents)
-    .where(eq(applicationEvents.messageId, messageId))
+    .where(
+      and(
+        eq(applicationEvents.messageId, messageId),
+        isNull(applicationEvents.supersededBy),
+      ),
+    )
     .limit(1);
   return row ?? null;
+}
+
+export async function listActiveEventsByMessageId(db: Database, messageId: string) {
+  return db
+    .select()
+    .from(applicationEvents)
+    .where(
+      and(
+        eq(applicationEvents.messageId, messageId),
+        isNull(applicationEvents.supersededBy),
+      ),
+    );
 }
 
 export async function updateApplicationProjection(
@@ -159,11 +173,7 @@ export async function touchLastEventAt(
 }
 
 export async function getCompanyById(db: Database, id: string) {
-  const [row] = await db
-    .select()
-    .from(companies)
-    .where(eq(companies.id, id))
-    .limit(1);
+  const [row] = await db.select().from(companies).where(eq(companies.id, id)).limit(1);
   return row ?? null;
 }
 
@@ -171,10 +181,7 @@ export async function listCompanies(db: Database) {
   return db.select().from(companies);
 }
 
-export async function listApplicationsWithCompany(
-  db: Database,
-  userId: string,
-) {
+export async function listApplicationsWithCompany(db: Database, userId: string) {
   return db
     .select({
       id: applications.id,
@@ -231,6 +238,24 @@ export async function updateApplicationCompany(
   const [row] = await db
     .update(applications)
     .set({ companyId })
+    .where(eq(applications.id, applicationId))
+    .returning();
+  return row ?? null;
+}
+
+export async function updateApplicationUserFields(
+  db: Database,
+  applicationId: string,
+  patch: {
+    companyId?: string;
+    roleId?: string | null;
+    source?: string | null;
+    appliedAt?: Date | null;
+  },
+) {
+  const [row] = await db
+    .update(applications)
+    .set(patch)
     .where(eq(applications.id, applicationId))
     .returning();
   return row ?? null;

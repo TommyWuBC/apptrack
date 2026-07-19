@@ -4,10 +4,10 @@ Last verified against code: 2026-07-17 (M5).
 
 ## Modes
 
-| `EMAIL_PROVIDER` | Behavior |
-|------------------|----------|
+| `EMAIL_PROVIDER` | Behavior                                                                     |
+| ---------------- | ---------------------------------------------------------------------------- |
 | `mock` (default) | Replays `fixtures/emails` via `MockEmailProvider` — no Google account needed |
-| `gmail` | Live Gmail API using encrypted OAuth tokens from M4 |
+| `gmail`          | Live Gmail API using encrypted OAuth tokens from M4                          |
 
 ## Algorithm (incremental)
 
@@ -24,11 +24,11 @@ Normalize enqueue is collected as `normalizeQueued` message ids; the `email.norm
 
 ## API
 
-| Method | Path | Body / query |
-|--------|------|----------------|
-| POST | `/api/v1/sync/run` | optional `{ accountId }` |
-| GET | `/api/v1/sync/status` | optional `?accountId=` |
-| POST | `/api/v1/backfill` | `{ afterDate, accountId?, maxMessages? }` |
+| Method | Path                  | Body / query                              |
+| ------ | --------------------- | ----------------------------------------- |
+| POST   | `/api/v1/sync/run`    | optional `{ accountId }`                  |
+| GET    | `/api/v1/sync/status` | optional `?accountId=`                    |
+| POST   | `/api/v1/backfill`    | `{ afterDate, accountId?, maxMessages? }` |
 
 ## Worker
 

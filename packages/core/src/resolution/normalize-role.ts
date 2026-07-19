@@ -13,13 +13,7 @@ export function normalizeRoleTitle(raw: string): string {
     .trim();
 }
 
-export type RoleLevel =
-  | "intern"
-  | "new_grad"
-  | "mid"
-  | "senior"
-  | "staff"
-  | "unknown";
+export type RoleLevel = "intern" | "new_grad" | "mid" | "senior" | "staff" | "unknown";
 
 export function inferRoleLevel(titleNorm: string): RoleLevel {
   const t = titleNorm.toLowerCase();
