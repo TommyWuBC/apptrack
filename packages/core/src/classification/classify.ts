@@ -11,6 +11,7 @@ import {
   type ExtractionV1,
 } from "@apptrack/shared";
 import { detectAtsPlatform } from "./ats/detect.js";
+import { detectAtsTemplate } from "./ats/templates.js";
 import { extractFields } from "./extract.js";
 import { RULES } from "./rules/families.js";
 import {
@@ -111,6 +112,28 @@ function runDeterministic(input: ClassifyInput): {
       detail: `ATS/recruiting platform signal: ${ats}`,
     });
     layerTrace.push({ layer: "L1", ats });
+  }
+
+  const atsTemplate = detectAtsTemplate({
+    fromAddress: input.fromAddress,
+    subject: input.subject,
+    text,
+  });
+  if (atsTemplate) {
+    candidates.push({
+      eventType: atsTemplate.eventType,
+      confidence: atsTemplate.confidence,
+      evidence: {
+        kind: "ats_template",
+        detail: atsTemplate.detail,
+      },
+      layer: "L1-template",
+    });
+    layerTrace.push({
+      layer: "L1",
+      ats: atsTemplate.platform,
+      eventType: atsTemplate.eventType,
+    });
   }
 
   const listId =
