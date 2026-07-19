@@ -10,12 +10,12 @@ type Batch = {
 };
 
 async function captured(page: import("@playwright/test").Page): Promise<Batch[]> {
-  const res = await page.request.get("/__e2e/captured");
+  const res = await page.request.get("http://127.0.0.1:3001/__e2e/captured");
   return (await res.json()) as Batch[];
 }
 
 async function reset(page: import("@playwright/test").Page): Promise<void> {
-  await page.request.get("/__e2e/reset");
+  await page.request.get("http://127.0.0.1:3001/__e2e/reset");
 }
 
 test.describe("M15 analytics SDK", () => {
@@ -47,9 +47,9 @@ test.describe("M15 analytics SDK", () => {
 
     await expect.poll(async () => (await captured(page)).length).toBeGreaterThan(0);
     const events = (await captured(page)).flatMap((b) => b.events);
-    expect(events.some((e) => e.eventType === "page_view" && e.path?.includes("/projects"))).toBe(
-      true,
-    );
+    expect(
+      events.some((e) => e.eventType === "page_view" && e.path?.includes("/projects")),
+    ).toBe(true);
   });
 
   test("?src= token is attached to events", async ({ page }) => {

@@ -12,11 +12,17 @@ export default defineConfig({
     server: {
       proxy: {
         "/sdk.js": {
-          target: process.env.PUBLIC_TRACKER_ORIGIN ?? "http://127.0.0.1:3000",
+          target:
+            process.env.TRACKER_PROXY_ORIGIN ??
+            process.env.PUBLIC_TRACKER_ORIGIN ??
+            "http://127.0.0.1:3000",
           changeOrigin: true,
         },
         "/api": {
-          target: process.env.PUBLIC_TRACKER_ORIGIN ?? "http://127.0.0.1:3000",
+          target:
+            process.env.TRACKER_PROXY_ORIGIN ??
+            process.env.PUBLIC_TRACKER_ORIGIN ??
+            "http://127.0.0.1:3000",
           changeOrigin: true,
         },
       },
