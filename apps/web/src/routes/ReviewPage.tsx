@@ -208,7 +208,35 @@ function ReviewCard({
         </div>
       ) : null}
 
-      {!["ambiguous_match", "entity_merge_suggestion", "state_conflict"].includes(
+      {item.kind === "ghost_confirm" ? (
+        <div className="space-y-3">
+          <p className="text-sm text-ink-700">
+            {(res?.evidence as string) ??
+              "Possibly ghosted — confirm or dismiss this inference."}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/applications/$id"
+              params={{ id: item.refId }}
+              className="btn text-xs"
+            >
+              Open application
+            </Link>
+            <button
+              type="button"
+              className="btn-ghost text-xs"
+              disabled={busy}
+              onClick={() =>
+                onResolve({ kind: "ghost_confirm", action: "dismiss" })
+              }
+            >
+              Dismiss flag
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {!["ambiguous_match", "entity_merge_suggestion", "state_conflict", "ghost_confirm"].includes(
         item.kind,
       ) ? (
         <button

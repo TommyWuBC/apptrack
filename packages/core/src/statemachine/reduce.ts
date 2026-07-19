@@ -227,7 +227,10 @@ function applyEvent(step: Step, event: ReducerEventV1): void {
       break;
     }
     case ApplicationEventType.ghost_flagged: {
-      if (!TERMINAL.has(step.state)) {
+      // Stale flags are auditable events but do not change current_state.
+      // possibly_ghosted (default) projects to ApplicationState.ghosted. §17
+      const level = payload.level ?? "possibly_ghosted";
+      if (level === "possibly_ghosted" && !TERMINAL.has(step.state)) {
         pushState(step, ApplicationState.ghosted);
       }
       break;

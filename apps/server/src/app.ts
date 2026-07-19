@@ -12,6 +12,7 @@ import { registerMatchRoutes } from "./routes/match.js";
 import { registerApplicationRoutes } from "./routes/applications.js";
 import { registerDashboardRoutes } from "./routes/dashboard.js";
 import { registerCorrectionsRoutes } from "./routes/corrections.js";
+import { registerGhostRoutes } from "./routes/ghost.js";
 
 export type AppDb = Database | null;
 
@@ -91,6 +92,7 @@ export async function buildApp(
   await registerApplicationRoutes(app);
   await registerDashboardRoutes(app);
   await registerCorrectionsRoutes(app);
+  await registerGhostRoutes(app);
 
   app.get("/api/v1/core-ping", async () => coreHealth());
   app.get("/api/v1/db-ping", async () => dbHealth(db ?? undefined));

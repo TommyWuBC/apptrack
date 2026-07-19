@@ -200,3 +200,20 @@ export const auditLog = pgTable("audit_log", {
   metadata: jsonb("metadata").default({}),
   ...timestamps,
 });
+
+/**
+ * Per-user settings (ghost thresholds, etc.). AGENTS.md §17
+ * One row per user; ghost_thresholds jsonb holds GhostThresholdsV1.
+ */
+export const userSettings = pgTable(
+  "user_settings",
+  {
+    id: idColumn,
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ghostThresholds: jsonb("ghost_thresholds").notNull().default({}),
+    ...mutableTimestamps,
+  },
+  (t) => [uniqueIndex("user_settings_user_uidx").on(t.userId)],
+);

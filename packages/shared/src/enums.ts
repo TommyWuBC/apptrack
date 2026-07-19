@@ -93,3 +93,13 @@ export const ApplicationEventType = {
 
 export type ApplicationEventType =
   (typeof ApplicationEventType)[keyof typeof ApplicationEventType];
+
+/** Projection ghost inference status. AGENTS.md §10.4 / §17 */
+export const GhostStatus = {
+  none: "none",
+  stale: "stale",
+  possibly_ghosted: "possibly_ghosted",
+  dismissed: "dismissed",
+} as const;
+
+export type GhostStatus = (typeof GhostStatus)[keyof typeof GhostStatus];

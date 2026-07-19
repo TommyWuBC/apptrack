@@ -74,9 +74,19 @@ export function OverviewPage() {
                     <Link
                       to="/applications/$id"
                       params={{ id: a.id }}
-                      className="block text-sm font-medium text-ink-950 no-underline hover:text-moss-600"
+                      className={`block text-sm font-medium text-ink-950 no-underline hover:text-moss-600 ${
+                        a.ghostStatus === "stale" ||
+                        a.ghostStatus === "possibly_ghosted"
+                          ? "border-b border-dashed border-ink-900/40"
+                          : ""
+                      }`}
                     >
                       {a.companyName}
+                      {a.ghostStatus === "possibly_ghosted"
+                        ? " · possibly ghosted"
+                        : a.ghostStatus === "stale"
+                          ? " · stale"
+                          : ""}
                     </Link>
                   </li>
                 ))}

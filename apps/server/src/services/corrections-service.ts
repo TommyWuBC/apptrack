@@ -557,6 +557,22 @@ export async function resolveReview(
       return { reviewId, status: "dismissed", detail };
     }
   } else if (
+    resolution.kind === "ghost_confirm" &&
+    resolution.action === "dismiss"
+  ) {
+    const { dismissGhost } = await import("./ghost-evaluate-service.js");
+    await dismissGhost(db, item.refId, { userId });
+    await matchingRepo.dismissReviewItem(db, reviewId, resolution);
+    await correctionsRepo.writeAuditLog(db, {
+      userId,
+      actor: "user",
+      action: "review.ghost_dismiss",
+      targetType: "review_queue_item",
+      targetId: reviewId,
+      metadata: detail,
+    });
+    return { reviewId, status: "dismissed", detail };
+  } else if (
     resolution.action === "dismiss" ||
     resolution.action === "confirm"
   ) {
