@@ -273,9 +273,7 @@ export const api = {
       body,
     ),
   correlationVersion: () =>
-    apiGet<{ algorithmVersion: string; enabled: boolean }>(
-      "/api/v1/correlation/version",
-    ),
+    apiGet<{ algorithmVersion: string; enabled: boolean }>("/api/v1/correlation/version"),
   correlations: (applicationId: string) =>
     apiGet<{
       enabled: boolean;

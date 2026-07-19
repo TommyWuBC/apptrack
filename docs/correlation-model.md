@@ -16,10 +16,10 @@ Rescoring on algorithm bump inserts new rows keyed by `(application_id, session_
 
 Per-application opt-in tokens (8-char base58-ish):
 
-| Surface | URL |
-| --- | --- |
-| Portfolio | `{PORTFOLIO_BASE_URL}/?src=<token>` (falls back to `APP_BASE_URL`) |
-| Tracked résumé | `GET /r/<token>/resume.pdf` (public) |
+| Surface        | URL                                                                |
+| -------------- | ------------------------------------------------------------------ |
+| Portfolio      | `{PORTFOLIO_BASE_URL}/?src=<token>` (falls back to `APP_BASE_URL`) |
+| Tracked résumé | `GET /r/<token>/resume.pdf` (public)                               |
 
 If any session event carries `srcToken` matching the application’s `unique_link_token`:
 
@@ -34,16 +34,16 @@ Mint: `POST /api/v1/links` · Revoke: `DELETE /api/v1/links/:applicationId`.
 
 Weighted features (see `packages/core/src/correlation/score.ts`):
 
-| Feature | Points (start) |
-| --- | --- |
-| Visit timing vs pipeline event (interview strongest; decays 3→14d) | up to +0.25 |
-| Geo city matches company office/HQ | +0.25 |
-| Geo region match only | +0.12 |
-| Referrer LinkedIn / ATS host | +0.10 |
-| Résumé view/download (non-token) | +0.15 |
-| Project page views | +0.05 |
-| Repeat visitor_hash same UTC day | +0.05 |
-| Business hours in company TZ | +0.05 |
+| Feature                                                            | Points (start) |
+| ------------------------------------------------------------------ | -------------- |
+| Visit timing vs pipeline event (interview strongest; decays 3→14d) | up to +0.25    |
+| Geo city matches company office/HQ                                 | +0.25          |
+| Geo region match only                                              | +0.12          |
+| Referrer LinkedIn / ATS host                                       | +0.10          |
+| Résumé view/download (non-token)                                   | +0.15          |
+| Project page views                                                 | +0.05          |
+| Repeat visitor_hash same UTC day                                   | +0.05          |
+| Business hours in company TZ                                       | +0.05          |
 
 Ambiguity: divide raw score by `√k` where `k` = active applications sharing the matched metro.
 

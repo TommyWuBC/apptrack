@@ -9,12 +9,12 @@ import {
 describe("correlation language", () => {
   it("flags every banned phrase", () => {
     for (const phrase of BANNED_CORRELATION_PHRASES) {
-      expect(containsBannedCorrelationPhrase(`Something ${phrase} here`)).toBe(
-        phrase,
-      );
+      expect(containsBannedCorrelationPhrase(`Something ${phrase} here`)).toBe(phrase);
     }
     expect(containsBannedCorrelationPhrase("Visited by Acme")).toBe("visited by");
-    expect(containsBannedCorrelationPhrase("Anonymous visit potentially associated")).toBeNull();
+    expect(
+      containsBannedCorrelationPhrase("Anonymous visit potentially associated"),
+    ).toBeNull();
   });
 });
 
@@ -24,7 +24,9 @@ describe("scoreCorrelation", () => {
     appliedAt: new Date("2026-07-01T12:00:00Z"),
     uniqueLinkToken: null as string | null,
     companyName: "Initech",
-    companyLocations: [{ city: "Seattle", region: "WA", country: "US", timezone: "America/Los_Angeles" }],
+    companyLocations: [
+      { city: "Seattle", region: "WA", country: "US", timezone: "America/Los_Angeles" },
+    ],
     recentEvents: [
       {
         eventType: "interview_invitation",

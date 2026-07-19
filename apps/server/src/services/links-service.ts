@@ -8,13 +8,13 @@ import { AnalyticsEventType } from "@apptrack/shared";
 /** Crockford base32 without I/L/O/U — readable 8-char tokens. */
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-export function mintUniqueLinkToken(bytes = 6): string {
-  const buf = randomBytes(bytes);
+export function mintUniqueLinkToken(length = 8): string {
+  const buf = randomBytes(length);
   let out = "";
   for (const byte of buf) {
     out += ALPHABET[byte % ALPHABET.length]!;
   }
-  return out.slice(0, 8);
+  return out;
 }
 
 export async function mintApplicationLink(
@@ -56,10 +56,7 @@ export async function mintApplicationLink(
   }
   if (!token) throw new Error("token_mint_failed");
 
-  const portfolioBase = (input.portfolioBaseUrl ?? input.appBaseUrl).replace(
-    /\/$/,
-    "",
-  );
+  const portfolioBase = (input.portfolioBaseUrl ?? input.appBaseUrl).replace(/\/$/, "");
   const trackerBase = input.appBaseUrl.replace(/\/$/, "");
   await repos.correctionsRepo.writeAuditLog(db, {
     userId: input.userId,
@@ -83,20 +80,13 @@ export async function revokeApplicationLink(
   userId: string,
   applicationId: string,
 ) {
-  const application = await repos.applicationsRepo.getApplicationById(
-    db,
-    applicationId,
-  );
+  const application = await repos.applicationsRepo.getApplicationById(db, applicationId);
   if (!application || application.userId !== userId) {
     throw Object.assign(new Error("application_not_found"), {
       code: "NOT_FOUND",
     });
   }
-  await repos.applicationsRepo.setApplicationUniqueLinkToken(
-    db,
-    applicationId,
-    null,
-  );
+  await repos.applicationsRepo.setApplicationUniqueLinkToken(db, applicationId, null);
   await repos.correctionsRepo.writeAuditLog(db, {
     userId,
     actor: "user",

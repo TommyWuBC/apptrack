@@ -367,16 +367,9 @@ export const CorrelationFeatureV1Schema = z.object({
 
 export type CorrelationFeatureV1 = z.infer<typeof CorrelationFeatureV1Schema>;
 
-export const CorrelationConfidenceBandSchema = z.enum([
-  "none",
-  "low",
-  "medium",
-  "high",
-]);
+export const CorrelationConfidenceBandSchema = z.enum(["none", "low", "medium", "high"]);
 
-export type CorrelationConfidenceBand = z.infer<
-  typeof CorrelationConfidenceBandSchema
->;
+export type CorrelationConfidenceBand = z.infer<typeof CorrelationConfidenceBandSchema>;
 
 /** Pure scorer output before persistence. AGENTS.md §21 */
 export const CorrelationResultV1Schema = z.object({

@@ -131,13 +131,9 @@ export async function registerCorrelationRoutes(app: FastifyInstance) {
       applicationId?: string;
     };
     if (app.jobs && !req.isInternalJob) {
-      const jobId = await app.jobs.send(
-        JobName.CORRELATION_SCORE,
-        body,
-        {
-          singletonKey: `correlation.score:${body.applicationId ?? "batch"}:${Math.floor(Date.now() / 60_000)}`,
-        },
-      );
+      const jobId = await app.jobs.send(JobName.CORRELATION_SCORE, body, {
+        singletonKey: `correlation.score:${body.applicationId ?? "batch"}:${Math.floor(Date.now() / 60_000)}`,
+      });
       return reply.code(202).send({ queued: true, jobId });
     }
     const out = await runCorrelationScore(app.db, body);
