@@ -145,6 +145,18 @@ export const api = {
   companies: () => apiGet<{ companies: CompanyRow[] }>("/api/v1/companies"),
   evidence: (messageId: string) =>
     apiGet<EvidenceResponse>(`/api/v1/emails/${messageId}/evidence`),
+  markEmailIrrelevant: (messageId: string) =>
+    apiSend<unknown>(
+      "POST",
+      `/api/v1/emails/${encodeURIComponent(messageId)}/mark-irrelevant`,
+      {},
+    ),
+  reprocess: (body: {
+    scope: "all" | "message_ids" | "date_range";
+    messageIds?: string[];
+    afterDate?: string;
+    beforeDate?: string;
+  }) => apiSend<unknown>("POST", "/api/v1/reprocess", body),
   review: (kind?: string) =>
     apiGet<{ items: ReviewItem[] }>(
       kind

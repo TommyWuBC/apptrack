@@ -21,6 +21,7 @@ import { registerGhostRoutes } from "./routes/ghost.js";
 import { registerAnalyticsRoutes } from "./routes/analytics.js";
 import { registerSdkRoutes } from "./routes/sdk.js";
 import { registerAuthRoutes } from "./routes/auth.js";
+import { registerReprocessRoutes } from "./routes/reprocess.js";
 import { registerAuthPlugin } from "./plugins/auth.js";
 import { createJobQueue, type AppJobQueue } from "./jobs/queue.js";
 import { openGeoLite2Lookup } from "./services/maxmind-geo.js";
@@ -138,6 +139,7 @@ export async function buildApp(
   await registerCorrectionsRoutes(app);
   await registerGhostRoutes(app);
   await registerAnalyticsRoutes(app);
+  await registerReprocessRoutes(app);
   await registerSdkRoutes(app);
 
   app.get("/api/v1/core-ping", async () => coreHealth());

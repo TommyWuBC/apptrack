@@ -84,6 +84,13 @@ export function SettingsPage() {
       void qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
+  const reprocess = useMutation({
+    mutationFn: () => api.reprocess({ scope: "all" }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["applications"] });
+      void qc.invalidateQueries({ queryKey: ["review"] });
+    },
+  });
 
   const createSite = useMutation({
     mutationFn: () =>
@@ -181,6 +188,34 @@ export function SettingsPage() {
         </button>
         {saveClassifier.isSuccess ? (
           <p className="text-xs text-moss-600">Classifier settings saved.</p>
+        ) : null}
+      </section>
+
+      <section className="panel space-y-3 p-4" data-testid="reprocess-settings">
+        <h3 className="font-medium">Reprocess stored email</h3>
+        <p className="text-sm text-ink-700">
+          Re-run normalization, classification, matching, and projections from
+          local data. Gmail is not contacted; versioned results make retries
+          idempotent.
+        </p>
+        <button
+          type="button"
+          className="btn-ghost"
+          disabled={reprocess.isPending}
+          onClick={() => {
+            if (
+              window.confirm(
+                "Reprocess all stored email with the current classifier?",
+              )
+            ) {
+              reprocess.mutate();
+            }
+          }}
+        >
+          {reprocess.isPending ? "Queueing…" : "Reprocess all email"}
+        </button>
+        {reprocess.isSuccess ? (
+          <p className="text-xs text-moss-600">Reprocess queued.</p>
         ) : null}
       </section>
 

@@ -2,7 +2,11 @@
  * Corrections, review resolve, merge/split/reattach. AGENTS.md §18 / §22 / M11
  */
 import type { FastifyInstance } from "fastify";
-import { ErrorCode } from "@apptrack/shared";
+import {
+  ApplicationPatchV1Schema,
+  ErrorCode,
+  ReviewResolutionV1Schema,
+} from "@apptrack/shared";
 import { repos } from "@apptrack/db";
 import {
   mergeApplications,
@@ -42,6 +46,7 @@ function mapErr(err: unknown, reply: { code: (n: number) => { send: (b: unknown)
     msg === "event_already_superseded" ||
     msg === "merge_user_mismatch" ||
     msg === "merge_same_company"
+    || msg.startsWith("invalid_")
   ) {
     return reply.code(400).send({
       error: { code: ErrorCode.VALIDATION_ERROR, message: msg },
@@ -58,13 +63,24 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
-    const body = req.body as {
-      fields?: Array<{ field: string; userValue: unknown; locked?: boolean }>;
-      expectedVersion?: string;
-    };
+    const parsed = ApplicationPatchV1Schema.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({
+        error: {
+          code: ErrorCode.VALIDATION_ERROR,
+          message: "invalid_application_patch",
+          details: parsed.error.flatten(),
+        },
+      });
+    }
     try {
       return await patchApplication(app.db, id, {
-        ...(body ?? {}),
+        fields: parsed.data.fields.map((field) => ({
+          field: field.field,
+          userValue: field.userValue,
+          locked: field.locked,
+        })),
+        expectedVersion: parsed.data.expectedVersion,
         userId: req.userId,
       });
     } catch (err) {
@@ -172,9 +188,23 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
-    const body = req.body as ReviewResolution;
+    const parsed = ReviewResolutionV1Schema.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({
+        error: {
+          code: ErrorCode.VALIDATION_ERROR,
+          message: "invalid_review_resolution",
+          details: parsed.error.flatten(),
+        },
+      });
+    }
     try {
-      return await resolveReview(app.db, id, body, req.userId);
+      return await resolveReview(
+        app.db,
+        id,
+        parsed.data as ReviewResolution,
+        req.userId,
+      );
     } catch (err) {
       return mapErr(err, reply);
     }

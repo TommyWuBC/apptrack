@@ -20,6 +20,58 @@ export const AuthMeV1Schema = z.object({
 
 export type AuthMeV1 = z.infer<typeof AuthMeV1Schema>;
 
+export const ApplicationPatchV1Schema = z.object({
+  fields: z
+    .array(
+      z.object({
+        field: z.enum([
+          "currentState",
+          "actionRequired",
+          "companyId",
+          "roleId",
+          "source",
+          "appliedAt",
+        ]),
+        userValue: z.unknown(),
+        locked: z.boolean().optional(),
+      }),
+    )
+    .min(1)
+    .max(20),
+  expectedVersion: z.string().datetime().optional(),
+});
+
+export const ReviewResolutionV1Schema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("ambiguous_match"),
+    action: z.enum(["attach", "new_application", "dismiss"]),
+    applicationId: z.string().uuid().optional(),
+  }),
+  z.object({
+    kind: z.literal("entity_merge_suggestion"),
+    action: z.enum(["merge", "dismiss"]),
+    survivorCompanyId: z.string().uuid().optional(),
+    sourceCompanyId: z.string().uuid().optional(),
+  }),
+  z.object({
+    kind: z.literal("state_conflict"),
+    action: z.enum(["accept_state", "dismiss"]),
+    state: z.string().optional(),
+    locked: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.enum([
+      "uncertain_classification",
+      "unmatched_email",
+      "ghost_confirm",
+    ]),
+    action: z.enum(["dismiss", "confirm"]),
+  }),
+]);
+
+export type ApplicationPatchV1 = z.infer<typeof ApplicationPatchV1Schema>;
+export type ReviewResolutionV1 = z.infer<typeof ReviewResolutionV1Schema>;
+
 /** FR-2 extraction schema. Breaking changes → ExtractionV2. AGENTS.md §13.3 */
 export const ExtractionV1Schema = z.object({
   company: z.string().nullable().optional(),

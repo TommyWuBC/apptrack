@@ -30,6 +30,36 @@ export async function clearExpiredRawMime(db: Database, cutoff: Date) {
   return rows.length;
 }
 
+export async function listEmailMessageIds(
+  db: Database,
+  opts: {
+    messageIds?: string[];
+    afterDate?: Date;
+    beforeDate?: Date;
+  } = {},
+) {
+  const conditions = [];
+  if (opts.messageIds) {
+    const wanted = new Set(opts.messageIds);
+    const rows = await db.select({ id: emailMessages.id }).from(emailMessages);
+    return rows.filter((row) => wanted.has(row.id)).map((row) => row.id);
+  }
+  if (opts.afterDate) {
+    conditions.push(sql`${emailMessages.internalDate} >= ${opts.afterDate}`);
+  }
+  if (opts.beforeDate) {
+    conditions.push(sql`${emailMessages.internalDate} <= ${opts.beforeDate}`);
+  }
+  const rows =
+    conditions.length > 0
+      ? await db
+          .select({ id: emailMessages.id })
+          .from(emailMessages)
+          .where(and(...conditions))
+      : await db.select({ id: emailMessages.id }).from(emailMessages);
+  return rows.map((row) => row.id);
+}
+
 /**
  * Idempotent insert (INV-2): unique(account_id, provider_message_id).
  * Returns { row, inserted } — only enqueue normalize when inserted=true.

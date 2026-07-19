@@ -44,6 +44,8 @@ export {
   AnalyticsSiteUpdateV1Schema,
   AuthCredentialsV1Schema,
   AuthMeV1Schema,
+  ApplicationPatchV1Schema,
+  ReviewResolutionV1Schema,
 } from "./schemas.js";
 export type {
   ExtractionV1,
@@ -67,6 +69,8 @@ export type {
   AnalyticsSiteUpdateV1,
   AuthCredentialsV1,
   AuthMeV1,
+  ApplicationPatchV1,
+  ReviewResolutionV1,
 } from "./schemas.js";
 export {
   FixtureExpectedV1Schema,

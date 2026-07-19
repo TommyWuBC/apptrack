@@ -1,23 +1,53 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApplicationState } from "@apptrack/shared";
 import { api } from "../api/client.js";
 
 const STATES = Object.values(ApplicationState);
 
-export function CorrectionsPanel({ applicationId }: { applicationId: string }) {
+export function CorrectionsPanel({
+  applicationId,
+  initialState,
+  initialActionRequired,
+  expectedVersion,
+}: {
+  applicationId: string;
+  initialState?: string;
+  initialActionRequired?: boolean;
+  expectedVersion?: string;
+}) {
   const qc = useQueryClient();
   const { data } = useQuery({
     queryKey: ["corrections", applicationId],
     queryFn: () => api.corrections(applicationId),
   });
-  const [state, setState] = useState("interviewing");
+  const [state, setState] = useState(initialState ?? "unknown");
+  const [actionRequired, setActionRequired] = useState(
+    initialActionRequired ?? false,
+  );
   const [lock, setLock] = useState(true);
+
+  useEffect(() => {
+    if (initialState) setState(initialState);
+  }, [initialState]);
+  useEffect(() => {
+    if (initialActionRequired !== undefined) {
+      setActionRequired(initialActionRequired);
+    }
+  }, [initialActionRequired]);
 
   const patch = useMutation({
     mutationFn: () =>
       api.patchApplication(applicationId, {
-        fields: [{ field: "currentState", userValue: state, locked: lock }],
+        fields: [
+          { field: "currentState", userValue: state, locked: lock },
+          {
+            field: "actionRequired",
+            userValue: actionRequired,
+            locked: lock,
+          },
+        ],
+        expectedVersion,
       }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["corrections", applicationId] });
@@ -62,6 +92,14 @@ export function CorrectionsPanel({ applicationId }: { applicationId: string }) {
               </option>
             ))}
           </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={actionRequired}
+            onChange={(e) => setActionRequired(e.target.checked)}
+          />
+          Action required
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input
