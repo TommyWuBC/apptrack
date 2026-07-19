@@ -5,7 +5,6 @@ import {
   beginGmailConnect,
   completeGmailCallback,
   disconnectGmailAccount,
-  ensureOwnerUser,
   listGmailAccounts,
   refreshGmailAccount,
 } from "../services/gmail-oauth-service.js";
@@ -29,8 +28,7 @@ export async function registerGmailRoutes(
       });
     }
     try {
-      const userId = await ensureOwnerUser(app.db);
-      const { authorizeUrl } = beginGmailConnect(config, userId);
+      const { authorizeUrl } = beginGmailConnect(config, req.userId!);
       // Browser flow: redirect. Agents/tests can pass ?format=json
       const format = (req.query as { format?: string }).format;
       if (format === "json") {
@@ -98,14 +96,13 @@ export async function registerGmailRoutes(
     }
   });
 
-  app.get("/api/v1/gmail/accounts", async (_req, reply) => {
+  app.get("/api/v1/gmail/accounts", async (req, reply) => {
     if (!app.db) {
       return reply.code(503).send({
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const userId = await ensureOwnerUser(app.db);
-    const accounts = await listGmailAccounts(app.db, userId);
+    const accounts = await listGmailAccounts(app.db, req.userId!);
     return { accounts };
   });
 

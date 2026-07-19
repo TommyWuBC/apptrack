@@ -6,23 +6,20 @@ import { ErrorCode } from "@apptrack/shared";
 import { repos } from "@apptrack/db";
 import { computeStats, formatRateStat } from "../services/stats-service.js";
 
-async function findSoleOwnerId(db: NonNullable<FastifyInstance["db"]>) {
-  const user = await repos.usersRepo.getFirstUser(db);
-  return user?.id ?? null;
-}
-
 export async function registerDashboardRoutes(app: FastifyInstance) {
-  app.get("/api/v1/me", async (_req, reply) => {
+  // Backward-compatible alias; new clients use /api/v1/auth/me.
+  app.get("/api/v1/me", async (req, reply) => {
     if (!app.db) {
       return reply.code(503).send({
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const owner = await findSoleOwnerId(app.db);
-    if (!owner) {
-      return { userId: null, setupRequired: true };
-    }
-    return { userId: owner, setupRequired: false };
+    return {
+      userId: req.userId,
+      email: req.authUser?.email,
+      role: req.authUser?.role,
+      setupRequired: false,
+    };
   });
 
   app.get("/api/v1/stats", async (req, reply) => {
@@ -31,21 +28,7 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const q = req.query as { userId?: string };
-    let userId = q.userId;
-    if (!userId) {
-      const owner = await findSoleOwnerId(app.db);
-      if (!owner) {
-        return reply.code(400).send({
-          error: {
-            code: ErrorCode.VALIDATION_ERROR,
-            message: "userId query param required",
-          },
-        });
-      }
-      userId = owner;
-    }
-    const stats = await computeStats(app.db, userId);
+    const stats = await computeStats(app.db, req.userId!);
     return {
       ...stats,
       ratesFormatted: Object.fromEntries(

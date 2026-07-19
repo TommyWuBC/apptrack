@@ -61,10 +61,12 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
     const body = req.body as {
       fields?: Array<{ field: string; userValue: unknown; locked?: boolean }>;
       expectedVersion?: string;
-      userId?: string;
     };
     try {
-      return await patchApplication(app.db, id, body ?? {});
+      return await patchApplication(app.db, id, {
+        ...(body ?? {}),
+        userId: req.userId,
+      });
     } catch (err) {
       return mapErr(err, reply);
     }
@@ -77,13 +79,13 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
-    const body = req.body as { sourceIds: string[]; userId?: string };
+    const body = req.body as { sourceIds: string[] };
     try {
       return await mergeApplications(
         app.db,
         id,
         body.sourceIds ?? [],
-        body.userId,
+        req.userId,
       );
     } catch (err) {
       return mapErr(err, reply);
@@ -99,12 +101,11 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const body = req.body as {
       eventIds: string[];
-      userId?: string;
       roleId?: string;
     };
     try {
       return await splitApplication(app.db, id, body.eventIds ?? [], {
-        userId: body.userId,
+        userId: req.userId,
         roleId: body.roleId,
       });
     } catch (err) {
@@ -121,13 +122,13 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
         });
       }
       const { eventId } = req.params as { id: string; eventId: string };
-      const body = req.body as { toApplicationId: string; userId?: string };
+      const body = req.body as { toApplicationId: string };
       try {
         return await reattachEvent(
           app.db,
           eventId,
           body.toApplicationId,
-          body.userId,
+          req.userId,
         );
       } catch (err) {
         return mapErr(err, reply);
@@ -142,9 +143,8 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
-    const body = (req.body as { userId?: string }) ?? {};
     try {
-      return await undoCorrection(app.db, id, body.userId);
+      return await undoCorrection(app.db, id, req.userId);
     } catch (err) {
       return mapErr(err, reply);
     }
@@ -172,10 +172,9 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
-    const body = req.body as ReviewResolution & { userId?: string };
+    const body = req.body as ReviewResolution;
     try {
-      const { userId, ...resolution } = body;
-      return await resolveReview(app.db, id, resolution, userId);
+      return await resolveReview(app.db, id, body, req.userId);
     } catch (err) {
       return mapErr(err, reply);
     }
@@ -190,14 +189,13 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
     const body = req.body as {
       survivorCompanyId: string;
       sourceCompanyId: string;
-      userId?: string;
     };
     try {
       return await mergeCompanies(
         app.db,
         body.survivorCompanyId,
         body.sourceCompanyId,
-        body.userId,
+        req.userId,
       );
     } catch (err) {
       return mapErr(err, reply);

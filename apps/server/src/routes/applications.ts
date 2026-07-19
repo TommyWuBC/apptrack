@@ -21,26 +21,12 @@ export async function registerApplicationRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const q = req.query as { userId?: string };
-    let userId = q.userId;
-    if (!userId) {
-      const owner = await repos.usersRepo.getFirstUser(app.db);
-      if (!owner) {
-        return reply.code(400).send({
-          error: {
-            code: ErrorCode.VALIDATION_ERROR,
-            message: "userId query param required",
-          },
-        });
-      }
-      userId = owner.id;
-    }
     const applications =
       await repos.applicationsRepo.listApplicationsWithCompany(
         app.db,
-        userId,
+        req.userId!,
       );
-    return { applications, userId };
+    return { applications, userId: req.userId };
   });
 
   app.get("/api/v1/applications/:id", async (req, reply) => {
