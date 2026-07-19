@@ -1,28 +1,26 @@
 # HANDOFF
 
 ## Current state
-**M9 complete.** Event-sourced timeline + pure reducer (`state-v1`), `application.recompute`, corrections-overlay stub (INV-7), timeline API. Match attach/create now recomputes projection instead of `stateForEvent`.
+**M10 complete.** Dashboard SPA: overview / applications / timeline / companies / stats / settings stub; typed API client; sandboxed evidence viewer; small-sample stats guard; demo fixtures (`?demo=1`). Server: `/api/v1/stats`, `/companies`, `/emails/:id/evidence`, `/me`.
 
 ## Last action taken
-Implemented M9; typecheck/lint/test/boundaries green; docs `docs/application-timeline.md`.
+Implemented M10; ran M8–M10 tests + full gate (typecheck/lint/test/boundaries) + Playwright demo smoke — green. Fixed client↔demo circular import.
 
 ## Next action
-**M10 — Dashboard:** SPA routes per §19 (except review/settings-analytics); typed API client; evidence viewer (sandboxed); stats with small-sample guard.
-
-Optional: Docker → live Postgres proof that delete-projection + recompute yields identical state (INV-9).
+**M11 — Manual corrections & review:** corrections precedence (INV-7 UI), review queue UI, merge/split, reattach, locks, undo, audit_log.
 
 ## Open blockers
 - Docker Desktop (live DB proof). Integration tests skip without `DATABASE_URL`.
 
 ## Gotchas
-- Reducer `state-v1` — bump on behavior change (R-8).
-- Matcher `match-v1` unchanged this milestone.
-- Same-day reject + interview → `flags.conflict` + `state_conflict` review item; events never dropped (F14).
-- Corrections overlay is a **stub** — full lock/undo/merge UX is M11.
-- Ghost evaluation job is M12; reducer only handles ghost_flagged/cleared events if present.
+- SPA demo: `?demo=1` or `VITE_DEMO=1` — offline navigable without Postgres.
+- Review route intentionally omitted (M11). Analytics settings deferred (M14).
+- Small-sample: n < 10 → n/N, never bold % (`RateStatDisplay` + server `rateStat`).
+- Evidence iframe uses `sandbox=""` (T4); HTML sanitized on ingest.
+- Playwright: `pnpm --filter @apptrack/web e2e` (needs Chromium once via `playwright install chromium`).
 
 ## Do not
-- Mutate `application_events` (INV-9) — reattach via new event + `superseded_by`.
-- Silent company merges (§14.4).
+- Add review/corrections UI here (M11).
 - Fetch URLs from email (INV-6).
 - Commit real emails or `.env` secrets.
+- Reintroduce circular imports under `apps/web/src/api/`.
