@@ -2,11 +2,7 @@
  * Classification + classifier settings routes. AGENTS.md §13 / M13
  */
 import type { FastifyInstance } from "fastify";
-import {
-  ClassifierSettingsV1Schema,
-  ErrorCode,
-  JobName,
-} from "@apptrack/shared";
+import { ClassifierSettingsV1Schema, ErrorCode, JobName } from "@apptrack/shared";
 import { CLASSIFIER_VERSION, PROMPT_VERSION, RULES_VERSION } from "@apptrack/core";
 import { repos } from "@apptrack/db";
 import { classifyAndStoreMessage } from "../services/email-classify-service.js";

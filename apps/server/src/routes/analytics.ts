@@ -207,11 +207,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         },
       });
     }
-    const owned = await repos.analyticsRepo.getSiteForUser(
-      app.db,
-      q.siteId,
-      req.userId!,
-    );
+    const owned = await repos.analyticsRepo.getSiteForUser(app.db, q.siteId, req.userId!);
     if (!owned) {
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },
@@ -236,11 +232,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         },
       });
     }
-    const owned = await repos.analyticsRepo.getSiteForUser(
-      app.db,
-      q.siteId,
-      req.userId!,
-    );
+    const owned = await repos.analyticsRepo.getSiteForUser(app.db, q.siteId, req.userId!);
     if (!owned) {
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },

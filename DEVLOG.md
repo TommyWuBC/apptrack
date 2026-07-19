@@ -1121,7 +1121,7 @@ M16 correlation scoring (`corr-v1`), unique links, tracked resume route, banned-
 
 ## 2026-07-19 — cursor — Stabilization pass (M1–M15 audit fixes)
 
-**Meta:** branch `cursor/stabilize-m1-m15-6a25` · milestone M15+ · status in-progress · PR #9
+**Meta:** branch `cursor/stabilize-m1-m15-6a25` · milestone M15+ · status completed · PR #9
 
 ### Problem being solved
 An audit after M15 found gaps that blocked claiming M1–M15 “done”: missing auth/CSRF, jobs still HTTP-polling, analytics session merge bugs, incomplete review/reprocess, stub CLI/seed, CI format/gitleaks/deps issues, and several correctness bugs (Gmail IDOR, silent pipeline swallow, superseded match idempotency, uncertain classification never queued).
@@ -1147,7 +1147,7 @@ An audit after M15 found gaps that blocked claiming M1–M15 “done”: missing
 
 ### Tests
 - Added analytics partition backfill case; gmail disconnect test updated for `userId`.
-- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).
+- `pnpm typecheck - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). lint - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). format:check - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). test - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). eval - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). boundaries` green.
 
 ### Security & privacy review
 - INV-7 classification overlays; INV-8 unchanged; disconnect audit; CSRF/session fail-closed; separate internal job secret in prod.
