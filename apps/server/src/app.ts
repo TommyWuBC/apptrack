@@ -22,6 +22,7 @@ import { registerAnalyticsRoutes } from "./routes/analytics.js";
 import { registerSdkRoutes } from "./routes/sdk.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerAuthPlugin } from "./plugins/auth.js";
+import { createJobQueue, type AppJobQueue } from "./jobs/queue.js";
 
 export type AppDb = Database | null;
 
@@ -58,6 +59,7 @@ export async function buildApp(
 
   const url = opts.databaseUrl ?? process.env.DATABASE_URL;
   let db: AppDb = null;
+  let jobs: AppJobQueue | null = null;
   if (url) {
     try {
       db = createDb(url);
@@ -69,9 +71,25 @@ export async function buildApp(
     }
   }
 
+  if (db && url && process.env.JOBS_MODE !== "http") {
+    try {
+      jobs = await createJobQueue(url, (error) => {
+        app.log.error({ err: error }, "pg-boss error");
+      });
+      app.decorate("jobs", jobs);
+    } catch (err) {
+      app.log.error({ err }, "pg-boss startup failed");
+      jobs = null;
+    }
+  }
+
   const authConfig = opts.authConfig ?? loadAuthConfig();
   await registerAuthPlugin(app, authConfig);
-  await registerHealthRoutes(app, () => db !== null);
+  await registerHealthRoutes(
+    app,
+    () => db !== null,
+    () => jobs !== null || process.env.JOBS_MODE === "http",
+  );
   await registerHelloRoutes(app);
   await registerAuthRoutes(app, authConfig);
 
@@ -113,6 +131,7 @@ export async function buildApp(
   app.get("/api/v1/db-ping", async () => dbHealth(db ?? undefined));
 
   app.addHook("onClose", async () => {
+    if (jobs) await jobs.stop();
     if (db) await closeDb(db);
   });
 
@@ -122,5 +141,6 @@ export async function buildApp(
 declare module "fastify" {
   interface FastifyInstance {
     db?: Database;
+    jobs?: AppJobQueue;
   }
 }

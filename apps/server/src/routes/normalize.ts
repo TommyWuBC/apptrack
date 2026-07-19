@@ -2,7 +2,7 @@
  * Normalize routes. AGENTS.md M6
  */
 import type { FastifyInstance } from "fastify";
-import { ErrorCode } from "@apptrack/shared";
+import { ErrorCode, JobName } from "@apptrack/shared";
 import { NORMALIZER_VERSION } from "@apptrack/core";
 import { runNormalizeMessage } from "../services/email-normalize-service.js";
 
@@ -18,6 +18,14 @@ export async function registerNormalizeRoutes(app: FastifyInstance) {
       });
     }
     const { messageId } = req.params as { messageId: string };
+    if (app.jobs && !req.isInternalJob) {
+      const jobId = await app.jobs.send(
+        JobName.EMAIL_NORMALIZE,
+        { messageId },
+        { singletonKey: `normalize:${messageId}:${NORMALIZER_VERSION}` },
+      );
+      return reply.code(202).send({ queued: true, jobId, messageId });
+    }
     try {
       const result = await runNormalizeMessage(app.db, messageId);
       return {

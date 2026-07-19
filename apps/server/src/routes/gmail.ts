@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { AppError, ErrorCode } from "@apptrack/shared";
 import type { ServerConfig } from "../config.js";
+import { oauthRefreshSweep } from "../jobs/oauth-refresh-sweep.js";
 import {
   beginGmailConnect,
   completeGmailCallback,
@@ -142,5 +143,14 @@ export async function registerGmailRoutes(
       }
       throw new AppError(ErrorCode.INTERNAL, "refresh_failed");
     }
+  });
+
+  app.post("/api/v1/gmail/refresh-sweep", async (_req, reply) => {
+    if (!app.db) {
+      return reply.code(503).send({
+        error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
+      });
+    }
+    return oauthRefreshSweep(app.db, config);
   });
 }

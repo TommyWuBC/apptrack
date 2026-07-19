@@ -24,6 +24,14 @@ const INTERNAL_JOB_ROUTES = new Set([
   "POST /api/v1/ghost/evaluate",
   "POST /api/v1/analytics/aggregate",
   "POST /api/v1/analytics/retention",
+  "POST /api/v1/backfill",
+  "POST /api/v1/normalize/:messageId",
+  "POST /api/v1/classify/:messageId",
+  "POST /api/v1/match/:messageId",
+  "POST /api/v1/match/reevaluate/:companyId",
+  "POST /api/v1/applications/:id/recompute",
+  "POST /api/v1/gmail/refresh-sweep",
+  "POST /api/v1/reprocess/execute",
 ]);
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);

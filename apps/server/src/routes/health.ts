@@ -4,18 +4,19 @@ import type { FastifyInstance } from "fastify";
 export async function registerHealthRoutes(
   app: FastifyInstance,
   isDbReady: () => boolean,
+  isBossReady: () => boolean = () => false,
 ) {
   app.get("/healthz", async () => ({ status: "ok" }));
 
   app.get("/readyz", async (_req, reply) => {
     const db = isDbReady();
-    // pg-boss check lands with worker jobs (M5); for M2 we only gate on DB.
-    const ready = db;
+    const boss = isBossReady();
+    const ready = db && boss;
     if (!ready) {
       return reply
         .code(503)
-        .send({ status: "not_ready", db, boss: false });
+        .send({ status: "not_ready", db, boss });
     }
-    return { status: "ready", db: true, boss: false };
+    return { status: "ready", db: true, boss: true };
   });
 }

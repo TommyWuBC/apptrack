@@ -2,43 +2,18 @@
  * ghost.evaluate poller. AGENTS.md §23 / M12
  * Calls the server API so orchestration stays in apps/server (same pattern as email.sync).
  */
+import { callInternalApi } from "../internal-api.js";
+
 const intervalMs =
   Number.parseInt(process.env.GHOST_EVAL_INTERVAL_MS ?? "", 10) ||
   24 * 60 * 60 * 1000;
 
-function baseUrl(): string {
-  return (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
-}
-
 export async function triggerGhostEvaluate(userId?: string): Promise<unknown> {
-  const res = await fetch(`${baseUrl()}/api/v1/ghost/evaluate`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-apptrack-internal":
-        process.env.INTERNAL_JOB_SECRET ??
-        process.env.SESSION_SECRET ??
-        "apptrack-development-internal-secret-not-for-production",
-    },
-    body: JSON.stringify(userId ? { userId } : {}),
-  });
-  const text = await res.text();
-  let body: unknown = text;
-  try {
-    body = JSON.parse(text) as unknown;
-  } catch {
-    /* keep text */
-  }
-  if (!res.ok) {
-    throw Object.assign(new Error(`ghost_evaluate_${res.status}`), {
-      status: res.status,
-      body,
-    });
-  }
-  return body;
+  return callInternalApi(
+    "POST",
+    "/api/v1/ghost/evaluate",
+    userId ? { userId } : {},
+  );
 }
 
 export async function startGhostEvaluatePolling(): Promise<void> {
