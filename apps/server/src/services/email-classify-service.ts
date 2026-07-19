@@ -74,21 +74,18 @@ export async function classifyAndStoreMessage(
     extractionSchemaVersion: EXTRACTION_SCHEMA_VERSION,
   });
 
-  const { row, inserted } = await classificationRepo.insertClassificationIdempotent(
-    db,
-    {
-      messageId,
-      classifierVersionId: version.id,
-      mode: config.mode,
-      eventType: result.eventType,
-      isJobRelated: result.isJobRelated,
-      confidence: result.confidence,
-      evidence: result.evidence,
-      extraction: result.extraction,
-      needsReview: result.needsReview,
-      layerTrace: result.layerTrace,
-    },
-  );
+  const { row, inserted } = await classificationRepo.insertClassificationIdempotent(db, {
+    messageId,
+    classifierVersionId: version.id,
+    mode: config.mode,
+    eventType: result.eventType,
+    isJobRelated: result.isJobRelated,
+    confidence: result.confidence,
+    evidence: result.evidence,
+    extraction: result.extraction,
+    needsReview: result.needsReview,
+    layerTrace: result.layerTrace,
+  });
 
   if (inserted) {
     await classificationRepo.insertExtractedEntities(

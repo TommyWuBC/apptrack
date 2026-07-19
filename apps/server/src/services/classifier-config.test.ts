@@ -51,7 +51,7 @@ describe("classifier settings routes", () => {
       classifierVersion: string;
       promptVersion: string;
     };
-    expect(body.classifierVersion).toBe("clf-2026.07.1");
+    expect(body.classifierVersion).toBe("clf-2026.07.2");
     expect(body.promptVersion).toBe("extract.v1");
     await app.close();
   });

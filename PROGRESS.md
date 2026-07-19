@@ -21,7 +21,7 @@ Short technical status. **Not** user-facing — see `DEVLOG.md` for tutorials.
 | M15 | Analytics SDK + example | ✅ | `/sdk.js`, Astro example, e2e |
 | M16–M20 | Rest | ❌ | **Next: M16 Correlation** |
 
-**Stabilization:** ⚠️ auth/jobs/analytics/review/CI fixes on PR #9; ingest still inline (not full transactional job stages).
+**Stabilization:** ✅ auth/jobs/analytics/review/CI fixes on PR #9; ingest still inline (not full transactional job stages — documented).
 
 **Remaining after M15:** M16–M20 = **5 milestones**.
 

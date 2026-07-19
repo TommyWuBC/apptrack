@@ -17,6 +17,8 @@ const PUBLIC_ROUTES = new Set([
   "GET /api/v1/classify/version",
   "GET /api/v1/normalize/version",
   "GET /api/v1/match/version",
+  "GET /api/v1/ghost/version",
+  "GET /api/v1/settings/classifier",
   "POST /api/v1/auth/setup",
   "POST /api/v1/auth/login",
   "GET /api/v1/auth/status",
