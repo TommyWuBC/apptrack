@@ -777,3 +777,58 @@ No new token/email egress. Timeline payloads include event metadata + classifica
 ### Follow-up
 
 **M10 — Dashboard** consumes the timeline API. Ghost job (M12) will emit `ghost_flagged` events the reducer already understands.
+
+## 2026-07-18 — cursor — Building the dashboard SPA
+
+**Meta:** branch `cursor/m10-dashboard-6a25` · milestone M10 · status completed
+
+### Problem being solved
+
+Through M9 the pipeline wrote applications and timelines into the database, but there was no UI to browse them. M10 ships the self-hosted dashboard: pipeline overview, applications table, per-application timeline with email evidence, companies list, stats with honest small-sample rates, and a settings stub (analytics deferred).
+
+### Background concepts
+
+**SPA + API.** The browser app (Vite + React) talks only to REST JSON under `/api/v1`. It never imports database code — that boundary is enforced by dependency-cruiser.
+
+**Small-sample guard.** With fewer than 10 applications, a "25% offer rate" is misleading. We return `numerator/denominator` and refuse a percentage until the sample is large enough (§19).
+
+**Sandboxed evidence.** Email HTML is hostile. The viewer loads *already sanitized* HTML into an iframe with an empty `sandbox` attribute so scripts cannot run (T4).
+
+**Demo fixtures.** Contributors (and CI) can navigate the whole UI with `?demo=1` without Postgres or Gmail — same acceptance bar as mock-provider for the backend.
+
+### Design decision
+
+1. TanStack Router + Query (blueprint §7) with a typed `api` client.
+2. Tailwind + IBM Plex (avoid default Inter / purple AI aesthetic); dashboard layout is intentional (user rule exception).
+3. Server adds `/stats`, `/companies`, `/emails/:id/evidence`, `/me`; applications list falls back to sole owner when `userId` omitted.
+4. Playwright smoke against `vite preview` in demo mode.
+
+### Implementation
+
+- `apps/web/src/{api,components,routes,router.tsx}` — full route set except review.
+- `apps/server` — `stats-service`, `dashboard` routes.
+- Docs — `docs/dashboard.md`.
+- Broke circular `client.ts` ↔ `demo-data.ts` via `api/types.ts`.
+
+### Runtime flow
+
+1. User opens `/` (or `/?demo=1`).
+2. Query client fetches applications → pipeline columns + action list.
+3. Application detail loads timeline; "View email evidence" opens sandboxed iframe.
+4. Stats page renders rates through the small-sample formatter.
+
+### Tests
+
+M8–M10 focused + full gate:
+
+- Core matching 20, reducer 15, server 27 (+5 skip), web 3 unit — all pass.
+- Playwright e2e demo smoke: overview → applications → timeline → stats/companies/settings.
+- `pnpm typecheck && pnpm lint && pnpm test && pnpm boundaries` green (circular warn fixed).
+
+### Security & privacy review
+
+Evidence endpoint returns sanitized HTML + classification evidence only. Iframe sandbox empty. No OAuth tokens in SPA. Demo fixtures are synthetic.
+
+### Follow-up
+
+**M11** review queue UI + corrections. Wire real session auth into `/me` when auth middleware lands.
