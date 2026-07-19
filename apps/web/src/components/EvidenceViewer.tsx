@@ -14,6 +14,7 @@ export function EvidenceViewer({
 }) {
   const [data, setData] = useState<EvidenceResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [marking, setMarking] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,6 +90,21 @@ export function EvidenceViewer({
                 {data.textPlain ?? "(no body)"}
               </pre>
             )}
+            <button
+              type="button"
+              className="btn-ghost text-xs"
+              disabled={marking}
+              onClick={() => {
+                setMarking(true);
+                void api
+                  .markEmailIrrelevant(messageId)
+                  .then(onClose)
+                  .catch((cause: Error) => setError(cause.message))
+                  .finally(() => setMarking(false));
+              }}
+            >
+              {marking ? "Updating…" : "Mark email irrelevant"}
+            </button>
           </div>
         ) : null}
       </div>

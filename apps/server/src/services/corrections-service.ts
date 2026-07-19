@@ -70,8 +70,7 @@ export async function patchApplication(
 
   if (
     patch.expectedVersion &&
-    app.stateVersion &&
-    patch.expectedVersion !== app.stateVersion
+    patch.expectedVersion !== app.updatedAt.toISOString()
   ) {
     throw Object.assign(new Error("version_conflict"), { code: "CONFLICT" });
   }
@@ -83,7 +82,15 @@ export async function patchApplication(
         ? app.currentState
         : f.field === "actionRequired"
           ? app.actionRequired
-          : null;
+          : f.field === "companyId"
+            ? app.companyId
+            : f.field === "roleId"
+              ? app.roleId
+              : f.field === "source"
+                ? app.source
+                : f.field === "appliedAt"
+                  ? app.appliedAt?.toISOString() ?? null
+                  : null;
 
     const row = await correctionsRepo.insertCorrection(db, {
       targetType: "application",
@@ -94,6 +101,38 @@ export async function patchApplication(
       locked: f.locked ?? false,
     });
     created.push(row.id);
+
+    if (f.field === "companyId") {
+      if (typeof f.userValue !== "string") {
+        throw new Error("invalid_company_id");
+      }
+      await applicationsRepo.updateApplicationUserFields(db, applicationId, {
+        companyId: f.userValue,
+      });
+    } else if (f.field === "roleId") {
+      if (typeof f.userValue !== "string" && f.userValue !== null) {
+        throw new Error("invalid_role_id");
+      }
+      await applicationsRepo.updateApplicationUserFields(db, applicationId, {
+        roleId: f.userValue,
+      });
+    } else if (f.field === "source") {
+      if (typeof f.userValue !== "string" && f.userValue !== null) {
+        throw new Error("invalid_source");
+      }
+      await applicationsRepo.updateApplicationUserFields(db, applicationId, {
+        source: f.userValue,
+      });
+    } else if (f.field === "appliedAt") {
+      if (typeof f.userValue !== "string") {
+        throw new Error("invalid_applied_at");
+      }
+      const timestamp = Date.parse(f.userValue);
+      if (!Number.isFinite(timestamp)) throw new Error("invalid_applied_at");
+      await applicationsRepo.updateApplicationUserFields(db, applicationId, {
+        appliedAt: new Date(timestamp),
+      });
+    }
 
     if (f.field === "currentState" && typeof f.userValue === "string") {
       await applicationsRepo.appendApplicationEvent(db, {
@@ -469,10 +508,12 @@ export async function resolveReview(
       const classification =
         await classificationRepo.getLatestClassification(db, messageId);
       if (!classification) throw new Error("classification_not_found");
+      const message = await repos.emailsRepo.getEmailMessageById(db, messageId);
+      if (!message) throw new Error("message_not_found");
       await applicationsRepo.appendApplicationEvent(db, {
         applicationId: resolution.applicationId,
         eventType: classification.eventType,
-        occurredAt: new Date(),
+        occurredAt: message.internalDate,
         source: "user",
         messageId,
         classificationResultId: classification.id,

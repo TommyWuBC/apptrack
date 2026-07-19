@@ -3,6 +3,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import { api } from "../api/client.js";
 import { TimelineView } from "../components/TimelineView.js";
 import { CorrectionsPanel } from "../components/CorrectionsPanel.js";
+import { ApplicationActions } from "../components/ApplicationActions.js";
 
 function ghostBadgeClass(status: string): string {
   if (status === "possibly_ghosted") return "badge badge-ghosted";
@@ -101,7 +102,18 @@ export function ApplicationDetailPage() {
         ) : null}
       </div>
 
-      <CorrectionsPanel applicationId={id} />
+      <CorrectionsPanel
+        applicationId={id}
+        initialState={timeline.data?.currentState ?? app.currentState}
+        initialActionRequired={app.actionRequired}
+        expectedVersion={app.updatedAt}
+      />
+      {timeline.data ? (
+        <ApplicationActions
+          applicationId={id}
+          events={timeline.data.events}
+        />
+      ) : null}
 
       {timeline.data ? <TimelineView timeline={timeline.data} /> : null}
     </div>

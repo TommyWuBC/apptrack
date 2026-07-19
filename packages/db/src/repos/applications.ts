@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import type { Database } from "../client.js";
 import { uuidv7 } from "../ids.js";
 import {
@@ -126,6 +126,21 @@ export async function findEventByMessageId(db: Database, messageId: string) {
   return row ?? null;
 }
 
+export async function listActiveEventsByMessageId(
+  db: Database,
+  messageId: string,
+) {
+  return db
+    .select()
+    .from(applicationEvents)
+    .where(
+      and(
+        eq(applicationEvents.messageId, messageId),
+        isNull(applicationEvents.supersededBy),
+      ),
+    );
+}
+
 export async function updateApplicationProjection(
   db: Database,
   applicationId: string,
@@ -231,6 +246,24 @@ export async function updateApplicationCompany(
   const [row] = await db
     .update(applications)
     .set({ companyId })
+    .where(eq(applications.id, applicationId))
+    .returning();
+  return row ?? null;
+}
+
+export async function updateApplicationUserFields(
+  db: Database,
+  applicationId: string,
+  patch: {
+    companyId?: string;
+    roleId?: string | null;
+    source?: string | null;
+    appliedAt?: Date | null;
+  },
+) {
+  const [row] = await db
+    .update(applications)
+    .set(patch)
     .where(eq(applications.id, applicationId))
     .returning();
   return row ?? null;

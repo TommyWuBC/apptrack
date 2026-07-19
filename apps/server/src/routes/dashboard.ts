@@ -5,6 +5,7 @@ import type { FastifyInstance } from "fastify";
 import { ErrorCode } from "@apptrack/shared";
 import { repos } from "@apptrack/db";
 import { computeStats, formatRateStat } from "../services/stats-service.js";
+import { markEmailIrrelevant } from "../services/mark-email-irrelevant-service.js";
 
 export async function registerDashboardRoutes(app: FastifyInstance) {
   // Backward-compatible alias; new clients use /api/v1/auth/me.
@@ -97,5 +98,28 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
         matcherVersion: c.matcherVersion,
       })),
     };
+  });
+
+  app.post("/api/v1/emails/:id/mark-irrelevant", async (req, reply) => {
+    if (!app.db) {
+      return reply.code(503).send({
+        error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
+      });
+    }
+    const { id } = req.params as { id: string };
+    try {
+      return await markEmailIrrelevant(app.db, id, req.userId!);
+    } catch (error) {
+      if (
+        ["message_not_found", "classification_not_found"].includes(
+          (error as Error).message,
+        )
+      ) {
+        return reply.code(404).send({
+          error: { code: ErrorCode.NOT_FOUND, message: (error as Error).message },
+        });
+      }
+      throw error;
+    }
   });
 }
