@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@apptrack/analytics-sdk": "workspace:*",
     "@apptrack/core": "workspace:*",
     "@apptrack/db": "workspace:*",
     "@apptrack/providers": "workspace:*",

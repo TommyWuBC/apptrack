@@ -35,6 +35,12 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Analytics SDK e2e
+        run: |
+          pnpm --filter @apptrack/analytics-sdk build
+          pnpm --filter @apptrack/example-website-astro exec playwright install chromium
+          pnpm e2e:sdk
+
       - name: Fixture corpus
         run: pnpm test:fixtures
 

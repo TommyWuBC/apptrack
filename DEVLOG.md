@@ -1051,3 +1051,70 @@ A: Keeps the public endpoint insert-only and fast; session windows need a global
 ### Follow-up
 
 M15 browser SDK + example Astro site serving `/sdk.js`.
+
+## 2026-07-19 — cursor — M15 Analytics SDK + example site
+
+**Meta:** branch `cursor/m15-analytics-sdk-6a25` · milestone M15 · status completed
+
+### Problem being solved
+
+Portfolio sites need a tiny first-party script to send page views and custom events into the M14 ingest API — without cookies, fingerprinting, or a heavy analytics vendor.
+
+### Background concepts
+
+**sendBeacon.** Browsers provide `navigator.sendBeacon` so analytics can flush during page unload without blocking navigation. When it is missing or returns false, the SDK falls back to `fetch` with `keepalive: true`.
+
+**SPA history hooks.** Single-page apps change the URL via `history.pushState` without a full reload. The SDK wraps `pushState`/`replaceState` and listens for `popstate` so each client-side navigation still emits a `page_view`.
+
+**Gzip size gate.** The shipped `sdk.js` must stay under 2 KB gzip so self-hosters are not paying for a fat tracker. The build fails CI if the bundle grows past that budget.
+
+### Design decision
+
+1. Zero-dependency TypeScript tracker + esbuild IIFE minify (not the official analytics SDKs — those add weight and cookies). **R-6:** `esbuild` is a build-time-only tool (MIT, widely maintained) to produce the browser bundle; runtime stays dependency-free.
+2. Serve the artifact at `GET /sdk.js` from the Fastify server (same origin as ingest by default).
+3. Ship `examples/website-astro` as a real Astro static site for demos; Playwright e2e uses a tiny Node harness so CI does not need a live tracker DB.
+
+### Implementation
+
+- `packages/analytics-sdk`: `createTracker`, browser entry, build script with gzip gate (~1.6 KB gz).
+- `apps/server`: `GET /sdk.js` route resolving `@apptrack/analytics-sdk/sdk.js`.
+- `examples/website-astro`: Astro portfolio + Playwright harness/spec.
+- Docs: `docs/analytics-integration.md`; CI step `e2e:sdk`; workspace includes `examples/*`.
+
+### Runtime flow
+
+1. Page loads `<script defer src="…/sdk.js" data-site-key="pk_…">`.
+2. IIFE reads attributes, creates tracker, sets `window.apptrack`, emits initial `page_view`.
+3. Events queue and flush via sendBeacon/fetch to `/api/v1/analytics/events`.
+4. M14 ingest validates, hashes visitor (no IP at rest), inserts rows.
+
+### Bugs & failed approaches
+
+- Unit test assumed no auto page view; fixed with `autoPageView` / `hookHistory` options.
+- `endpointFromScriptSrc` threw in Node (no `location`); added absolute-URL / localhost base fallback.
+- Example `pnpm install` no-op until `examples/*` was added to the workspace.
+
+### Tests
+
+- SDK unit (7) including size gate; server `/sdk.js` (2); Playwright e2e (4): pageview, SPA, `?src=`, sendBeacon→fetch.
+- Commands: `pnpm --filter @apptrack/analytics-sdk test`, `pnpm --filter @apptrack/server test`, `pnpm e2e:sdk`, typecheck/lint/boundaries — green.
+
+### Security & privacy review
+
+Cookie-free; no localStorage; props allowlisted client-side (matches server); no IP handling in the browser. INV-8 unchanged (server-side).
+
+### Performance notes
+
+Bundle ~3.3 KB raw / ~1.6 KB gzip. Batching reduces request count; flush on `pagehide` / visibility hidden.
+
+### Interview prep
+
+**Q: Why not just use Plausible/Umami's script?**  
+A: We need first-party events on the same self-hosted Postgres as applications so correlation can join visits to the pipeline without a third-party SaaS or cross-site cookies. Shipping our own &lt;2 KB script keeps the privacy story auditable end-to-end.
+
+**Q: How do you keep the SDK from breaking the portfolio site?**  
+A: All network errors are swallowed; mode `off` is a no-op; transport prefers beacon and never awaits on the main thread for UX-critical paths.
+
+### Follow-up
+
+M16 correlation scoring (`corr-v1`), unique links, tracked resume route, banned-phrase tests.
