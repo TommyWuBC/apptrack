@@ -12,11 +12,13 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@apptrack/shared": "workspace:*"
+    "@apptrack/db": "workspace:^",
+    "@apptrack/shared": "workspace:*",
+    "pg-boss": "^12.26.1"
   },
   "devDependencies": {
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.10"
   }
 }

@@ -17,7 +17,7 @@ apptrack uses Google OAuth 2.0 with **PKCE** and the `gmail.readonly` scope. Tok
 3. Add yourself as a **test user** while the app is in Testing.
 4. Scopes: add `https://www.googleapis.com/auth/gmail.readonly` (and openid/email/profile as requested by the authorize URL).
 
-**Important:** While the consent screen is in *Testing*, Google may expire refresh tokens after **7 days**. For long-running personal use, publish the consent screen to **Production** and acknowledge the unverified-app warning. Self-hosters always bring their own OAuth client (this avoids Google’s restricted-scope security audit for a SaaS product).
+**Important:** While the consent screen is in _Testing_, Google may expire refresh tokens after **7 days**. For long-running personal use, publish the consent screen to **Production** and acknowledge the unverified-app warning. Self-hosters always bring their own OAuth client (this avoids Google’s restricted-scope security audit for a SaaS product).
 
 ## 3. Create OAuth client credentials
 
@@ -50,13 +50,13 @@ Machine-friendly: `GET /api/v1/gmail/connect?format=json` returns `{ authorizeUr
 
 ## 5. API surface
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/api/v1/gmail/connect` | Start PKCE authorize |
-| GET | `/api/v1/gmail/callback` | Code exchange + store |
-| GET | `/api/v1/gmail/accounts` | List connected accounts (no secrets) |
-| DELETE | `/api/v1/gmail/accounts/:id` | Revoke at Google + delete credentials |
-| POST | `/api/v1/gmail/accounts/:id/refresh` | Refresh access token; `invalid_grant` → `reauth_required` |
+| Method | Path                                 | Purpose                                                   |
+| ------ | ------------------------------------ | --------------------------------------------------------- |
+| GET    | `/api/v1/gmail/connect`              | Start PKCE authorize                                      |
+| GET    | `/api/v1/gmail/callback`             | Code exchange + store                                     |
+| GET    | `/api/v1/gmail/accounts`             | List connected accounts (no secrets)                      |
+| DELETE | `/api/v1/gmail/accounts/:id`         | Revoke at Google + delete credentials                     |
+| POST   | `/api/v1/gmail/accounts/:id/refresh` | Refresh access token; `invalid_grant` → `reauth_required` |
 
 ## 6. Failure modes
 

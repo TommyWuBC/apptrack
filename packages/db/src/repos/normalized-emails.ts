@@ -99,8 +99,6 @@ export async function getLatestNormalized(db: Database, messageId: string) {
     .from(normalizedEmails)
     .where(eq(normalizedEmails.messageId, messageId));
   // versions are append-only strings; pick latest created_at
-  rows.sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-  );
+  rows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   return rows[0] ?? null;
 }

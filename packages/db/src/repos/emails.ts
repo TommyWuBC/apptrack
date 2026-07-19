@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNotNull, lt, sql } from "drizzle-orm";
 import type { Database } from "../client.js";
 import { uuidv7 } from "../ids.js";
 import { emailMessages, emailThreads } from "../schema/index.js";
@@ -15,6 +15,47 @@ export type InsertMessageInput = {
   snippet?: string;
   headersSubset?: Record<string, unknown>;
 };
+
+export async function clearExpiredRawMime(db: Database, cutoff: Date) {
+  const rows = await db
+    .update(emailMessages)
+    .set({ rawEncrypted: null, hasRaw: false })
+    .where(
+      and(isNotNull(emailMessages.rawEncrypted), lt(emailMessages.createdAt, cutoff)),
+    )
+    .returning({ id: emailMessages.id });
+  return rows.length;
+}
+
+export async function listEmailMessageIds(
+  db: Database,
+  opts: {
+    messageIds?: string[];
+    afterDate?: Date;
+    beforeDate?: Date;
+  } = {},
+) {
+  const conditions = [];
+  if (opts.messageIds) {
+    const wanted = new Set(opts.messageIds);
+    const rows = await db.select({ id: emailMessages.id }).from(emailMessages);
+    return rows.filter((row) => wanted.has(row.id)).map((row) => row.id);
+  }
+  if (opts.afterDate) {
+    conditions.push(sql`${emailMessages.internalDate} >= ${opts.afterDate}`);
+  }
+  if (opts.beforeDate) {
+    conditions.push(sql`${emailMessages.internalDate} <= ${opts.beforeDate}`);
+  }
+  const rows =
+    conditions.length > 0
+      ? await db
+          .select({ id: emailMessages.id })
+          .from(emailMessages)
+          .where(and(...conditions))
+      : await db.select({ id: emailMessages.id }).from(emailMessages);
+  return rows.map((row) => row.id);
+}
 
 /**
  * Idempotent insert (INV-2): unique(account_id, provider_message_id).
@@ -133,8 +174,19 @@ export async function tombstoneProviderDeletion(
 }
 
 export async function countMessages(db: Database): Promise<number> {
-  const [row] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(emailMessages);
+  const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(emailMessages);
   return row?.n ?? 0;
+}
+
+/** Sibling message ids sharing the same provider thread (for match sameThread). */
+export async function listMessageIdsInThread(
+  db: Database,
+  threadId: string | null | undefined,
+): Promise<string[]> {
+  if (!threadId) return [];
+  const rows = await db
+    .select({ id: emailMessages.id })
+    .from(emailMessages)
+    .where(eq(emailMessages.threadId, threadId));
+  return rows.map((r) => r.id);
 }

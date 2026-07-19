@@ -37,7 +37,5 @@ export function domainOfAddress(fromAddress: string | undefined): string | null 
 
 export function isAtsSenderDomain(domain: string | null): boolean {
   if (!domain) return false;
-  return ATS_SENDER_DOMAINS.some(
-    (d) => domain === d || domain.endsWith(`.${d}`),
-  );
+  return ATS_SENDER_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`));
 }

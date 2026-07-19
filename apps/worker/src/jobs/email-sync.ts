@@ -3,37 +3,21 @@
  * Calls the server sync API so orchestration stays in apps/server (no cross-app imports).
  * pg-boss transactional enqueue lands with email.normalize (M6).
  */
+import { callInternalApi } from "../internal-api.js";
+
 const intervalMs =
-  Number.parseInt(process.env.SYNC_POLL_INTERVAL_MS ?? "", 10) ||
-  10 * 60 * 1000;
+  Number.parseInt(process.env.SYNC_POLL_INTERVAL_MS ?? "", 10) || 10 * 60 * 1000;
 
 function baseUrl(): string {
-  return (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
+  return (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 }
 
 export async function triggerSyncRun(accountId?: string): Promise<unknown> {
-  const res = await fetch(`${baseUrl()}/api/v1/sync/run`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(accountId ? { accountId } : {}),
-  });
-  const text = await res.text();
-  let body: unknown = text;
-  try {
-    body = JSON.parse(text) as unknown;
-  } catch {
-    /* keep text */
-  }
-  if (!res.ok) {
-    throw Object.assign(new Error(`sync_run_${res.status}`), {
-      status: res.status,
-      body,
-    });
-  }
-  return body;
+  return callInternalApi(
+    "POST",
+    "/api/v1/sync/run",
+    accountId ? { accountId, execute: true } : { execute: true },
+  );
 }
 
 export async function startWorkerPolling(): Promise<void> {

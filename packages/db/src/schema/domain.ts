@@ -17,6 +17,7 @@ import {
   mutableTimestamps,
   timestamps,
   users,
+  bytea,
 } from "./identity-email.js";
 
 // ── §10.4 Domain entities ────────────────────────────────────────────────
@@ -114,9 +115,7 @@ export const applicationEvents = pgTable(
       .references(() => applications.id, { onDelete: "cascade" }),
     eventType: text("event_type").notNull(),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
-    ingestedAt: timestamp("ingested_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    ingestedAt: timestamp("ingested_at", { withTimezone: true }).notNull().defaultNow(),
     source: text("source").notNull(),
     messageId: uuid("message_id").references(() => emailMessages.id),
     classificationResultId: uuid("classification_result_id").references(
@@ -126,29 +125,21 @@ export const applicationEvents = pgTable(
     supersededBy: uuid("superseded_by"),
     ...timestamps,
   },
-  (t) => [
-    index("application_events_app_occurred_idx").on(
-      t.applicationId,
-      t.occurredAt,
-    ),
-  ],
+  (t) => [index("application_events_app_occurred_idx").on(t.applicationId, t.occurredAt)],
 );
 
-export const applicationMatchCandidates = pgTable(
-  "application_match_candidates",
-  {
-    id: idColumn,
-    messageId: uuid("message_id")
-      .notNull()
-      .references(() => emailMessages.id, { onDelete: "cascade" }),
-    applicationId: uuid("application_id").references(() => applications.id),
-    score: real("score").notNull(),
-    signals: jsonb("signals").notNull().default({}),
-    decision: text("decision").notNull(),
-    matcherVersion: text("matcher_version").notNull(),
-    ...timestamps,
-  },
-);
+export const applicationMatchCandidates = pgTable("application_match_candidates", {
+  id: idColumn,
+  messageId: uuid("message_id")
+    .notNull()
+    .references(() => emailMessages.id, { onDelete: "cascade" }),
+  applicationId: uuid("application_id").references(() => applications.id),
+  score: real("score").notNull(),
+  signals: jsonb("signals").notNull().default({}),
+  decision: text("decision").notNull(),
+  matcherVersion: text("matcher_version").notNull(),
+  ...timestamps,
+});
 
 // ── §10.5 Human-in-the-loop ──────────────────────────────────────────────
 
@@ -200,3 +191,40 @@ export const auditLog = pgTable("audit_log", {
   metadata: jsonb("metadata").default({}),
   ...timestamps,
 });
+
+/**
+ * Per-user settings (ghost thresholds, etc.). AGENTS.md §17
+ * One row per user; ghost_thresholds jsonb holds GhostThresholdsV1.
+ */
+export const userSettings = pgTable(
+  "user_settings",
+  {
+    id: idColumn,
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ghostThresholds: jsonb("ghost_thresholds").notNull().default({}),
+    /** Classifier mode / provider prefs. AGENTS.md §13.2 / M13 */
+    classifierSettings: jsonb("classifier_settings").notNull().default({}),
+    ...mutableTimestamps,
+  },
+  (t) => [uniqueIndex("user_settings_user_uidx").on(t.userId)],
+);
+
+/**
+ * Optional single résumé per owner for tracked /r/:token/resume.pdf. §20.5
+ */
+export const userResumes = pgTable(
+  "user_resumes",
+  {
+    id: idColumn,
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    filename: text("filename").notNull(),
+    contentType: text("content_type").notNull().default("application/pdf"),
+    bytes: bytea("bytes").notNull(),
+    ...mutableTimestamps,
+  },
+  (t) => [uniqueIndex("user_resumes_user_uidx").on(t.userId)],
+);

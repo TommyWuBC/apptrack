@@ -28,7 +28,8 @@
   "devDependencies": {
     "@types/mailparser": "^3.4.5",
     "@types/sanitize-html": "^2.16.1",
+    "fast-check": "^4.1.1",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.10"
   }
 }

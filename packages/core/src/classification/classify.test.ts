@@ -54,10 +54,7 @@ describe("classifyEmail", () => {
 
   it("does not follow prompt-injection canary", async () => {
     const r = await classifyFixture(
-      join(
-        fixturesRoot,
-        "_edge/unknown/prompt-injection-canary-offer.eml",
-      ),
+      join(fixturesRoot, "_edge/unknown/prompt-injection-canary-offer.eml"),
     );
     expect(r.eventType).toBe(EventType.unknown);
     expect(r.needsReview).toBe(true);

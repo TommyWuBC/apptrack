@@ -6,8 +6,5 @@
     "applicationType": "internship"
   },
   "minConfidence": 0.7,
-  "tags": [
-    "edge",
-    "base64_body"
-  ]
+  "tags": ["edge", "base64_body"]
 }

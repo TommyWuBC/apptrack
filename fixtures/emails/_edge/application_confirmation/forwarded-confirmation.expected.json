@@ -7,8 +7,5 @@
     "atsPlatform": "greenhouse"
   },
   "minConfidence": 0.6,
-  "tags": [
-    "edge",
-    "forwarded"
-  ]
+  "tags": ["edge", "forwarded"]
 }

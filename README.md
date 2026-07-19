@@ -6,30 +6,33 @@ Self-hostable, privacy-conscious job application tracker. Analyzes your own emai
 
 ## Status
 
-**Milestone M1** — repository foundation (in progress). See `AGENTS.md` for the full blueprint and `HANDOFF.md` for the current agent relay.
+**M1–M16 implemented**, plus a stabilization pass (auth/sessions/CSRF, pg-boss jobs, analytics session fixes, review/reprocess completion, CI/deps). **Next: M17 Security hardening.** See `AGENTS.md`, `HANDOFF.md`, and `PROGRESS.md`.
 
 ## Quickstart
 
 ```bash
 cp .env.example .env
+# set APP_ENCRYPTION_KEY, SESSION_SECRET, INTERNAL_JOB_SECRET
 pnpm install
+pnpm migrate
+pnpm demo   # optional synthetic owner + applications
 pnpm dev
 ```
 
-- API hello: http://localhost:3000/api/v1/hello
-- SPA shell: http://localhost:5173
+- Dashboard: http://localhost:5173 (first run → `/setup`)
+- API health: http://localhost:3000/healthz · readiness: `/readyz`
 - Docs: [`docs/setup.md`](docs/setup.md)
 
 ## Architecture (one glance)
 
 ```
-apps/server  ──► packages/core ──► packages/shared
-apps/worker  ──► packages/db   ──► packages/shared
-apps/cli     ──► packages/providers ──► packages/shared
 apps/web     ──► packages/shared (types) + REST only
+apps/server  ──► packages/core / db / providers / shared
+apps/worker  ──► packages/db / shared  (pg-boss → server internal API)
+apps/cli     ──► packages/db / shared  (+ pg-boss enqueue)
 ```
 
-Enforced by dependency-cruiser in CI. Details: `AGENTS.md` §8–§9.
+Enforced by dependency-cruiser in CI. Details: `AGENTS.md` §8–§9, `ARCHITECTURE.md`.
 
 ## License
 

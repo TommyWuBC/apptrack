@@ -1,25 +1,26 @@
 # HANDOFF
 
 ## Current state
-**M7 complete.** Deterministic classification (L1+L2), golden eval F1≈0.97, sync auto-classify, `docs/classification.md`. M5–M7 verified green; pushed to GitHub.
+**M16 Correlation scoring implemented on `cursor/m16-correlation-scoring-6a25`** (branched from stabilize). `corr-v1` pure scorer, predictions/features repos, unique links + tracked résumé, feedback API, worker job, SPA panel, docs.
 
 ## Last action taken
-Implemented M7; ran full gate + eval; committed and pushed.
+Landed M16: core scoring + banned-phrase tests; DB `user_resumes` migration; server routes/services; aggregate→`correlation.score` enqueue; web CorrelationPanel + demo stubs; `docs/correlation-model.md`. Verified green (`typecheck`/`lint`/`format:check`/`test`/`eval`/`boundaries`). PR #10 open.
 
 ## Next action
-**M8 — Application matching:** matcher signals/thresholds, `application.match` + review items, match_candidates audit.
-
-Optional: Docker → live Postgres proof for M2/M4–M7 integration.
+**M17 — Security hardening** after M16 PR merges (base: stabilize → then stack).
 
 ## Open blockers
-- Docker Desktop (live DB proof).
+- Live Postgres still needed for full migration round-trip / OAuth integration tests.
+- Transactional pg-boss handoff for ingest (still inline normalize/classify/match) needs ADR if kept long-term.
 
 ## Gotchas
-- Classifier `clf-2026.07.0` / rules `rules-2026.07.0` — bump on behavior change; update `fixtures/golden/baseline.json` in same PR.
-- `pnpm eval` fails CI if core-type F1 < 0.85 or any type drops >2pts vs baseline.
-- Prompt-injection canaries must stay `unknown` (do not follow body instructions).
+- `CORRELATION_ENABLED=false` by default; enable only with analytics configured.
+- Probabilistic band hard-capped at medium; high requires unique link / tracked résumé token.
+- Explanations must not use banned identification phrases (`packages/core/src/correlation/language.ts`).
+- Tracked résumé needs `POST /api/v1/resume` upload first; public route is `GET /r/:token/resume.pdf`.
 
 ## Do not
-- Make LLM classification the default (L3 is M13, opt-in).
-- Fetch URLs from email (INV-6).
-- Commit real emails or `.env` secrets.
+- Persist raw IPs (INV-8).
+- Claim recruiter identification in UI copy.
+- Fetch URLs from email/analytics content (INV-6).
+- Commit secrets / real emails / `.env`.

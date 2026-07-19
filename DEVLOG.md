@@ -624,3 +624,595 @@ Deterministic-only (NFR-6). INV-5: short evidence strings only. Canaries verifie
 ### Follow-up
 
 **M8 — application matching** (attach classified emails to the right application or open a review item).
+
+## 2026-07-18 — cursor — Matching classified emails to applications
+
+**Meta:** branch `cursor/m8-application-matching-6a25` · milestone M8 · status completed
+
+### Problem being solved
+
+Classification alone labels an email ("this is an OA reminder") but does not say *which* application it belongs to. A person may have three open roles at the same company. Without matching, the timeline cannot form. Matching must attach confidently when evidence is strong, create a new application for confirmations when nothing fits, and otherwise ask the user — never guess.
+
+### Background concepts
+
+**Weighted signal scoring.** Each candidate application is scored by independent signals (same Gmail thread, shared requisition ID, recruiter address, role-title overlap, assessment provider continuity, recency, state fit). Weights sum and clamp to `[0, 1]`. The UI (later) can show each signal as evidence.
+
+**Threshold + margin.** High score alone is not enough if two applications score nearly the same. Auto-attach requires score ≥ 0.75 *and* a ≥ 0.2 gap over the runner-up. Mid-band or thin-margin cases become `ambiguous_match` review items.
+
+**No silent company merges.** Exact alias/domain hits attach to a known company. Fuzzy name similarity (Jaro-Winkler ≥ 0.85) opens an `entity_merge_suggestion` instead of merging automatically — wrong merges are hard to undo.
+
+**Idempotent attach.** A message that already has an `application_events` row is not attached again. Re-running match is safe; audit rows in `application_match_candidates` remain append-only.
+
+### Design decision
+
+1. Pure `matchApplication()` in `@apptrack/core` (testable without DB); orchestration in `apps/server` services.
+2. Minimal company/role resolution in `packages/core/resolution` so matching has a candidate set — full merge/split UX deferred to M11.
+3. Projection `current_state` updated with a tiny `stateForEvent` map; the real event-sourced reducer is **M9**.
+4. **Dependency:** `fast-check` (devDependency on `@apptrack/core`) for a property test that candidate order does not change the decision. Justification: blueprint §24.1 lists fast-check for determinism properties; ~weekly downloads in the millions; MIT; no runtime impact.
+
+### Implementation
+
+- `packages/shared` — `MatchDecision`, `ReviewKind`, `MatchResultV1` schemas.
+- `packages/core/matching` — weights, signals, `matchApplication`, version `match-v1`.
+- `packages/core/resolution` — Jaro-Winkler, seed aliases, `resolveCompany`, role normalization.
+- `packages/db/repos/matching.ts` — match candidates, review queue, aliases, roles, thread→application helpers.
+- `apps/server` — `application-match-service`, routes `/api/v1/match/*` + `/api/v1/review`; sync wires match after classify.
+- Docs — `docs/application-matching.md`.
+
+### Runtime flow
+
+1. Sync inserts a message → normalize → classify.
+2. `matchAndStoreMessage` resolves company, loads same-company applications, scores them.
+3. Decision:
+   - `auto_attached` → append `application_events` + bump projection state.
+   - `new_application` → create company/role/application + first event (confirmations).
+   - `review` → `review_queue_items` (`ambiguous_match` or `unmatched_email`).
+4. Every scored candidate writes `application_match_candidates` (signals JSON).
+5. A successful attach/create triggers `match.reevaluate` for open ambiguities at that company (nested reevaluate disabled to avoid recursion).
+
+### Bugs & failed approaches
+
+- Early draft called `reevaluate` from inside every `matchAndStoreMessage` *and* from reevaluate itself → risk of recursive fan-out. Fixed with `opts.reevaluate` (false when called from reevaluate).
+- Route order: registered `/match/reevaluate/:companyId` before `/match/:messageId` so `"reevaluate"` is not captured as a message id.
+
+### Tests
+
+Commands: `pnpm typecheck && pnpm lint && pnpm test && pnpm boundaries` — all green.
+
+- Core: threshold/margin, multi-role + thread continuity, reapplication via req ID, assessment continuity, confirmation→new app, fast-check determinism (40 runs).
+- Resolution: exact/fuzzy/create_new, role norm.
+- Server: match version + 503-without-DB routes.
+- DB integration still skips without live Postgres.
+
+### Security & privacy review
+
+No OAuth/token changes. Match audit stores signal names/scores/details — no full email bodies. INV-6 unchanged (URLs compared as strings, never fetched). Company merge suggestions require human confirmation.
+
+### Performance notes
+
+Candidate set is per-company applications for one user (NFR-1: ≤1000 apps). Thread sibling lookup is a single indexed query. Fine at envelope scale.
+
+### Interview prep
+
+**Q: Why require a margin over the runner-up, not just a high score?**  
+**A:** Two roles at the same company can both look plausible (same recruiter domain, similar titles). A score of 0.8 with a 0.01 gap means the model is guessing. The margin rule forces those into the review queue so the user decides — which is cheaper than undoing a wrong auto-attach later.
+
+**Follow-up:** How do you keep matching reproducible after rule changes?  
+**A:** `matcher_version` is stored on every `application_match_candidates` row (`match-v1`). Behavior changes bump the version (R-8). Historical audit rows keep their version string.
+
+**Q: Why not silently merge "Initech" and "Initechh"?**  
+**A:** Entity resolution errors poison every downstream timeline. Fuzzy hits become review suggestions; only exact alias/domain evidence auto-attaches. That trades a little more review volume for trust.
+
+**What I'd improve:** Extract requisition IDs into `ExtractionV1` explicitly (today we parse tokens from URLs/strings in the matcher); wire pg-boss job names `application.match` / `match.reevaluate` once the worker queue is more than HTTP polling.
+
+### Follow-up
+
+**M9 — timeline & state machine** replaces the stub `stateForEvent` with a pure reducer and `application.recompute`. Review UI resolution actions are M11.
+
+## 2026-07-18 — cursor — Event-sourced application timeline (reducer)
+
+**Meta:** branch `cursor/m9-timeline-state-machine-6a25` · milestone M9 · status completed
+
+### Problem being solved
+
+Matching appends events, but "current status" was a one-shot map from the latest event type. That breaks when mail arrives out of order, when a rejection is followed by a later interview, or when the user asks "how did you get to interviewing?" The product needs a replayable history: events are truth; status is derived.
+
+### Background concepts
+
+**Event sourcing (lite).** Instead of updating a status column in place, we append facts (`application_confirmation`, `rejection`, …). A pure function — the **reducer** — walks those facts in order and returns the current state. Delete the projection, re-run the reducer, get the same answer (INV-9).
+
+**Ordering key.** Emails are not arrival-ordered. We sort by `(occurred_at, ingested_at, id)` so backfill and live sync commute.
+
+**Conflict flag, not drop.** Same-day rejection + interview invite both stay in the log; the reducer sets `flags.conflict` and opens a review item. Dropping either would erase evidence.
+
+**Corrections overlay.** After the machine computes a projection, user corrections/locks are applied on top (INV-7). M9 ships the stub hook; the full UI is M11.
+
+### Design decision
+
+1. Pure `reduce()` in `@apptrack/core` with version `state-v1`.
+2. `recomputeApplication` in the server loads events, reduces, overlays corrections, writes projection + optional `state_conflict` review item.
+3. Match attach/create calls recompute instead of `stateForEvent` — one projection path.
+4. Timeline API returns stored events plus the reduce result for explainability.
+
+### Implementation
+
+- `packages/core/src/statemachine/*` — order, reduce, apply-corrections stub, tests (incl. fast-check permutations).
+- `packages/shared` — `ApplicationEventType`, `ReduceResultV1`, `ReducerEventV1`.
+- `apps/server` — `application-recompute-service`, routes under `/api/v1/applications`.
+- Docs — `docs/application-timeline.md`.
+
+### Runtime flow
+
+1. Match appends an `application_events` row.
+2. `recomputeApplication` lists events → `reduce` → `applyCorrections` → update `applications.current_state` / `action_required` / `state_version`.
+3. UI (M10) loads `GET /applications/:id/timeline`.
+
+### Bugs & failed approaches
+
+- Lint `prefer-const` on reducer step object (mutated fields, not reassigned) — fixed.
+- Avoided double-pop on `interview_cancelled` so cancel from interviewing returns to confirmation, not applied.
+
+### Tests
+
+`pnpm typecheck && pnpm lint && pnpm test && pnpm boundaries` — green.
+
+- Transitions: confirmation, OA, interview/final, cancel fallback, on_hold, reopen-after-rejection, conflict, manual_override, ghost clear.
+- Property: permutation independence when sorted; no crash on arbitrary event type strings.
+- Corrections stub overlays locked fields.
+
+### Security & privacy review
+
+No new token/email egress. Timeline payloads include event metadata + classification ids, not raw MIME. INV-9 / INV-7 posture documented.
+
+### Interview prep
+
+**Q: Why event-source the application instead of a status column?**  
+**A:** Out-of-order email, reprocessing, and "explain this state" all need history. A status column forces destructive updates. At this scale we do not need a full CQRS framework — a pure reducer over Postgres rows is enough.
+
+**Follow-up:** How do you prove the projection is correct?  
+**A:** INV-9: wipe `current_state`, run recompute, assert equality. Property tests ensure any insert order yields the same sorted replay.
+
+**What I'd improve:** Persist `stateTimeline` snapshots for faster UI; wire pg-boss singleton debounce for `application.recompute` once the worker owns jobs directly.
+
+### Follow-up
+
+**M10 — Dashboard** consumes the timeline API. Ghost job (M12) will emit `ghost_flagged` events the reducer already understands.
+
+## 2026-07-18 — cursor — Building the dashboard SPA
+
+**Meta:** branch `cursor/m10-dashboard-6a25` · milestone M10 · status completed
+
+### Problem being solved
+
+Through M9 the pipeline wrote applications and timelines into the database, but there was no UI to browse them. M10 ships the self-hosted dashboard: pipeline overview, applications table, per-application timeline with email evidence, companies list, stats with honest small-sample rates, and a settings stub (analytics deferred).
+
+### Background concepts
+
+**SPA + API.** The browser app (Vite + React) talks only to REST JSON under `/api/v1`. It never imports database code — that boundary is enforced by dependency-cruiser.
+
+**Small-sample guard.** With fewer than 10 applications, a "25% offer rate" is misleading. We return `numerator/denominator` and refuse a percentage until the sample is large enough (§19).
+
+**Sandboxed evidence.** Email HTML is hostile. The viewer loads *already sanitized* HTML into an iframe with an empty `sandbox` attribute so scripts cannot run (T4).
+
+**Demo fixtures.** Contributors (and CI) can navigate the whole UI with `?demo=1` without Postgres or Gmail — same acceptance bar as mock-provider for the backend.
+
+### Design decision
+
+1. TanStack Router + Query (blueprint §7) with a typed `api` client.
+2. Tailwind + IBM Plex (avoid default Inter / purple AI aesthetic); dashboard layout is intentional (user rule exception).
+3. Server adds `/stats`, `/companies`, `/emails/:id/evidence`, `/me`; applications list falls back to sole owner when `userId` omitted.
+4. Playwright smoke against `vite preview` in demo mode.
+
+### Implementation
+
+- `apps/web/src/{api,components,routes,router.tsx}` — full route set except review.
+- `apps/server` — `stats-service`, `dashboard` routes.
+- Docs — `docs/dashboard.md`.
+- Broke circular `client.ts` ↔ `demo-data.ts` via `api/types.ts`.
+
+### Runtime flow
+
+1. User opens `/` (or `/?demo=1`).
+2. Query client fetches applications → pipeline columns + action list.
+3. Application detail loads timeline; "View email evidence" opens sandboxed iframe.
+4. Stats page renders rates through the small-sample formatter.
+
+### Tests
+
+M8–M10 focused + full gate:
+
+- Core matching 20, reducer 15, server 27 (+5 skip), web 3 unit — all pass.
+- Playwright e2e demo smoke: overview → applications → timeline → stats/companies/settings.
+- `pnpm typecheck && pnpm lint && pnpm test && pnpm boundaries` green (circular warn fixed).
+
+### Security & privacy review
+
+Evidence endpoint returns sanitized HTML + classification evidence only. Iframe sandbox empty. No OAuth tokens in SPA. Demo fixtures are synthetic.
+
+### Follow-up
+
+**M11** review queue UI + corrections. Wire real session auth into `/me` when auth middleware lands.
+
+## 2026-07-19 — cursor — Human-in-the-loop corrections and review
+
+**Meta:** branch `cursor/m11-corrections-review-6a25` · milestone M11 · status completed
+
+### Problem being solved
+
+Automation will be wrong sometimes. Users need to correct stages, lock fields so reprocessing cannot overwrite them, resolve ambiguous matches, merge/split applications and companies, and reattach emails — with an audit trail.
+
+### Background concepts
+
+**Field-level precedence (INV-7).** Machine projection is computed first; active user corrections overlay it. A locked correction always wins. Undo does not delete history — it sets `reverted_at`, and the prior correction for that field becomes active again.
+
+**Supersede, don't delete.** Reattaching an email appends a new `application_events` row and points `superseded_by` on the old one. The timeline stays explainable.
+
+**Review queue.** Ambiguous matches and merge suggestions sit in one inbox until the user chooses attach / new / dismiss / merge.
+
+### Design decision
+
+1. `user_corrections` + `audit_log` repos; `patchApplication` writes corrections and optional `manual_override` events, then recomputes with DB-loaded corrections.
+2. Review resolve is a tagged union by `kind` (contract-first for the SPA).
+3. Company merge is explicit only (no silent fuzzy merges).
+4. Demo fixtures cover review + a locked correction; demo flag sticks in `sessionStorage`.
+
+### Implementation
+
+- Core: `activeCorrections`, `isFieldLocked`, adversarial INV-7 tests.
+- DB: `correctionsRepo`; applications helpers for supersede / company reassign.
+- Server: `corrections-service` + routes (PATCH/merge/split/reattach/undo/review resolve/companies merge).
+- Web: `/review`, `CorrectionsPanel`, company merge form.
+- Docs: `docs/corrections-review.md`.
+
+### Tests
+
+- Core INV-7 (4) + full core 59; server corrections routes 503; Playwright review + corrections panel.
+- `pnpm typecheck && pnpm lint && pnpm test && pnpm boundaries` green.
+
+### Follow-up
+
+**M12 Ghosting.** Live Postgres merge/split roundtrip when Docker available.
+
+## 2026-07-19 — cursor — M12 Ghosting inference
+
+**Meta:** branch `cursor/m12-ghosting-6a25` · milestone M12 · status completed
+
+### Problem being solved
+
+Applications often go silent. The dashboard needs a careful "possibly ghosted" signal — with thresholds the user can tune — without claiming a recruiter ghosted them as fact. Timers must pause around scheduled interviews/OAs, reset on real activity, and respect a user dismiss.
+
+### Background concepts
+
+**Ghost status vs application state.** `ghost_status` (`none` / `stale` / `possibly_ghosted` / `dismissed`) is a separate projection field. Only the possibly-ghosted transition also moves `current_state` to `ghosted` via a `ghost_flagged` event. Stale is a softer badge that does not rewrite the pipeline column.
+
+**Pause / reset.** If an interview datetime or OA deadline is still in the future, the inactivity clock pauses. Any meaningful email event clears prior ghost flags (`ghost_cleared`) during recompute.
+
+**Dismiss until state change.** Dismiss stores the stage at dismissal time. The evaluator will not re-flag until `current_state` differs from that snapshot.
+
+### Design decision
+
+1. Pure `evaluateGhost` in `packages/core/ghosting` (`ghost-v1`) with threshold precedence company > type > stage > default.
+2. `user_settings.ghost_thresholds` jsonb (migration `0001_user_settings`).
+3. Daily evaluate via API + worker HTTP poll (same pattern as email.sync — no worker→server import).
+4. Notification + `ghost_confirm` review item only at the ghost threshold.
+5. Reducer: `ghost_flagged` with `level: "stale"` does not change `current_state`.
+
+### Implementation
+
+- Core: `evaluateGhost`, `resolveGhostThresholds`, matrix tests.
+- DB: `userSettings`, settings + notifications repos.
+- Server: `ghost-evaluate-service`, routes (evaluate / dismiss / settings / notifications); recompute auto-clear.
+- Web: badges, detail banner + dismiss, settings thresholds, demo fixtures for stale/ghosted apps.
+- Docs: `docs/ghosting.md`.
+
+### Runtime flow
+
+1. Cron/worker (or Settings “Run now”) POSTs `/api/v1/ghost/evaluate`.
+2. For each application: reduce events → `evaluateGhost` → append `ghost_flagged` / `ghost_cleared` → update `ghost_status` → notify on possibly_ghosted.
+3. New meaningful email → recompute → `action: clear` → `ghost_cleared` + status `none`.
+
+### Bugs & failed approaches
+
+- Playwright preview serves **built** dist; e2e failed until `pnpm --filter @apptrack/web build`. Lesson: rebuild before e2e when UI changes.
+
+### Tests
+
+- Core ghosting 11 + reducer stale-level; server ghost routes; Playwright dismiss on `app-5`.
+- `pnpm typecheck` (touched pkgs) · lint · boundaries · core/server/web/db tests green.
+
+### Security & privacy review
+
+No new egress. Notifications store titles/bodies without email content. INV-7 untouched. Ghost copy uses “possibly” / “inference”.
+
+### Interview prep
+
+**Q: Why not just set status=ghosted after 90 days?**  
+A: Status is event-sourced. Ghosting is an inference with its own field so stale can show without collapsing the pipeline; dismiss and auto-clear need auditable events (`ghost_flagged` / `ghost_dismissed` / `ghost_cleared`).
+
+**Q: How do you avoid nagging after dismiss?**  
+A: Store `dismissedAtState`; suppress until the application’s derived state changes (e.g. a new interview invite).
+
+### Follow-up
+
+M13 LLM extraction or M14 analytics. Live DB proof of migration `0001` + evaluate when Docker available.
+
+## 2026-07-19 — cursor — M13 Optional LLM extraction (L3)
+
+**Meta:** branch `cursor/m13-llm-extraction-6a25` · milestone M13 · status completed
+
+### Problem being solved
+
+Deterministic rules cover most ATS mail but miss awkward recruiter prose. Users who opt in need an LLM layer that extracts structured fields without treating email text as instructions, and without sending data unless they choose a non-deterministic mode.
+
+### Background concepts
+
+**Mode-gated LLM.** `CLASSIFIER_MODE` is `deterministic` by default (no egress). `hybrid` runs rules first and only calls a model when confidence is below 0.75 or extraction is incomplete. `api` / `local` use the same gate with Anthropic/OpenAI or Ollama.
+
+**Allowlisted structured output.** The model may only fill fields in `LlmExtractionV1`. Invalid JSON is discarded entirely (no partial trust). Justifications are capped at 200 characters (INV-5).
+
+**Prompt injection (T6).** Email content is wrapped in `<untrusted_email>`. The client has no tools. Canary fixtures that say “ignore previous instructions” must stay `unknown` and must not trigger an LLM call.
+
+### Design decision
+
+1. HTTP adapters (Anthropic Messages, OpenAI Chat Completions, Ollama `/api/chat`) behind `LlmClient` instead of SDK packages — fewer deps/postinstall risks; same API shapes (R-6).
+2. Pure `classifyEmail` stays async; deterministic path unchanged when mode is deterministic.
+3. Arbitration: deterministic wins on event-type conflict at equal confidence; disagreement → `needsReview`.
+4. Settings UI shows egress disclosure text derived from mode + provider.
+
+### Implementation
+
+- Shared: `LlmExtractionV1Schema`, `ClassifierSettingsV1Schema`.
+- Core: `packages/core/llm/*`, `classification/prompts/extract.v1.ts`, `classification/l3.ts`, classify rewrite; version `clf-2026.07.1`.
+- DB: `user_settings.classifier_settings` (migration `0002`).
+- Server: `resolveClassifierConfig`, classify service mode wiring, GET/PATCH `/api/v1/settings/classifier`.
+- Web: classifier mode/provider controls + disclosure panel.
+- Docs: `docs/classification.md` updated for M13.
+
+### Tests
+
+- Core: L3 matrix (hybrid skip on high conf, canary no-LLM, schema-invalid → review), adapter fetch mocks, existing canary fixture.
+- Server: classifier settings without DB; version includes `extract.v1`.
+- Playwright: settings shows classifier + egress.
+- `pnpm eval`: overall F1 ≈ 0.972; baseline notes bumped to clf-2026.07.1.
+- M11–M13 recheck: INV-7 corrections (4), ghost matrix (11), L3 (9), server suite, e2e — green.
+
+### Security & privacy review
+
+- Default mode: no egress.
+- LLM payload: subject + ≤4k stripped text + sender display/domain only.
+- No chain-of-thought storage; INV-5.
+- Canaries never escalate to L3.
+
+### Interview prep
+
+**Q: Why hybrid instead of always calling the model?**  
+A: Cost, privacy, and reproducibility. Rules handle Greenhouse/Lever templates well; the model is a fallback for low-confidence leftovers, and every call is visible in settings via egress copy.
+
+**Q: How do you stop prompt injection from turning spam into an “offer”?**  
+A: Delimited untrusted block, no tools, zod allowlist, and a deterministic canary guard that short-circuits before L3.
+
+### Follow-up
+
+M14 analytics ingestion. Optional: swap fetch adapters for official SDKs if desired; live provider integration tests with recorded nock fixtures.
+
+## 2026-07-19 — cursor — M14 Analytics ingestion API
+
+**Meta:** branch `cursor/m14-analytics-ingestion-6a25` · milestone M14 · status completed
+
+### Problem being solved
+
+The tracker needs a privacy-conscious way to accept portfolio website events (page views, résumé downloads) so later correlation can score anonymous visits against applications — without cookies, fingerprinting, or storing raw IPs.
+
+### Background concepts
+
+**Cookie-free visitor hash.** Instead of a long-lived cookie, the server hashes `daily_salt + site_key + IP + coarse UA family` and then throws away the IP. Hashes are not linkable across UTC days.
+
+**Deferred sessionization.** The ingest endpoint only validates, rate-limits, hashes, and inserts. A separate `analytics.aggregate` job groups events into 30-minute idle sessions so the hot path stays under ~100 ms (NFR-2).
+
+**Origin allowlist.** Public ingest uses CORS + `origin_allowlist` on each `analytics_sites` row so arbitrary websites cannot spam a site key as easily.
+
+### Design decision
+
+1. Extended `analytics_events` with `site_id`, `visitor_hash`, geo/device context, and `sessionized_at` so aggregate can run after insert without an extra staging table (migration `0003`).
+2. In-memory token buckets for rate limits (no Redis — blueprint excluded list).
+3. Geo via optional lookup hook + CDN country headers; MaxMind file optional via `GEOLITE2_DB_PATH` later.
+
+### Implementation
+
+- Shared: analytics enums + ingest/site zod schemas + props allowlist.
+- Core: `computeVisitorHash`, `sessionizeEvents`, coarse UA parser.
+- DB: analytics repo; event context columns.
+- Server: ingest/aggregate/retention + sites CRUD routes.
+- Worker: 5-minute aggregate poll.
+- Web: Settings → Analytics sites.
+- Docs: `docs/analytics-integration.md`; load helper `scripts/analytics-load.ts`.
+
+### Runtime flow
+
+1. Browser/SDK POSTs batch with `siteKey` + ≤25 events.
+2. Server checks allowlist, rate limits, computes visitor hash + coarse geo, inserts events (no IP columns).
+3. Aggregate groups unsessionized rows into sessions and links `session_id`.
+4. Retention purges rows older than ~13 months.
+
+### Tests
+
+- Core identity/sessionize (4); INV-8 on sites/sessions/events; analytics routes (allowlist/rate-limit/schema/503); Playwright settings sites panel.
+- typecheck / lint / boundaries green.
+
+### Security & privacy review
+
+INV-8 enforced in schema tests. Props keys allowlisted (no fingerprint fields). Rate limits + payload size caps (F9).
+
+### Interview prep
+
+**Q: Why not assign a session on every ingest request?**  
+A: Keeps the public endpoint insert-only and fast; session windows need a global view of recent events per visitor, which fits a periodic job and stays crash-safe with idempotent event IDs.
+
+### Follow-up
+
+M15 browser SDK + example Astro site serving `/sdk.js`.
+
+## 2026-07-19 — cursor — M15 Analytics SDK + example site
+
+**Meta:** branch `cursor/m15-analytics-sdk-6a25` · milestone M15 · status completed
+
+### Problem being solved
+
+Portfolio sites need a tiny first-party script to send page views and custom events into the M14 ingest API — without cookies, fingerprinting, or a heavy analytics vendor.
+
+### Background concepts
+
+**sendBeacon.** Browsers provide `navigator.sendBeacon` so analytics can flush during page unload without blocking navigation. When it is missing or returns false, the SDK falls back to `fetch` with `keepalive: true`.
+
+**SPA history hooks.** Single-page apps change the URL via `history.pushState` without a full reload. The SDK wraps `pushState`/`replaceState` and listens for `popstate` so each client-side navigation still emits a `page_view`.
+
+**Gzip size gate.** The shipped `sdk.js` must stay under 2 KB gzip so self-hosters are not paying for a fat tracker. The build fails CI if the bundle grows past that budget.
+
+### Design decision
+
+1. Zero-dependency TypeScript tracker + esbuild IIFE minify (not the official analytics SDKs — those add weight and cookies). **R-6:** `esbuild` is a build-time-only tool (MIT, widely maintained) to produce the browser bundle; runtime stays dependency-free.
+2. Serve the artifact at `GET /sdk.js` from the Fastify server (same origin as ingest by default).
+3. Ship `examples/website-astro` as a real Astro static site for demos; Playwright e2e uses a tiny Node harness so CI does not need a live tracker DB.
+
+### Implementation
+
+- `packages/analytics-sdk`: `createTracker`, browser entry, build script with gzip gate (~1.6 KB gz).
+- `apps/server`: `GET /sdk.js` route resolving `@apptrack/analytics-sdk/sdk.js`.
+- `examples/website-astro`: Astro portfolio + Playwright harness/spec.
+- Docs: `docs/analytics-integration.md`; CI step `e2e:sdk`; workspace includes `examples/*`.
+
+### Runtime flow
+
+1. Page loads `<script defer src="…/sdk.js" data-site-key="pk_…">`.
+2. IIFE reads attributes, creates tracker, sets `window.apptrack`, emits initial `page_view`.
+3. Events queue and flush via sendBeacon/fetch to `/api/v1/analytics/events`.
+4. M14 ingest validates, hashes visitor (no IP at rest), inserts rows.
+
+### Bugs & failed approaches
+
+- Unit test assumed no auto page view; fixed with `autoPageView` / `hookHistory` options.
+- `endpointFromScriptSrc` threw in Node (no `location`); added absolute-URL / localhost base fallback.
+- Example `pnpm install` no-op until `examples/*` was added to the workspace.
+
+### Tests
+
+- SDK unit (7) including size gate; server `/sdk.js` (2); Playwright e2e (4): pageview, SPA, `?src=`, sendBeacon→fetch.
+- Commands: `pnpm --filter @apptrack/analytics-sdk test`, `pnpm --filter @apptrack/server test`, `pnpm e2e:sdk`, typecheck/lint/boundaries — green.
+
+### Security & privacy review
+
+Cookie-free; no localStorage; props allowlisted client-side (matches server); no IP handling in the browser. INV-8 unchanged (server-side).
+
+### Performance notes
+
+Bundle ~3.3 KB raw / ~1.6 KB gzip. Batching reduces request count; flush on `pagehide` / visibility hidden.
+
+### Interview prep
+
+**Q: Why not just use Plausible/Umami's script?**  
+A: We need first-party events on the same self-hosted Postgres as applications so correlation can join visits to the pipeline without a third-party SaaS or cross-site cookies. Shipping our own &lt;2 KB script keeps the privacy story auditable end-to-end.
+
+**Q: How do you keep the SDK from breaking the portfolio site?**  
+A: All network errors are swallowed; mode `off` is a no-op; transport prefers beacon and never awaits on the main thread for UX-critical paths.
+
+### Follow-up
+
+M16 correlation scoring (`corr-v1`), unique links, tracked resume route, banned-phrase tests.
+
+## 2026-07-19 — cursor — Stabilization pass (M1–M15 audit fixes)
+
+**Meta:** branch `cursor/stabilize-m1-m15-6a25` · milestone M15+ · status completed · PR #9
+
+### Problem being solved
+An audit after M15 found gaps that blocked claiming M1–M15 “done”: missing auth/CSRF, jobs still HTTP-polling, analytics session merge bugs, incomplete review/reprocess, stub CLI/seed, CI format/gitleaks/deps issues, and several correctness bugs (Gmail IDOR, silent pipeline swallow, superseded match idempotency, uncertain classification never queued).
+
+### Background concepts
+**Fail-closed auth.** If the session store (Postgres) is down, protected routes must not silently become public. Public health/setup/login and analytics ingest stay reachable; everything else returns 503/401.
+
+**Effective classification.** Machine `classification_results` stay append-only. User corrections (including “mark irrelevant”) overlay at read time so match/evidence/reprocess respect INV-7 without mutating history.
+
+**Compose service DNS.** In Docker Compose, `localhost` inside the worker container is not the API server. `APP_BASE_URL` must point at `http://apptrack-server:3000`.
+
+### Design decision
+1. Keep sync’s inline normalize→classify→match for reliability until an ADR covers transactional MIME staging + pg-boss handoff; still wire discrete job chaining for manual/internal stage runs.
+2. Require a distinct `INTERNAL_JOB_SECRET` in production (no silent fallback to `SESSION_SECRET`).
+3. Prefer ownership checks + audit logs now even though v1 is single-user.
+
+### Implementation
+- Auth fail-closed; Gmail ownership/audit; OAuth callback enqueues `email.sync`.
+- Compose worker `APP_BASE_URL`; sync no longer swallows pipeline errors silently.
+- `getEffectiveClassification`, `uncertain_classification` review create/confirm, extracted entities on insert.
+- Match ignores superseded events; analytics out-of-order attach fix + site ownership; demo seed uses `manual_override`.
+- Docs: README/HANDOFF/PROGRESS/setup; ARCHITECTURE already current.
+
+### Tests
+- Added analytics partition backfill case; gmail disconnect test updated for `userId`.
+- `pnpm typecheck - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). lint - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). format:check - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). test - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). eval - Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`).- Full suite still to be re-run on this commit set (`pnpm typecheck/lint/test/eval`). boundaries` green.
+
+### Security & privacy review
+- INV-7 classification overlays; INV-8 unchanged; disconnect audit; CSRF/session fail-closed; separate internal job secret in prod.
+
+### Follow-up
+Finish green CI on PR #9; ADR for transactional job handoff; M16 correlation.
+
+## 2026-07-19 — cursor — M16 Correlation scoring (`corr-v1`)
+
+**Meta:** branch `cursor/m16-correlation-scoring-6a25` · milestone M16 · status completed
+
+### Problem being solved
+After analytics sessions exist, the user needs a privacy-safe way to see whether anonymous portfolio visits might relate to a job application — with unique-link deterministic attribution when they opt in — without ever claiming to identify a recruiter.
+
+### Background concepts
+**Rules-based correlation.** A transparent weighted sum of features (timing, coarse geo, referrer, résumé engagement) produces a score. Probabilistic confidence is capped at “medium”; only a unique tracking token can yield “high.”
+
+**Unique links.** An 8-character token on `?src=` (or a tracker-served résumé URL) is a strong, opt-in signal. Hitting `/r/<token>/resume.pdf` logs a `resume_download` with that token and serves the uploaded PDF.
+
+**Banned phrasing.** UI and stored explanations must not say “recruiter viewed,” “visited by &lt;Company&gt;,” “definitely,” or “confirmed” (except the user’s feedback enum). Correlation is inference, never identification.
+
+### Design decision
+Implement ADR-008/012 intent in code: feature-flagged `CORRELATION_ENABLED` (default off), pure scorer in `packages/core`, persistence via existing `correlation_*` tables, new `user_resumes` for tracked PDFs. Aggregate enqueues `correlation.score` when enabled. Reversible scoring weights; hard-to-reverse is only the “medium cap unless deterministic” product constraint.
+
+### Implementation
+- `packages/core/src/correlation/` — `scoreCorrelation`, language guards, `corr-v1` version.
+- Shared zod: `CorrelationResultV1`, feedback, mint-link; job `correlation.score`.
+- DB: correlation repos; `user_resumes` migration `0004`; application token helpers; analytics session/event helpers.
+- Server: score service, links/resume routes, public tracked résumé, feedback, version endpoint.
+- Worker: `CORRELATION_SCORE` → internal API.
+- Web: `CorrelationPanel` on application detail; settings blurb; demo stubs.
+- Docs: `docs/correlation-model.md`; analytics + ARCHITECTURE updates.
+
+### Runtime flow
+1. SDK/site sends events; aggregate sessionizes and returns `sessionIds`.
+2. If `CORRELATION_ENABLED`, enqueue `correlation.score` with those ids.
+3. Scorer loads apps + sessions + events; deterministic token hit → high; else probabilistic features → low/medium or skip.
+4. Idempotent insert into `correlation_predictions` + features; SPA lists them with feedback buttons.
+5. User may mint/revoke unique links; résumé download hits public `/r/:token/resume.pdf`.
+
+### Bugs & failed approaches
+None material in this pass. Demo fixtures use non-UUID application ids — mint/feedback go through the demo store, not server zod.
+
+### Tests
+- Core: deterministic unique-link, medium cap, ambiguity divisor, banned phrases, below-threshold null.
+- Server: version public, token mint shape (8 chars), flag parsing, resume route fail-closed without DB.
+- Commands run (green): `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test`, `pnpm eval` (F1≈0.972), `pnpm boundaries`.
+
+### Security & privacy review
+- INV-8: no IP at rest; resume download uses token-based visitor hash only.
+- INV-6: no outbound fetch of email/analytics URLs.
+- Explanations guarded against banned identification copy.
+- `CORRELATION_ENABLED` default off.
+
+### Performance notes
+Scores recent sessions (limit 200) × applications; fine at NFR-1 envelope. Feature inserts batch per prediction.
+
+### Interview prep
+**Q: Why cap probabilistic correlation at medium?**  
+A: Without a unique link, signals (geo, timing, résumé) are weak and ambiguous across multiple active applications. Claiming “high” or naming a recruiter would overstate certainty and violate the privacy product contract. Unique tokens are deterministic attribution the user opted into.
+
+**Follow-up:** How does the ambiguity divisor work?  
+A: If k active applications share the matched metro, score /= √k so multi-metro pipelines don’t all light up from one visit.
+
+**What I’d improve:** Persist fired feature “detail” strings for richer UI without re-deriving copy; optional per-application correlation mute.
+
+### Follow-up
+M17 security hardening; optional ADR-008/012 markdown stubs if packaging wants them explicit; load-test correlation job under dense session batches.

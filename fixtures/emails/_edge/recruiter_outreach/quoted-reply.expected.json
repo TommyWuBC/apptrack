@@ -7,8 +7,5 @@
     "recruiterEmail": "pat@hooli.example"
   },
   "minConfidence": 0.55,
-  "tags": [
-    "edge",
-    "quoted_reply"
-  ]
+  "tags": ["edge", "quoted_reply"]
 }

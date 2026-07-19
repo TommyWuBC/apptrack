@@ -4,7 +4,7 @@
 import type { FastifyInstance } from "fastify";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ErrorCode } from "@apptrack/shared";
+import { ErrorCode, JobName } from "@apptrack/shared";
 import {
   createMockEmailProvider,
   createGmailEmailProvider,
@@ -13,10 +13,7 @@ import {
 import { decrypt, unpackEncrypted } from "@apptrack/core";
 import { repos } from "@apptrack/db";
 import type { ServerConfig } from "../config.js";
-import {
-  ensureOwnerUser,
-  refreshGmailAccount,
-} from "../services/gmail-oauth-service.js";
+import { refreshGmailAccount } from "../services/gmail-oauth-service.js";
 import {
   getSyncStatus,
   runEmailBackfill,
@@ -26,10 +23,7 @@ import {
 function defaultFixturesRoot(): string {
   if (process.env.FIXTURES_ROOT) return process.env.FIXTURES_ROOT;
   // apps/server/src/routes → repo/fixtures
-  return join(
-    dirname(fileURLToPath(import.meta.url)),
-    "../../../../fixtures",
-  );
+  return join(dirname(fileURLToPath(import.meta.url)), "../../../../fixtures");
 }
 
 /** Resolve provider for an account: mock when EMAIL_PROVIDER=mock, else Gmail. */
@@ -59,11 +53,10 @@ export async function resolveEmailProvider(
     const expires = creds.accessTokenExpiresAt?.getTime() ?? 0;
     if (expires < Date.now() + 120_000) {
       await refreshGmailAccount(app.db!, config, accountId);
-      const again =
-        await repos.oauthCredentialsRepo.getOauthCredentialsByAccountId(
-          app.db!,
-          accountId,
-        );
+      const again = await repos.oauthCredentialsRepo.getOauthCredentialsByAccountId(
+        app.db!,
+        accountId,
+      );
       if (!again?.encryptedAccessToken) throw new Error("credentials_missing");
       return decrypt(
         unpackEncrypted(again.encryptedAccessToken, again.keyId),
@@ -90,11 +83,13 @@ export async function registerSyncRoutes(
       });
     }
     const body = (req.body ?? {}) as { accountId?: string };
-    const userId = await ensureOwnerUser(app.db);
-    const accounts = await repos.accountsRepo.listAccountsForUser(
-      app.db,
-      userId,
-    );
+    const userId = req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
+    if (!userId) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.SETUP_REQUIRED, message: "setup_required" },
+      });
+    }
+    const accounts = await repos.accountsRepo.listAccountsForUser(app.db, userId);
     const account =
       (body.accountId
         ? accounts.find((a) => a.id === body.accountId)
@@ -103,6 +98,14 @@ export async function registerSyncRoutes(
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "no active account" },
       });
+    }
+    if (app.jobs && !req.isInternalJob) {
+      const jobId = await app.jobs.send(
+        JobName.EMAIL_SYNC,
+        { accountId: account.id },
+        { singletonKey: `email.sync:${account.id}` },
+      );
+      return reply.code(202).send({ queued: true, jobId, accountId: account.id });
     }
     try {
       const provider = await resolveEmailProvider(app, config, account.id);
@@ -129,11 +132,13 @@ export async function registerSyncRoutes(
       });
     }
     const q = req.query as { accountId?: string };
-    const userId = await ensureOwnerUser(app.db);
-    const accounts = await repos.accountsRepo.listAccountsForUser(
-      app.db,
-      userId,
-    );
+    const userId = req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
+    if (!userId) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.SETUP_REQUIRED, message: "setup_required" },
+      });
+    }
+    const accounts = await repos.accountsRepo.listAccountsForUser(app.db, userId);
     if (q.accountId) {
       const status = await getSyncStatus(app.db, q.accountId);
       return { status };
@@ -164,11 +169,13 @@ export async function registerSyncRoutes(
         },
       });
     }
-    const userId = await ensureOwnerUser(app.db);
-    const accounts = await repos.accountsRepo.listAccountsForUser(
-      app.db,
-      userId,
-    );
+    const userId = req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
+    if (!userId) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.SETUP_REQUIRED, message: "setup_required" },
+      });
+    }
+    const accounts = await repos.accountsRepo.listAccountsForUser(app.db, userId);
     const account =
       (body.accountId
         ? accounts.find((a) => a.id === body.accountId)
@@ -177,6 +184,21 @@ export async function registerSyncRoutes(
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "no active account" },
       });
+    }
+    if (app.jobs && !req.isInternalJob) {
+      const jobId = await app.jobs.send(
+        JobName.EMAIL_BACKFILL,
+        {
+          accountId: account.id,
+          afterDate: body.afterDate,
+          maxMessages: body.maxMessages ?? 500,
+        },
+        {
+          singletonKey: `email.backfill:${account.id}:${body.afterDate}`,
+          priority: -1,
+        },
+      );
+      return reply.code(202).send({ queued: true, jobId, accountId: account.id });
     }
     const provider = await resolveEmailProvider(app, config, account.id);
     const result = await runEmailBackfill(app.db, provider, account.id, {
