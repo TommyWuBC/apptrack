@@ -40,3 +40,29 @@ export async function upsertGhostThresholds(
     .returning();
   return row!;
 }
+
+export async function upsertClassifierSettings(
+  db: Database,
+  userId: string,
+  classifierSettings: Record<string, unknown>,
+) {
+  const existing = await getSettingsForUser(db, userId);
+  if (existing) {
+    const [row] = await db
+      .update(userSettings)
+      .set({ classifierSettings, updatedAt: new Date() })
+      .where(eq(userSettings.userId, userId))
+      .returning();
+    return row!;
+  }
+  const id = uuidv7();
+  const [row] = await db
+    .insert(userSettings)
+    .values({
+      id,
+      userId,
+      classifierSettings,
+    })
+    .returning();
+  return row!;
+}

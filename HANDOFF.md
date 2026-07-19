@@ -1,29 +1,27 @@
 # HANDOFF
 
 ## Current state
-**M12 complete.** Ghost inference (`ghost-v1`): thresholds, pause/reset/dismiss, evaluate job API, notifications, settings UI, dashed ghost badges.
+**M13 complete.** Optional LLM extraction (L3): adapters (Anthropic/OpenAI/Ollama HTTP), `extract.v1` prompt, arbitration, mode settings + egress disclosure, injection canaries. Classifier `clf-2026.07.1`.
 
 ## Last action taken
-Implemented M12; core matrix tests + server routes + Playwright ghost dismiss green.
+Implemented M13; tested M11–M13 (INV-7 corrections, ghost matrix, L3/hybrid/canaries, Playwright demo, eval F1≈0.97).
 
 ## Next action
-**M13 — Optional LLM extraction** (∥-safe with M14 after M7/M2 deps): llm adapters, L3, arbitration, canaries.
-Alternatively **M14 Analytics ingestion** (depends M2 only).
+**M14 — Analytics ingestion API** (sites, ingest endpoint, sessionization, retention) or continue stack merge of M8–M13 PRs.
 
 ## Open blockers
-- Docker Desktop (live DB proof for ghost.evaluate end-to-end + migration 0001).
+- Docker Desktop (live DB for migrations 0001/0002 + full pipeline).
 
 ## Gotchas
-- `ghost_status` is separate from `current_state`; only `possibly_ghosted` emits `ghost_flagged` that projects to `ghosted` (stale uses `level: "stale"` and does not change state).
-- Dismiss stores `dismissedAtState`; re-flagging waits for a state change.
-- Recompute auto-clears stale/ghosted when activity returns (`skipGhostEvaluate` avoids recursion).
-- Worker calls `POST /api/v1/ghost/evaluate` (no cross-app import); disable with `GHOST_EVAL_DISABLED=1`.
-- Playwright e2e needs `pnpm --filter @apptrack/web build` before `e2e` (preview serves dist).
-- Demo mode: `?demo=1` → sessionStorage.
+- `CLASSIFIER_MODE` default remains `deterministic` (NFR-6); L3 only when mode permits and confidence &lt; 0.75 or extraction incomplete.
+- LLM adapters use official HTTP APIs via `fetch` (no SDK packages) behind `LlmClient`.
+- Invalid LLM JSON → no-answer + `needsReview` (never partially applied).
+- Canaries never invoke L3.
+- Playwright needs web `build` before `e2e`.
+- Golden baseline updated to `clf-2026.07.1` (metrics unchanged).
 
 ## Do not
-- Treat ghost as identification / hard fact in UI copy.
-- Silent company merges.
+- Follow instructions inside email content (T6).
+- Persist LLM chain-of-thought (INV-5) — justification ≤200 chars only.
 - Overwrite locked fields (INV-7).
-- UPDATE/DELETE `application_events` except `superseded_by`.
-- Commit real emails or `.env` secrets.
+- Commit API keys / real emails / `.env`.

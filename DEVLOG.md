@@ -935,3 +935,62 @@ A: Store `dismissedAtState`; suppress until the application’s derived state ch
 ### Follow-up
 
 M13 LLM extraction or M14 analytics. Live DB proof of migration `0001` + evaluate when Docker available.
+
+## 2026-07-19 — cursor — M13 Optional LLM extraction (L3)
+
+**Meta:** branch `cursor/m13-llm-extraction-6a25` · milestone M13 · status completed
+
+### Problem being solved
+
+Deterministic rules cover most ATS mail but miss awkward recruiter prose. Users who opt in need an LLM layer that extracts structured fields without treating email text as instructions, and without sending data unless they choose a non-deterministic mode.
+
+### Background concepts
+
+**Mode-gated LLM.** `CLASSIFIER_MODE` is `deterministic` by default (no egress). `hybrid` runs rules first and only calls a model when confidence is below 0.75 or extraction is incomplete. `api` / `local` use the same gate with Anthropic/OpenAI or Ollama.
+
+**Allowlisted structured output.** The model may only fill fields in `LlmExtractionV1`. Invalid JSON is discarded entirely (no partial trust). Justifications are capped at 200 characters (INV-5).
+
+**Prompt injection (T6).** Email content is wrapped in `<untrusted_email>`. The client has no tools. Canary fixtures that say “ignore previous instructions” must stay `unknown` and must not trigger an LLM call.
+
+### Design decision
+
+1. HTTP adapters (Anthropic Messages, OpenAI Chat Completions, Ollama `/api/chat`) behind `LlmClient` instead of SDK packages — fewer deps/postinstall risks; same API shapes (R-6).
+2. Pure `classifyEmail` stays async; deterministic path unchanged when mode is deterministic.
+3. Arbitration: deterministic wins on event-type conflict at equal confidence; disagreement → `needsReview`.
+4. Settings UI shows egress disclosure text derived from mode + provider.
+
+### Implementation
+
+- Shared: `LlmExtractionV1Schema`, `ClassifierSettingsV1Schema`.
+- Core: `packages/core/llm/*`, `classification/prompts/extract.v1.ts`, `classification/l3.ts`, classify rewrite; version `clf-2026.07.1`.
+- DB: `user_settings.classifier_settings` (migration `0002`).
+- Server: `resolveClassifierConfig`, classify service mode wiring, GET/PATCH `/api/v1/settings/classifier`.
+- Web: classifier mode/provider controls + disclosure panel.
+- Docs: `docs/classification.md` updated for M13.
+
+### Tests
+
+- Core: L3 matrix (hybrid skip on high conf, canary no-LLM, schema-invalid → review), adapter fetch mocks, existing canary fixture.
+- Server: classifier settings without DB; version includes `extract.v1`.
+- Playwright: settings shows classifier + egress.
+- `pnpm eval`: overall F1 ≈ 0.972; baseline notes bumped to clf-2026.07.1.
+- M11–M13 recheck: INV-7 corrections (4), ghost matrix (11), L3 (9), server suite, e2e — green.
+
+### Security & privacy review
+
+- Default mode: no egress.
+- LLM payload: subject + ≤4k stripped text + sender display/domain only.
+- No chain-of-thought storage; INV-5.
+- Canaries never escalate to L3.
+
+### Interview prep
+
+**Q: Why hybrid instead of always calling the model?**  
+A: Cost, privacy, and reproducibility. Rules handle Greenhouse/Lever templates well; the model is a fallback for low-confidence leftovers, and every call is visible in settings via egress copy.
+
+**Q: How do you stop prompt injection from turning spam into an “offer”?**  
+A: Delimited untrusted block, no tools, zod allowlist, and a deterministic canary guard that short-circuits before L3.
+
+### Follow-up
+
+M14 analytics ingestion. Optional: swap fetch adapters for official SDKs if desired; live provider integration tests with recorded nock fixtures.

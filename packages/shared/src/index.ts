@@ -31,6 +31,8 @@ export {
   GhostThresholdsV1Schema,
   GhostEvaluateActionSchema,
   GhostEvaluateResultV1Schema,
+  LlmExtractionV1Schema,
+  ClassifierSettingsV1Schema,
 } from "./schemas.js";
 export type {
   ExtractionV1,
@@ -46,6 +48,8 @@ export type {
   GhostThresholdsV1,
   GhostEvaluateAction,
   GhostEvaluateResultV1,
+  LlmExtractionV1,
+  ClassifierSettingsV1,
 } from "./schemas.js";
 export {
   FixtureExpectedV1Schema,

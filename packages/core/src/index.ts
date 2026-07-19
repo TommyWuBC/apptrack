@@ -25,10 +25,29 @@ export {
   classifyEmail,
   CLASSIFIER_VERSION,
   RULES_VERSION,
+  PROMPT_VERSION,
+  L3_CONFIDENCE_THRESHOLD,
+  shouldInvokeL3,
+  arbitrate,
+  runL3Extraction,
   type ClassifyInput,
+  type ClassifyOptions,
 } from "./classification/classify.js";
 export { detectAtsPlatform } from "./classification/ats/detect.js";
 export { EXTRACTION_SCHEMA_VERSION } from "./classification/version.js";
+export {
+  createLlmClient,
+  createAnthropicClient,
+  createOpenAiClient,
+  createOllamaClient,
+} from "./llm/index.js";
+export type {
+  LlmClient,
+  LlmCompleteInput,
+  LlmCompleteResult,
+  LlmProviderId,
+  CreateLlmClientOptions,
+} from "./llm/index.js";
 export {
   normalizeEmail,
   NORMALIZER_VERSION,
