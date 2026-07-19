@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { BANNED_CORRELATION_PHRASES, containsBannedCorrelationPhrase } from "@apptrack/core";
+import {
+  BANNED_CORRELATION_PHRASES,
+  containsBannedCorrelationPhrase,
+} from "@apptrack/core";
 import { buildApp } from "../app.js";
 import { mintUniqueLinkToken } from "../services/links-service.js";
 import { correlationEnabled } from "../services/correlation-score-service.js";

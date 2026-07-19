@@ -30,7 +30,7 @@ let companies: CompanyRow[] = [
   },
 ];
 
-let applications: ApplicationRow[] = [
+const applications: ApplicationRow[] = [
   {
     id: "app-1",
     userId: "user-demo",
@@ -450,8 +450,7 @@ export const demoStore = {
     }
     if (p.startsWith("/api/v1/correlations")) {
       const applicationId =
-        new URL(path, "http://demo.local").searchParams.get("applicationId") ??
-        "app-1";
+        new URL(path, "http://demo.local").searchParams.get("applicationId") ?? "app-1";
       return {
         enabled: true,
         algorithmVersion: "corr-v1",

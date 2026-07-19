@@ -83,7 +83,10 @@ function clamp01(n: number): number {
   return n;
 }
 
-function bandFor(score: number, deterministic: boolean): "none" | "low" | "medium" | "high" {
+function bandFor(
+  score: number,
+  deterministic: boolean,
+): "none" | "low" | "medium" | "high" {
   if (deterministic) return "high";
   if (score < CORRELATION_BAND_NONE_MAX) return "none";
   if (score <= CORRELATION_BAND_LOW_MAX) return "low";
@@ -98,8 +101,7 @@ function timingPoints(
   let best = 0;
   let bestDetail = "";
   for (const ev of events) {
-    const days =
-      (sessionStart.getTime() - ev.occurredAt.getTime()) / MS_PER_DAY;
+    const days = (sessionStart.getTime() - ev.occurredAt.getTime()) / MS_PER_DAY;
     if (days < 0 || days > 14) continue;
     // Interview invite strongest; others still count.
     const isInterview = /interview/i.test(ev.eventType);
@@ -192,7 +194,9 @@ function buildExplanation(
 /**
  * Score one (application, session) pair. AGENTS.md §21.1
  */
-export function scoreCorrelation(input: ScoreCorrelationInput): CorrelationResultV1 | null {
+export function scoreCorrelation(
+  input: ScoreCorrelationInput,
+): CorrelationResultV1 | null {
   const { application, session, events } = input;
   if (application.appliedAt && session.startedAt < application.appliedAt) {
     return null;
@@ -259,7 +263,10 @@ export function scoreCorrelation(input: ScoreCorrelationInput): CorrelationResul
   }
 
   const referrer = norm(session.referrerHost);
-  if (referrer && ATS_REFERRER_HOSTS.some((h) => referrer === h || referrer.endsWith(`.${h}`))) {
+  if (
+    referrer &&
+    ATS_REFERRER_HOSTS.some((h) => referrer === h || referrer.endsWith(`.${h}`))
+  ) {
     features.push({
       featureName: "referrer_ats_or_linkedin",
       featureValue: { host: session.referrerHost },

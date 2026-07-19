@@ -4,10 +4,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Database } from "../client.js";
 import { uuidv7 } from "../ids.js";
-import {
-  correlationFeatures,
-  correlationPredictions,
-} from "../schema/index.js";
+import { correlationFeatures, correlationPredictions } from "../schema/index.js";
 
 export type InsertPredictionInput = {
   applicationId: string;
@@ -60,12 +57,14 @@ export async function insertPredictionIdempotent(
     })
     .returning();
 
-  const row = inserted[0] ?? (await getPrediction(
-    db,
-    input.applicationId,
-    input.sessionId,
-    input.algorithmVersion,
-  ))!;
+  const row =
+    inserted[0] ??
+    (await getPrediction(
+      db,
+      input.applicationId,
+      input.sessionId,
+      input.algorithmVersion,
+    ))!;
   if (inserted[0] && input.features.length > 0) {
     await db.insert(correlationFeatures).values(
       input.features.map((feature) => ({

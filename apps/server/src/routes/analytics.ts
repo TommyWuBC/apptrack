@@ -259,11 +259,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       return reply.code(202).send({ queued: true, jobId });
     }
     const out = await aggregateAnalyticsSessions(app.db);
-    if (
-      correlationEnabled() &&
-      app.jobs &&
-      out.sessionIds.length > 0
-    ) {
+    if (correlationEnabled() && app.jobs && out.sessionIds.length > 0) {
       await app.jobs.send(
         JobName.CORRELATION_SCORE,
         { sessionIds: out.sessionIds },
