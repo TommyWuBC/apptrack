@@ -2,7 +2,11 @@
  * Ghost evaluate, dismiss, settings, notifications. AGENTS.md §17 / §22 / M12
  */
 import type { FastifyInstance } from "fastify";
-import { ErrorCode, GhostThresholdsV1Schema } from "@apptrack/shared";
+import {
+  ErrorCode,
+  GhostThresholdsV1Schema,
+  JobName,
+} from "@apptrack/shared";
 import { DEFAULT_GHOST_THRESHOLDS, GHOST_VERSION } from "@apptrack/core";
 import { repos } from "@apptrack/db";
 import {
@@ -29,6 +33,17 @@ export async function registerGhostRoutes(app: FastifyInstance) {
       });
     }
     const body = (req.body ?? {}) as { now?: string };
+    if (app.jobs && !req.isInternalJob) {
+      const date = (body.now ? new Date(body.now) : new Date())
+        .toISOString()
+        .slice(0, 10);
+      const jobId = await app.jobs.send(
+        JobName.GHOST_EVALUATE,
+        { scheduledAt: body.now },
+        { singletonKey: `ghost.evaluate:${date}` },
+      );
+      return reply.code(202).send({ queued: true, jobId });
+    }
     const userId = req.userId ?? (await firstUserId(app.db));
     if (!userId) {
       return reply.code(400).send({

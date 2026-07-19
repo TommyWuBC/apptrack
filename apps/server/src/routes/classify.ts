@@ -5,6 +5,7 @@ import type { FastifyInstance } from "fastify";
 import {
   ClassifierSettingsV1Schema,
   ErrorCode,
+  JobName,
 } from "@apptrack/shared";
 import {
   CLASSIFIER_VERSION,
@@ -30,6 +31,14 @@ export async function registerClassifyRoutes(app: FastifyInstance) {
       });
     }
     const { messageId } = req.params as { messageId: string };
+    if (app.jobs && !req.isInternalJob) {
+      const jobId = await app.jobs.send(
+        JobName.EMAIL_CLASSIFY,
+        { messageId },
+        { singletonKey: `classify:${messageId}:${CLASSIFIER_VERSION}` },
+      );
+      return reply.code(202).send({ queued: true, jobId, messageId });
+    }
     try {
       const out = await classifyAndStoreMessage(app.db, messageId, {
         userId: req.userId,

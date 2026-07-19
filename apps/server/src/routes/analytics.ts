@@ -6,6 +6,7 @@ import {
   AnalyticsSiteCreateV1Schema,
   AnalyticsSiteUpdateV1Schema,
   ErrorCode,
+  JobName,
 } from "@apptrack/shared";
 import { repos } from "@apptrack/db";
 import {
@@ -230,6 +231,15 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
+    if (app.jobs && !req.isInternalJob) {
+      const window = Math.floor(Date.now() / 300_000);
+      const jobId = await app.jobs.send(
+        JobName.ANALYTICS_AGGREGATE,
+        {},
+        { singletonKey: `analytics.aggregate:${window}` },
+      );
+      return reply.code(202).send({ queued: true, jobId });
+    }
     const out = await aggregateAnalyticsSessions(app.db);
     return out;
   });
@@ -239,6 +249,15 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       return reply.code(503).send({
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
+    }
+    if (app.jobs && !req.isInternalJob) {
+      const date = new Date().toISOString().slice(0, 10);
+      const jobId = await app.jobs.send(
+        JobName.RETENTION_CLEANUP,
+        {},
+        { singletonKey: `retention.cleanup:${date}` },
+      );
+      return reply.code(202).send({ queued: true, jobId });
     }
     const body = (req.body ?? {}) as { retentionDays?: number };
     const out = await runAnalyticsRetention(app.db, {

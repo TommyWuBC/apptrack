@@ -2,7 +2,7 @@
  * Application matching routes. AGENTS.md §15 / §22 / M8
  */
 import type { FastifyInstance } from "fastify";
-import { ErrorCode } from "@apptrack/shared";
+import { ErrorCode, JobName } from "@apptrack/shared";
 import { MATCHER_VERSION } from "@apptrack/core";
 import {
   matchAndStoreMessage,
@@ -23,6 +23,15 @@ export async function registerMatchRoutes(app: FastifyInstance) {
       });
     }
     const { companyId } = req.params as { companyId: string };
+    if (app.jobs && !req.isInternalJob) {
+      const date = new Date().toISOString().slice(0, 10);
+      const jobId = await app.jobs.send(
+        JobName.MATCH_REEVALUATE,
+        { companyId },
+        { singletonKey: `match.reevaluate:${companyId}:${date}` },
+      );
+      return reply.code(202).send({ queued: true, jobId, companyId });
+    }
     const out = await reevaluateMatchesForCompany(app.db, companyId);
     return { companyId, ...out, matcherVersion: MATCHER_VERSION };
   });
@@ -47,6 +56,14 @@ export async function registerMatchRoutes(app: FastifyInstance) {
       });
     }
     const { messageId } = req.params as { messageId: string };
+    if (app.jobs && !req.isInternalJob) {
+      const jobId = await app.jobs.send(
+        JobName.APPLICATION_MATCH,
+        { messageId },
+        { singletonKey: `application.match:${messageId}` },
+      );
+      return reply.code(202).send({ queued: true, jobId, messageId });
+    }
     try {
       const out = await matchAndStoreMessage(app.db, messageId);
       return {

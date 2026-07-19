@@ -73,3 +73,23 @@ export {
   GoldenBaselineV1Schema,
 } from "./fixtures.js";
 export type { FixtureExpectedV1, GoldenBaselineV1 } from "./fixtures.js";
+export {
+  JobName,
+  EmailSyncJobV1Schema,
+  EmailBackfillJobV1Schema,
+  MessageJobV1Schema,
+  ApplicationJobV1Schema,
+  CompanyJobV1Schema,
+  ScheduledJobV1Schema,
+  EmailReprocessJobV1Schema,
+} from "./jobs.js";
+export type {
+  JobName as JobNameT,
+  EmailSyncJobV1,
+  EmailBackfillJobV1,
+  MessageJobV1,
+  ApplicationJobV1,
+  CompanyJobV1,
+  ScheduledJobV1,
+  EmailReprocessJobV1,
+} from "./jobs.js";

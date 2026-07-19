@@ -4,7 +4,7 @@
 import type { FastifyInstance } from "fastify";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ErrorCode } from "@apptrack/shared";
+import { ErrorCode, JobName } from "@apptrack/shared";
 import {
   createMockEmailProvider,
   createGmailEmailProvider,
@@ -107,6 +107,14 @@ export async function registerSyncRoutes(
         error: { code: ErrorCode.NOT_FOUND, message: "no active account" },
       });
     }
+    if (app.jobs && !req.isInternalJob) {
+      const jobId = await app.jobs.send(
+        JobName.EMAIL_SYNC,
+        { accountId: account.id },
+        { singletonKey: `email.sync:${account.id}` },
+      );
+      return reply.code(202).send({ queued: true, jobId, accountId: account.id });
+    }
     try {
       const provider = await resolveEmailProvider(app, config, account.id);
       const result = await runEmailSync(app.db, provider, account.id);
@@ -192,6 +200,21 @@ export async function registerSyncRoutes(
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "no active account" },
       });
+    }
+    if (app.jobs && !req.isInternalJob) {
+      const jobId = await app.jobs.send(
+        JobName.EMAIL_BACKFILL,
+        {
+          accountId: account.id,
+          afterDate: body.afterDate,
+          maxMessages: body.maxMessages ?? 500,
+        },
+        {
+          singletonKey: `email.backfill:${account.id}:${body.afterDate}`,
+          priority: -1,
+        },
+      );
+      return reply.code(202).send({ queued: true, jobId, accountId: account.id });
     }
     const provider = await resolveEmailProvider(app, config, account.id);
     const result = await runEmailBackfill(app.db, provider, account.id, {
