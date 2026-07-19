@@ -3,14 +3,26 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/sdk.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./sdk.js": "./dist/sdk.js"
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && tsx scripts/build-sdk.ts",
+    "dev": "tsc -p tsconfig.json --watch",
+    "lint": "eslint src scripts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint src",
-    "test": "vitest run --passWithNoTests"
+    "test": "pnpm run build && vitest run",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
   "devDependencies": {
+    "esbuild": "^0.25.5",
+    "tsx": "^4.19.4",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   }

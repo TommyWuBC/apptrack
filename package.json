@@ -28,7 +28,8 @@
     "fixtures:generate": "tsx scripts/generate-fixtures.ts",
     "test:fixtures": "vitest run --config scripts/vitest.fixtures.config.ts",
     "demo": "tsx scripts/seed.ts --demo",
-    "e2e": "pnpm --filter @apptrack/web e2e"
+    "e2e": "pnpm --filter @apptrack/web e2e",
+    "e2e:sdk": "pnpm --filter @apptrack/analytics-sdk build && pnpm --filter @apptrack/example-website-astro e2e"
   },
   "devDependencies": {
     "@types/mailparser": "^3.4.5",

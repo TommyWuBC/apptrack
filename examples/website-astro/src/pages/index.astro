@@ -1,0 +1,36 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+<Layout title="Alex Rivera — portfolio">
+  <main data-testid="home-page">
+    <h1>Alex Rivera</h1>
+    <p class="lede">
+      Synthetic portfolio for apptrack analytics SDK demos. All names are fictional.
+    </p>
+    <nav>
+      <a href="/projects" data-testid="nav-projects">Projects</a>
+      <a href="#" id="spa-projects" data-testid="spa-nav">Projects (SPA)</a>
+    </nav>
+    <section id="view" data-testid="spa-view">
+      <p>Home — privacy-conscious visitor analytics via apptrack.</p>
+      <button type="button" data-testid="github-click">GitHub</button>
+      <button type="button" data-testid="resume-download">Download résumé</button>
+    </section>
+  </main>
+  <script>
+    const view = document.getElementById("view");
+    document.getElementById("spa-projects")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      history.pushState({}, "", "/projects");
+      if (view) {
+        view.innerHTML = "<p data-testid=\"spa-projects-view\">Projects (client route)</p>";
+      }
+    });
+    document.querySelector("[data-testid=github-click]")?.addEventListener("click", () => {
+      window.apptrack?.track("github_click", { href: "https://github.com/example" });
+    });
+    document.querySelector("[data-testid=resume-download]")?.addEventListener("click", () => {
+      window.apptrack?.track("resume_download", { label: "resume.pdf" });
+    });
+  </script>
+</Layout>
