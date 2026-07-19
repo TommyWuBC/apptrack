@@ -4,10 +4,10 @@
 **M16 Correlation scoring implemented on `cursor/m16-correlation-scoring-6a25`** (branched from stabilize). `corr-v1` pure scorer, predictions/features repos, unique links + tracked résumé, feedback API, worker job, SPA panel, docs.
 
 ## Last action taken
-Landed M16: core scoring + banned-phrase tests; DB `user_resumes` migration; server routes/services; aggregate→`correlation.score` enqueue; web CorrelationPanel + demo stubs; `docs/correlation-model.md`.
+Landed M16: core scoring + banned-phrase tests; DB `user_resumes` migration; server routes/services; aggregate→`correlation.score` enqueue; web CorrelationPanel + demo stubs; `docs/correlation-model.md`. Verified green (`typecheck`/`lint`/`format:check`/`test`/`eval`/`boundaries`). PR #10 open.
 
 ## Next action
-**Verify** (`pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm eval && pnpm boundaries`), then open/update PR with base `cursor/stabilize-m1-m15-6a25`. After merge: **M17 Security hardening**.
+**M17 — Security hardening** after M16 PR merges (base: stabilize → then stack).
 
 ## Open blockers
 - Live Postgres still needed for full migration round-trip / OAuth integration tests.
