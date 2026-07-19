@@ -1,12 +1,13 @@
 import type { FastifyInstance } from "fastify";
-import { AppError, ErrorCode } from "@apptrack/shared";
+import { AppError, ErrorCode, JobName } from "@apptrack/shared";
 import type { ServerConfig } from "../config.js";
+import { oauthRefreshSweep } from "../jobs/oauth-refresh-sweep.js";
 import {
   beginGmailConnect,
   completeGmailCallback,
   disconnectGmailAccount,
-  ensureOwnerUser,
   listGmailAccounts,
+  requireOwnedGmailAccount,
   refreshGmailAccount,
 } from "../services/gmail-oauth-service.js";
 
@@ -18,10 +19,7 @@ import {
  * POST /api/v1/gmail/accounts/:id/refresh  (admin/test + sweep)
  * GET  /api/v1/gmail/accounts
  */
-export async function registerGmailRoutes(
-  app: FastifyInstance,
-  config: ServerConfig,
-) {
+export async function registerGmailRoutes(app: FastifyInstance, config: ServerConfig) {
   app.get("/api/v1/gmail/connect", async (req, reply) => {
     if (!app.db) {
       return reply.code(503).send({
@@ -29,8 +27,7 @@ export async function registerGmailRoutes(
       });
     }
     try {
-      const userId = await ensureOwnerUser(app.db);
-      const { authorizeUrl } = beginGmailConnect(config, userId);
+      const { authorizeUrl } = beginGmailConnect(config, req.userId!);
       // Browser flow: redirect. Agents/tests can pass ?format=json
       const format = (req.query as { format?: string }).format;
       if (format === "json") {
@@ -70,6 +67,13 @@ export async function registerGmailRoutes(
         code: q.code,
         state: q.state,
       });
+      if (app.jobs) {
+        await app.jobs.send(
+          JobName.EMAIL_SYNC,
+          { accountId: account.id },
+          { singletonKey: `email.sync:${account.id}` },
+        );
+      }
       // Never include tokens. INV-4.
       const format = (req.query as { format?: string }).format;
       if (format === "json") {
@@ -98,14 +102,13 @@ export async function registerGmailRoutes(
     }
   });
 
-  app.get("/api/v1/gmail/accounts", async (_req, reply) => {
+  app.get("/api/v1/gmail/accounts", async (req, reply) => {
     if (!app.db) {
       return reply.code(503).send({
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const userId = await ensureOwnerUser(app.db);
-    const accounts = await listGmailAccounts(app.db, userId);
+    const accounts = await listGmailAccounts(app.db, req.userId!);
     return { accounts };
   });
 
@@ -116,7 +119,16 @@ export async function registerGmailRoutes(
       });
     }
     const { id } = req.params as { id: string };
-    await disconnectGmailAccount(app.db, config, id);
+    try {
+      await disconnectGmailAccount(app.db, config, id, req.userId!);
+    } catch (err) {
+      if ((err as { code?: string }).code === "ACCOUNT_NOT_FOUND") {
+        return reply.code(404).send({
+          error: { code: ErrorCode.NOT_FOUND, message: "account_not_found" },
+        });
+      }
+      throw err;
+    }
     return reply.code(204).send();
   });
 
@@ -128,6 +140,9 @@ export async function registerGmailRoutes(
     }
     const { id } = req.params as { id: string };
     try {
+      if (!req.isInternalJob) {
+        await requireOwnedGmailAccount(app.db, id, req.userId!);
+      }
       const result = await refreshGmailAccount(app.db, config, id);
       return {
         ok: true,
@@ -143,7 +158,21 @@ export async function registerGmailRoutes(
           },
         });
       }
+      if (code === "ACCOUNT_NOT_FOUND") {
+        return reply.code(404).send({
+          error: { code: ErrorCode.NOT_FOUND, message: "account_not_found" },
+        });
+      }
       throw new AppError(ErrorCode.INTERNAL, "refresh_failed");
     }
+  });
+
+  app.post("/api/v1/gmail/refresh-sweep", async (_req, reply) => {
+    if (!app.db) {
+      return reply.code(503).send({
+        error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
+      });
+    }
+    return oauthRefreshSweep(app.db, config);
   });
 }

@@ -8,6 +8,34 @@
       "when": 1784268097685,
       "tag": "0000_organic_electro",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784400000000,
+      "tag": "0001_user_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784500000000,
+      "tag": "0002_classifier_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784600000000,
+      "tag": "0003_analytics_event_context",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784700000000,
+      "tag": "0004_user_resumes",
+      "breakpoints": true
     }
   ]
 }

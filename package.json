@@ -8,9 +8,16 @@
   "engines": {
     "node": ">=22"
   },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "^0.28.1"
+    }
+  },
   "dependencies": {
     "@apptrack/core": "workspace:^",
-    "@apptrack/shared": "workspace:*"
+    "@apptrack/db": "workspace:^",
+    "@apptrack/shared": "workspace:*",
+    "argon2": "^0.45.0"
   },
   "scripts": {
     "dev": "tsx scripts/dev.ts",
@@ -28,7 +35,8 @@
     "fixtures:generate": "tsx scripts/generate-fixtures.ts",
     "test:fixtures": "vitest run --config scripts/vitest.fixtures.config.ts",
     "demo": "tsx scripts/seed.ts --demo",
-    "e2e": "echo 'e2e deferred until M10'"
+    "e2e": "pnpm --filter @apptrack/web e2e",
+    "e2e:sdk": "pnpm --filter @apptrack/analytics-sdk build && pnpm --filter @apptrack/example-website-astro e2e"
   },
   "devDependencies": {
     "@types/mailparser": "^3.4.5",
@@ -41,6 +49,6 @@
     "turbo": "^2.3.3",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.0",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.10"
   }
 }

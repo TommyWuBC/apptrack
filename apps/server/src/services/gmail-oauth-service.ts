@@ -3,17 +3,8 @@
  * Encrypts tokens in-process (core crypto) then stores via db oauth repo (INV-1).
  * Never returns plaintext tokens in API payloads (INV-4).
  */
-import {
-  encrypt,
-  packEncrypted,
-  unpackEncrypted,
-  decrypt,
-} from "@apptrack/core";
-import {
-  repos,
-  schema,
-  type Database,
-} from "@apptrack/db";
+import { encrypt, packEncrypted, unpackEncrypted, decrypt } from "@apptrack/core";
+import { repos, schema, type Database } from "@apptrack/db";
 import {
   buildAuthorizationUrl,
   codeChallengeS256,
@@ -28,7 +19,7 @@ import {
 import { putOAuthState, takeOAuthState } from "../auth/pkce-store.js";
 import type { ServerConfig } from "../config.js";
 
-const { usersRepo, accountsRepo, oauthCredentialsRepo } = repos;
+const { usersRepo, accountsRepo, oauthCredentialsRepo, correctionsRepo } = repos;
 
 export type PublicAccountView = {
   id: string;
@@ -110,14 +101,9 @@ export async function completeGmailCallback(
   const email = await fetchUserEmail(tokens.accessToken);
 
   // Reuse account row if same mailbox already connected
-  const existingAccounts = await accountsRepo.listAccountsForUser(
-    db,
-    pending.userId,
-  );
+  const existingAccounts = await accountsRepo.listAccountsForUser(db, pending.userId);
   let account = existingAccounts.find(
-    (a) =>
-      a.provider === "gmail" &&
-      a.providerAccountEmail === email,
+    (a) => a.provider === "gmail" && a.providerAccountEmail === email,
   );
   if (!account) {
     account = await accountsRepo.createConnectedAccount(db, {
@@ -153,11 +139,10 @@ export async function disconnectGmailAccount(
   db: Database,
   config: ServerConfig,
   accountId: string,
+  userId: string,
 ): Promise<void> {
-  const creds = await oauthCredentialsRepo.getOauthCredentialsByAccountId(
-    db,
-    accountId,
-  );
+  await requireOwnedGmailAccount(db, accountId, userId);
+  const creds = await oauthCredentialsRepo.getOauthCredentialsByAccountId(db, accountId);
   if (creds) {
     try {
       const packed = creds.encryptedRefreshToken;
@@ -172,6 +157,26 @@ export async function disconnectGmailAccount(
     await oauthCredentialsRepo.deleteOauthCredentials(db, accountId);
   }
   await accountsRepo.setAccountStatus(db, accountId, "disconnected");
+  await correctionsRepo.writeAuditLog(db, {
+    userId,
+    actor: "user",
+    action: "gmail.account.disconnect",
+    targetType: "connected_email_account",
+    targetId: accountId,
+    metadata: { provider: "gmail" },
+  });
+}
+
+export async function requireOwnedGmailAccount(
+  db: Database,
+  accountId: string,
+  userId: string,
+) {
+  const account = await accountsRepo.getAccountById(db, accountId);
+  if (!account || account.userId !== userId || account.provider !== "gmail") {
+    throw Object.assign(new Error("account_not_found"), { code: "ACCOUNT_NOT_FOUND" });
+  }
+  return account;
 }
 
 /**
@@ -182,10 +187,7 @@ export async function refreshGmailAccount(
   config: ServerConfig,
   accountId: string,
 ): Promise<{ accessTokenExpiresAt: Date }> {
-  const creds = await oauthCredentialsRepo.getOauthCredentialsByAccountId(
-    db,
-    accountId,
-  );
+  const creds = await oauthCredentialsRepo.getOauthCredentialsByAccountId(db, accountId);
   if (!creds) throw new Error("credentials_missing");
 
   const refreshPlain = decrypt(
@@ -239,7 +241,5 @@ export async function listGmailAccounts(
   userId: string,
 ): Promise<PublicAccountView[]> {
   const rows = await accountsRepo.listAccountsForUser(db, userId);
-  return rows
-    .filter((r) => r.provider === "gmail")
-    .map((r) => toPublicAccount(r));
+  return rows.filter((r) => r.provider === "gmail").map((r) => toPublicAccount(r));
 }

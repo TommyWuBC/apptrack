@@ -3,11 +3,12 @@
  * Static guard — greps gmail route/service sources for dangerous response patterns.
  */
 import { readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const srcDir = dirname(fileURLToPath(import.meta.url));
+const here = dirname(fileURLToPath(import.meta.url));
+const srcDir = basename(here) === "dist" ? join(here, "..", "src") : here;
 
 describe("INV-4 gmail response hygiene", () => {
   it("gmail route does not send raw token secrets", () => {
@@ -20,10 +21,7 @@ describe("INV-4 gmail response hygiene", () => {
   });
 
   it("PublicAccountView type has no token fields", () => {
-    const src = readFileSync(
-      join(srcDir, "services/gmail-oauth-service.ts"),
-      "utf8",
-    );
+    const src = readFileSync(join(srcDir, "services/gmail-oauth-service.ts"), "utf8");
     expect(src).toMatch(/export type PublicAccountView/);
     const start = src.indexOf("export type PublicAccountView");
     const end = src.indexOf("};", start) + 2;

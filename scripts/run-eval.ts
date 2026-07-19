@@ -4,13 +4,7 @@
  *
  * CI regression: F1 drop >2 points vs committed baseline fails (see compare below).
  */
-import {
-  readdirSync,
-  readFileSync,
-  writeFileSync,
-  existsSync,
-  mkdirSync,
-} from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -19,11 +13,7 @@ import {
   EventType,
   type GoldenBaselineV1,
 } from "@apptrack/shared";
-import {
-  normalizeEmail,
-  classifyEmail,
-  CLASSIFIER_VERSION,
-} from "@apptrack/core";
+import { normalizeEmail, classifyEmail, CLASSIFIER_VERSION } from "@apptrack/core";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const EMAILS = join(ROOT, "fixtures", "emails");
@@ -58,7 +48,7 @@ async function classifyEml(emlPath: string): Promise<string> {
   if (listId) headers["List-Id"] = listId;
   if (listUnsub) headers["List-Unsubscribe"] = listUnsub;
 
-  const result = classifyEmail({
+  const result = await classifyEmail({
     subject: n.subject,
     textPlain: n.textPlain,
     textFull: n.textFull,
@@ -74,9 +64,7 @@ function prf(tp: number, fp: number, fn: number) {
   const precision = tp + fp === 0 ? 0 : tp / (tp + fp);
   const recall = tp + fn === 0 ? 0 : tp / (tp + fn);
   const f1 =
-    precision + recall === 0
-      ? 0
-      : (2 * precision * recall) / (precision + recall);
+    precision + recall === 0 ? 0 : (2 * precision * recall) / (precision + recall);
   return { precision, recall, f1 };
 }
 
@@ -86,9 +74,7 @@ function metrics(rows: Row[]): GoldenBaselineV1 {
     const gold = rows.filter((r) => r.eventType === et);
     const support = gold.length;
     const tp = gold.filter((r) => r.correct).length;
-    const fp = rows.filter(
-      (r) => r.predicted === et && r.eventType !== et,
-    ).length;
+    const fp = rows.filter((r) => r.predicted === et && r.eventType !== et).length;
     const fn = support - tp;
     const { precision, recall, f1 } = prf(tp, fp, fn);
     perEventType[et] = { precision, recall, f1, support };
@@ -151,9 +137,7 @@ function assertAcceptance(baseline: GoldenBaselineV1): void {
 function assertNoRegression(baseline: GoldenBaselineV1): void {
   const prevPath = join(GOLDEN, "baseline.json");
   if (!existsSync(prevPath)) return;
-  const prev = GoldenBaselineV1Schema.parse(
-    JSON.parse(readFileSync(prevPath, "utf8")),
-  );
+  const prev = GoldenBaselineV1Schema.parse(JSON.parse(readFileSync(prevPath, "utf8")));
   // Only gate once we have a real classifier baseline (not stub null version)
   if (!prev.classifierVersion) return;
   for (const et of Object.values(EventType)) {

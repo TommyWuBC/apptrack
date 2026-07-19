@@ -37,9 +37,12 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-apptrack}:${POSTGRES_PASSWORD:-apptrack}@postgres:5432/${POSTGRES_DB:-apptrack}
+      APP_BASE_URL: http://apptrack-server:3000
     depends_on:
       postgres:
         condition: service_healthy
+      apptrack-server:
+        condition: service_started
     restart: unless-stopped
 
 volumes:

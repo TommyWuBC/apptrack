@@ -17,10 +17,7 @@ const PLATFORM_DOMAIN_HINTS: Array<{ platform: string; needles: string[] }> = [
   { platform: "calendly", needles: ["calendly"] },
 ];
 
-export function detectAtsPlatform(
-  fromAddress?: string,
-  text?: string,
-): string | null {
+export function detectAtsPlatform(fromAddress?: string, text?: string): string | null {
   const domain = (domainOfAddress(fromAddress) ?? "").toLowerCase();
   const hay = `${domain} ${text ?? ""}`.toLowerCase();
   for (const { platform, needles } of PLATFORM_DOMAIN_HINTS) {

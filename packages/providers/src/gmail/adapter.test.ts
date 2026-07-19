@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import nock from "nock";
-import {
-  createGmailEmailProvider,
-  HistoryExpiredError,
-} from "./adapter.js";
+import { createGmailEmailProvider, HistoryExpiredError } from "./adapter.js";
 
 const token = { getAccessToken: async () => "ya29.test" };
 
@@ -19,9 +16,7 @@ describe("GmailEmailProvider", () => {
       .reply(200, {
         history: [
           {
-            messagesAdded: [
-              { message: { id: "m1", threadId: "t1" } },
-            ],
+            messagesAdded: [{ message: { id: "m1", threadId: "t1" } }],
             messagesDeleted: [{ message: { id: "m0" } }],
           },
         ],

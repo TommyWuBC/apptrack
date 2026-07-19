@@ -7,8 +7,5 @@
     "assessmentDeadline": "2026-03-22"
   },
   "minConfidence": 0.7,
-  "tags": [
-    "edge",
-    "tracking_link"
-  ]
+  "tags": ["edge", "tracking_link"]
 }

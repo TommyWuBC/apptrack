@@ -1,0 +1,10 @@
+AGENTS.md
+**/dist/
+**/.astro/
+**/test-results/
+pnpm-lock.yaml
+DEVLOG.md
+HANDOFF.md
+PROGRESS.md
+README.md
+ARCHITECTURE.md

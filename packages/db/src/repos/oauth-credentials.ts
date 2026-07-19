@@ -97,9 +97,7 @@ export async function deleteOauthCredentials(
   db: Database,
   accountId: string,
 ): Promise<void> {
-  await db
-    .delete(oauthCredentials)
-    .where(eq(oauthCredentials.accountId, accountId));
+  await db.delete(oauthCredentials).where(eq(oauthCredentials.accountId, accountId));
 }
 
 /** Account ids whose access token expires before `cutoff` (oauth.refresh-sweep). */

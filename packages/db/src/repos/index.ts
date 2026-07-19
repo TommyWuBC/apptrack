@@ -1,7 +1,16 @@
 export * as usersRepo from "./users.js";
+export * as sessionsRepo from "./sessions.js";
 export * as accountsRepo from "./accounts.js";
 export * as oauthCredentialsRepo from "./oauth-credentials.js";
 export * as emailsRepo from "./emails.js";
 export * as applicationsRepo from "./applications.js";
 export * as normalizedEmailsRepo from "./normalized-emails.js";
 export * as classificationRepo from "./classification.js";
+export * as matchingRepo from "./matching.js";
+export * as correctionsRepo from "./corrections.js";
+export * as settingsRepo from "./settings.js";
+export * as notificationsRepo from "./notifications.js";
+export * as analyticsRepo from "./analytics.js";
+export * as correlationRepo from "./correlation.js";
+export * as resumesRepo from "./resumes.js";
+export * as exportRepo from "./export.js";
