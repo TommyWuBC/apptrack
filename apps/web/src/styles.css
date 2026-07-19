@@ -62,4 +62,13 @@
   .badge-action {
     @apply bg-citrus-400/30 text-ink-900;
   }
+  .badge-stale {
+    @apply border border-dashed border-ink-900/40 bg-transparent text-ink-700;
+  }
+  .badge-ghosted {
+    @apply border border-dashed border-ink-900/50 bg-ink-900/5 text-ink-700 italic;
+  }
+  .row-ghost-uncertain {
+    @apply opacity-80;
+  }
 }

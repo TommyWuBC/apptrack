@@ -96,12 +96,36 @@ export function ApplicationsPage() {
           </thead>
           <tbody>
             {rows.map((a) => (
-              <tr key={a.id}>
+              <tr
+                key={a.id}
+                className={
+                  a.ghostStatus === "stale" ||
+                  a.ghostStatus === "possibly_ghosted"
+                    ? "row-ghost-uncertain"
+                    : undefined
+                }
+              >
                 <td className="font-medium">{a.companyName}</td>
                 <td>
                   <span className="badge">{a.currentState}</span>
                   {a.actionRequired ? (
                     <span className="badge badge-action ml-1">action</span>
+                  ) : null}
+                  {a.ghostStatus === "stale" ? (
+                    <span
+                      className="badge badge-stale ml-1"
+                      title="No activity for a while — inference"
+                    >
+                      stale
+                    </span>
+                  ) : null}
+                  {a.ghostStatus === "possibly_ghosted" ? (
+                    <span
+                      className="badge badge-ghosted ml-1"
+                      title="Possibly ghosted — inference"
+                    >
+                      possibly ghosted
+                    </span>
                   ) : null}
                 </td>
                 <td className="font-mono text-xs">{a.source ?? "—"}</td>

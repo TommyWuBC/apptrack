@@ -145,3 +145,45 @@ export const ReduceResultV1Schema = z.object({
 });
 
 export type ReduceResultV1 = z.infer<typeof ReduceResultV1Schema>;
+
+/** Day thresholds for ghost inference. AGENTS.md §17 */
+export const GhostDayThresholdsSchema = z.object({
+  staleAfterDays: z.number().int().positive(),
+  ghostAfterDays: z.number().int().positive(),
+});
+
+export type GhostDayThresholds = z.infer<typeof GhostDayThresholdsSchema>;
+
+export const GhostThresholdsV1Schema = z.object({
+  staleAfterDays: z.number().int().positive().default(45),
+  ghostAfterDays: z.number().int().positive().default(90),
+  /** Per current_state overrides, e.g. final_round: { staleAfterDays: 21, ghostAfterDays: 45 } */
+  perStage: z.record(GhostDayThresholdsSchema).default({}),
+  /** Per application type: internship | new_grad | full_time | contract */
+  perType: z.record(GhostDayThresholdsSchema).default({}),
+  /** Per company_id overrides */
+  perCompany: z.record(GhostDayThresholdsSchema).default({}),
+});
+
+export type GhostThresholdsV1 = z.infer<typeof GhostThresholdsV1Schema>;
+
+export const GhostEvaluateActionSchema = z.enum([
+  "none",
+  "mark_stale",
+  "mark_ghosted",
+  "clear",
+  "keep_dismissed",
+]);
+
+export type GhostEvaluateAction = z.infer<typeof GhostEvaluateActionSchema>;
+
+export const GhostEvaluateResultV1Schema = z.object({
+  nextStatus: z.enum(["none", "stale", "possibly_ghosted", "dismissed"]),
+  action: GhostEvaluateActionSchema,
+  daysInactive: z.number().nullable(),
+  paused: z.boolean(),
+  evidence: z.string(),
+  algorithmVersion: z.string(),
+});
+
+export type GhostEvaluateResultV1 = z.infer<typeof GhostEvaluateResultV1Schema>;

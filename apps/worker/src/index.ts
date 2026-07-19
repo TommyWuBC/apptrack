@@ -1,9 +1,11 @@
 /**
- * Worker entry — email.sync poll loop (M5). pg-boss lands with M6 handoff.
+ * Worker entry — email.sync + ghost.evaluate poll loops (M5 / M12).
+ * pg-boss lands with fuller job infra.
  */
 import { startWorkerPolling } from "./jobs/email-sync.js";
+import { startGhostEvaluatePolling } from "./jobs/ghost-evaluate.js";
 
-console.info("[worker] starting — M5 email.sync poll");
+console.info("[worker] starting — email.sync + ghost.evaluate");
 
 if (process.env.WORKER_STUB_EXIT === "1") {
   console.info("[worker] WORKER_STUB_EXIT=1 — exiting");
@@ -11,7 +13,12 @@ if (process.env.WORKER_STUB_EXIT === "1") {
 }
 
 void startWorkerPolling().catch((err) => {
-  console.error("[worker] fatal", err);
+  console.error("[worker] email.sync fatal", err);
+  process.exit(1);
+});
+
+void startGhostEvaluatePolling().catch((err) => {
+  console.error("[worker] ghost.evaluate fatal", err);
   process.exit(1);
 });
 

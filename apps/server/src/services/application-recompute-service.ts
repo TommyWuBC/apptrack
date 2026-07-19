@@ -1,14 +1,21 @@
 /**
  * application.recompute — replay events → projection. AGENTS.md §16.5 / M9
  * Idempotent by construction (INV-9).
+ * Auto-clears ghost status when meaningful activity returns (§17 / M12).
  */
 import {
   applyCorrections,
+  evaluateGhost,
   reduce,
   REDUCER_VERSION,
   type UserCorrection,
 } from "@apptrack/core";
-import { ReviewKind, type ReducerEventV1 } from "@apptrack/shared";
+import {
+  ApplicationEventType,
+  GhostStatus,
+  ReviewKind,
+  type ReducerEventV1,
+} from "@apptrack/shared";
 import { repos, type Database } from "@apptrack/db";
 
 const { applicationsRepo, matchingRepo } = repos;
@@ -46,25 +53,88 @@ export type RecomputeResult = {
   reducerVersion: string;
   flags: { conflict: boolean; reopened: boolean; onHold: boolean };
   conflictReviewItemId: string | null;
+  ghostStatus: string;
+  ghostCleared: boolean;
 };
 
 /**
  * Load events, reduce, overlay active corrections from DB (INV-7), write projection.
- * // AGENTS.md §16.5 / §18.2
+ * When meaningful activity returns, auto-emit ghost_cleared (§17).
+ * // AGENTS.md §16.5 / §18.2 / §17
  */
 export async function recomputeApplication(
   db: Database,
   applicationId: string,
-  opts: { corrections?: UserCorrection[] } = {},
+  opts: {
+    corrections?: UserCorrection[];
+    /** Skip nested ghost clear to avoid recursion from ghost.evaluate */
+    skipGhostEvaluate?: boolean;
+  } = {},
 ): Promise<RecomputeResult> {
   const app = await applicationsRepo.getApplicationById(db, applicationId);
   if (!app) throw new Error("application_not_found");
 
-  const rows = await applicationsRepo.listEventsForApplication(
+  let rows = await applicationsRepo.listEventsForApplication(
     db,
     applicationId,
   );
-  const reduced = reduce(toReducerEvents(rows), REDUCER_VERSION);
+  let reduced = reduce(toReducerEvents(rows), REDUCER_VERSION);
+  let ghostCleared = false;
+
+  // Auto-reversal: meaningful activity clears stale / possibly_ghosted. §17
+  if (!opts.skipGhostEvaluate) {
+    let dismissedAtState: string | null = null;
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const row = rows[i]!;
+      if (row.supersededBy) continue;
+      if (row.eventType === ApplicationEventType.ghost_dismissed) {
+        const p = (row.payload ?? {}) as Record<string, unknown>;
+        dismissedAtState =
+          typeof p.dismissedAtState === "string" ? p.dismissedAtState : null;
+        break;
+      }
+    }
+
+    let settings: Record<string, unknown> = {};
+    try {
+      const s = await repos.settingsRepo.getSettingsForUser(db, app.userId);
+      settings = (s?.ghostThresholds as Record<string, unknown>) ?? {};
+    } catch {
+      settings = {};
+    }
+
+    const ghostResult = evaluateGhost({
+      currentGhostStatus: app.ghostStatus,
+      currentState: app.currentState,
+      lastMeaningfulAt: reduced.ghostInputs.lastMeaningfulAt,
+      appliedAt: app.appliedAt,
+      hasFutureScheduled: reduced.ghostInputs.hasFutureScheduled,
+      terminal: reduced.ghostInputs.terminal,
+      dismissedAtState,
+      settings,
+      companyId: app.companyId,
+    });
+
+    if (ghostResult.action === "clear") {
+      await applicationsRepo.appendApplicationEvent(db, {
+        applicationId,
+        eventType: ApplicationEventType.ghost_cleared,
+        occurredAt: new Date(),
+        source: "system",
+        payload: {
+          previousStatus: app.ghostStatus,
+          evidence: ghostResult.evidence,
+          algorithmVersion: ghostResult.algorithmVersion,
+        },
+      });
+      await applicationsRepo.updateApplicationProjection(db, applicationId, {
+        ghostStatus: GhostStatus.none,
+      });
+      ghostCleared = true;
+      rows = await applicationsRepo.listEventsForApplication(db, applicationId);
+      reduced = reduce(toReducerEvents(rows), REDUCER_VERSION);
+    }
+  }
 
   const corrections =
     opts.corrections ??
@@ -94,11 +164,14 @@ export async function recomputeApplication(
 
   const currentState = String(overlaid.currentState);
   const actionRequired = Boolean(overlaid.actionRequired);
+  const fresh = await applicationsRepo.getApplicationById(db, applicationId);
+  const ghostStatus = fresh?.ghostStatus ?? app.ghostStatus;
 
   await applicationsRepo.updateApplicationProjection(db, applicationId, {
     currentState,
     actionRequired,
     stateVersion: reduced.reducerVersion,
+    ghostStatus,
   });
 
   // Keep last_event_at aligned with meaningful activity (out-of-order safe)
@@ -139,6 +212,8 @@ export async function recomputeApplication(
     reducerVersion: reduced.reducerVersion,
     flags: reduced.flags,
     conflictReviewItemId,
+    ghostStatus,
+    ghostCleared,
   };
 }
 

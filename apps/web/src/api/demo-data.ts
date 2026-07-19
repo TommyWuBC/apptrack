@@ -87,6 +87,34 @@ const applications: ApplicationRow[] = [
     actionRequired: false,
     stateVersion: "state-v1",
   },
+  {
+    id: "app-5",
+    userId: "user-demo",
+    companyId: "co-hooli",
+    companyName: "Hooli",
+    roleId: "role-5",
+    currentState: "ghosted",
+    appliedAt: "2026-01-10T12:00:00.000Z",
+    source: "lever",
+    lastEventAt: "2026-02-01T12:00:00.000Z",
+    ghostStatus: "possibly_ghosted",
+    actionRequired: false,
+    stateVersion: "state-v1",
+  },
+  {
+    id: "app-6",
+    userId: "user-demo",
+    companyId: "co-pied",
+    companyName: "Pied Piper",
+    roleId: "role-6",
+    currentState: "recruiter_screen",
+    appliedAt: "2026-03-01T12:00:00.000Z",
+    source: "email",
+    lastEventAt: "2026-04-20T12:00:00.000Z",
+    ghostStatus: "stale",
+    actionRequired: false,
+    stateVersion: "state-v1",
+  },
 ];
 
 const timelines: Record<string, TimelineResponse> = {
@@ -231,6 +259,45 @@ let reviewItems = [
       candidateName: "Initechh",
     },
   },
+  {
+    id: "rev-ghost",
+    kind: "ghost_confirm",
+    refId: "app-5",
+    status: "open",
+    resolution: {
+      evidence: "No activity for 120 days — possibly ghosted",
+      daysInactive: 120,
+      algorithmVersion: "ghost-v1",
+    },
+  },
+];
+
+let demoGhostThresholds = {
+  staleAfterDays: 45,
+  ghostAfterDays: 90,
+  perStage: {
+    final_round: { staleAfterDays: 21, ghostAfterDays: 45 },
+  },
+  perType: {},
+  perCompany: {},
+};
+
+const demoNotifications: Array<{
+  id: string;
+  kind: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  readAt: string | null;
+}> = [
+  {
+    id: "notif-1",
+    kind: "ghost_flagged",
+    title: "Possibly ghosted application",
+    body: "Hooli: No activity for 120 days — possibly ghosted",
+    link: "/applications/app-5",
+    readAt: null,
+  },
 ];
 
 const correctionsStore: Array<{
@@ -269,37 +336,39 @@ function rate(
 }
 
 const stats: StatsResponse = {
-  totals: { applications: 4, actionRequired: 2, companies: 3 },
+  totals: { applications: 6, actionRequired: 2, companies: 3 },
   byState: {
     interviewing: 1,
     assessment_received: 1,
     rejected: 1,
     confirmation_received: 1,
+    ghosted: 1,
+    recruiter_screen: 1,
   },
   applicationsThisWeek: 1,
   rates: {
-    response: rate(3, 4, "Response rate"),
-    rejection: rate(1, 4, "Rejection rate"),
-    offer: rate(0, 4, "Offer rate"),
-    ghost: rate(0, 4, "Ghost rate"),
+    response: rate(4, 6, "Response rate"),
+    rejection: rate(1, 6, "Rejection rate"),
+    offer: rate(0, 6, "Offer rate"),
+    ghost: rate(1, 6, "Ghost rate"),
     oaToInterview: rate(1, 2, "OA→interview"),
     interviewToOffer: rate(0, 1, "Interview→offer"),
   },
   ratesFormatted: {
-    response: "3/4",
-    rejection: "1/4",
-    offer: "0/4",
-    ghost: "0/4",
+    response: "4/6",
+    rejection: "1/6",
+    offer: "0/6",
+    ghost: "1/6",
     oaToInterview: "1/2",
     interviewToOffer: "0/1",
   },
   mediansDays: { timeToFirstResponse: 12, timeBetweenStages: 6 },
   topCompaniesByActivity: [
     { companyId: "co-initech", name: "Initech", count: 2 },
-    { companyId: "co-hooli", name: "Hooli", count: 1 },
-    { companyId: "co-pied", name: "Pied Piper", count: 1 },
+    { companyId: "co-hooli", name: "Hooli", count: 2 },
+    { companyId: "co-pied", name: "Pied Piper", count: 2 },
   ],
-  sourceCounts: { greenhouse: 2, lever: 1, email: 1 },
+  sourceCounts: { greenhouse: 2, lever: 2, email: 2 },
   smallSampleThreshold: 10,
 };
 
@@ -324,6 +393,16 @@ export const demoStore = {
     }
     if (p === "/api/v1/review") {
       return { items: reviewItems };
+    }
+    if (p === "/api/v1/settings/ghost") {
+      return {
+        userId: "user-demo",
+        thresholds: demoGhostThresholds,
+        algorithmVersion: "ghost-v1",
+      };
+    }
+    if (p === "/api/v1/notifications") {
+      return { notifications: demoNotifications, userId: "user-demo" };
     }
     const corrMatch = p.match(/^\/api\/v1\/applications\/([^/]+)\/corrections$/);
     if (corrMatch) {
@@ -444,6 +523,40 @@ export const demoStore = {
         priorEventId: p.split("/")[6],
         newEventId: "ev-new",
         toApplicationId: (body as { toApplicationId: string }).toApplicationId,
+      };
+    }
+    if (method === "PATCH" && p === "/api/v1/settings/ghost") {
+      const t = (body as { thresholds?: typeof demoGhostThresholds }).thresholds;
+      if (t) demoGhostThresholds = { ...demoGhostThresholds, ...t };
+      return {
+        userId: "user-demo",
+        thresholds: demoGhostThresholds,
+        algorithmVersion: "ghost-v1",
+      };
+    }
+    if (method === "POST" && p === "/api/v1/ghost/evaluate") {
+      return {
+        algorithmVersion: "ghost-v1",
+        scanned: applications.length,
+        transitions: [],
+      };
+    }
+    if (method === "POST" && /\/ghost\/dismiss$/.test(p)) {
+      const id = p.split("/")[4]!;
+      const app = applications.find((a) => a.id === id);
+      if (app) {
+        app.ghostStatus = "dismissed";
+        if (app.currentState === "ghosted") {
+          app.currentState = "recruiter_screen";
+        }
+      }
+      reviewItems = reviewItems.filter(
+        (r) => !(r.kind === "ghost_confirm" && r.refId === id),
+      );
+      return {
+        applicationId: id,
+        ghostStatus: "dismissed",
+        eventId: "ev-dismiss",
       };
     }
     throw new Error(`Demo mutate missing for ${method} ${path}`);
