@@ -1,7 +1,12 @@
 import Fastify from "fastify";
 import { coreHealth } from "@apptrack/core";
 import { createDb, closeDb, dbHealth, type Database } from "@apptrack/db";
-import { loadServerConfig, type ServerConfig } from "./config.js";
+import {
+  loadAuthConfig,
+  loadServerConfig,
+  type AuthConfig,
+  type ServerConfig,
+} from "./config.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerHelloRoutes } from "./routes/hello.js";
 import { registerGmailRoutes } from "./routes/gmail.js";
@@ -15,6 +20,8 @@ import { registerCorrectionsRoutes } from "./routes/corrections.js";
 import { registerGhostRoutes } from "./routes/ghost.js";
 import { registerAnalyticsRoutes } from "./routes/analytics.js";
 import { registerSdkRoutes } from "./routes/sdk.js";
+import { registerAuthRoutes } from "./routes/auth.js";
+import { registerAuthPlugin } from "./plugins/auth.js";
 
 export type AppDb = Database | null;
 
@@ -24,6 +31,7 @@ export async function buildApp(
     databaseUrl?: string;
     /** Inject config (tests). If omitted, loaded from env when keys present. */
     config?: ServerConfig | null;
+    authConfig?: AuthConfig;
   } = {},
 ) {
   const app = Fastify({
@@ -61,8 +69,11 @@ export async function buildApp(
     }
   }
 
+  const authConfig = opts.authConfig ?? loadAuthConfig();
+  await registerAuthPlugin(app, authConfig);
   await registerHealthRoutes(app, () => db !== null);
   await registerHelloRoutes(app);
+  await registerAuthRoutes(app, authConfig);
 
   const config: ServerConfig | null =
     opts.config === undefined

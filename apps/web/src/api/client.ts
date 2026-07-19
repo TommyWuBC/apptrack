@@ -56,10 +56,22 @@ async function apiSend<T>(
   if (demoEnabled()) {
     return demoStore.mutate(method, path, body) as T;
   }
+  const csrfToken =
+    typeof document === "undefined"
+      ? null
+      : document.cookie
+          .split("; ")
+          .find((part) => part.startsWith("apptrack_csrf="))
+          ?.slice("apptrack_csrf=".length);
   const res = await fetch(path, {
     method,
     credentials: "include",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(csrfToken
+        ? { "x-csrf-token": decodeURIComponent(csrfToken) }
+        : {}),
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!res.ok) {
@@ -89,7 +101,27 @@ export type CorrectionRow = {
 
 export const api = {
   me: () =>
-    apiGet<{ userId: string | null; setupRequired: boolean }>("/api/v1/me"),
+    apiGet<{
+      userId: string;
+      email: string;
+      role: "owner";
+      csrfToken: string;
+    }>("/api/v1/auth/me"),
+  authStatus: () =>
+    apiGet<{ setupRequired: boolean }>("/api/v1/auth/status"),
+  setup: (email: string, password: string) =>
+    apiSend<{ userId: string; email: string; role: "owner"; csrfToken: string }>(
+      "POST",
+      "/api/v1/auth/setup",
+      { email, password },
+    ),
+  login: (email: string, password: string) =>
+    apiSend<{ userId: string; email: string; role: "owner"; csrfToken: string }>(
+      "POST",
+      "/api/v1/auth/login",
+      { email, password },
+    ),
+  logout: () => apiSend<void>("POST", "/api/v1/auth/logout"),
   applications: (userId?: string) =>
     apiGet<{ applications: ApplicationRow[]; userId?: string }>(
       userId

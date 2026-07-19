@@ -16,7 +16,13 @@ function baseUrl(): string {
 export async function triggerGhostEvaluate(userId?: string): Promise<unknown> {
   const res = await fetch(`${baseUrl()}/api/v1/ghost/evaluate`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      "x-apptrack-internal":
+        process.env.INTERNAL_JOB_SECRET ??
+        process.env.SESSION_SECRET ??
+        "apptrack-development-internal-secret-not-for-production",
+    },
     body: JSON.stringify(userId ? { userId } : {}),
   });
   const text = await res.text();

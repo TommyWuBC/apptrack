@@ -3,6 +3,23 @@ import { EventType } from "./enums.js";
 
 const eventTypeValues = Object.values(EventType) as [string, ...string[]];
 
+/** First-run owner setup and login contracts. AGENTS.md §22. */
+export const AuthCredentialsV1Schema = z.object({
+  email: z.string().email().max(320).transform((value) => value.toLowerCase()),
+  password: z.string().min(12).max(1024),
+});
+
+export type AuthCredentialsV1 = z.infer<typeof AuthCredentialsV1Schema>;
+
+export const AuthMeV1Schema = z.object({
+  userId: z.string().uuid(),
+  email: z.string().email(),
+  role: z.literal("owner"),
+  csrfToken: z.string().min(32),
+});
+
+export type AuthMeV1 = z.infer<typeof AuthMeV1Schema>;
+
 /** FR-2 extraction schema. Breaking changes → ExtractionV2. AGENTS.md §13.3 */
 export const ExtractionV1Schema = z.object({
   company: z.string().nullable().optional(),

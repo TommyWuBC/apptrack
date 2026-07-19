@@ -17,7 +17,13 @@ function baseUrl(): string {
 export async function triggerSyncRun(accountId?: string): Promise<unknown> {
   const res = await fetch(`${baseUrl()}/api/v1/sync/run`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      "x-apptrack-internal":
+        process.env.INTERNAL_JOB_SECRET ??
+        process.env.SESSION_SECRET ??
+        "apptrack-development-internal-secret-not-for-production",
+    },
     body: JSON.stringify(accountId ? { accountId } : {}),
   });
   const text = await res.text();

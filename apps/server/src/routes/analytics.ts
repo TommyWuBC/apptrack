@@ -15,15 +15,6 @@ import {
   runAnalyticsRetention,
 } from "../services/analytics-ingest-service.js";
 
-async function resolveUserId(
-  db: NonNullable<FastifyInstance["db"]>,
-  qUserId?: string,
-): Promise<string | null> {
-  if (qUserId) return qUserId;
-  const owner = await repos.usersRepo.getFirstUser(db);
-  return owner?.id ?? null;
-}
-
 function clientIp(req: FastifyRequest): string {
   const xf = req.headers["x-forwarded-for"];
   if (typeof xf === "string" && xf.length > 0) {
@@ -106,11 +97,11 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const q = req.query as { userId?: string };
-    const userId = await resolveUserId(app.db, q.userId);
-    if (!userId) return { sites: [], userId: null };
-    const sites = await repos.analyticsRepo.listSitesForUser(app.db, userId);
-    return { sites, userId };
+    const sites = await repos.analyticsRepo.listSitesForUser(
+      app.db,
+      req.userId!,
+    );
+    return { sites, userId: req.userId };
   });
 
   app.post("/api/v1/analytics/sites", async (req, reply) => {
@@ -120,19 +111,9 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       });
     }
     const body = (req.body ?? {}) as {
-      userId?: string;
       originAllowlist?: string[];
       mode?: string;
     };
-    const userId = await resolveUserId(app.db, body.userId);
-    if (!userId) {
-      return reply.code(400).send({
-        error: {
-          code: ErrorCode.VALIDATION_ERROR,
-          message: "userId required",
-        },
-      });
-    }
     const parsed = AnalyticsSiteCreateV1Schema.safeParse(body);
     if (!parsed.success) {
       return reply.code(400).send({
@@ -144,12 +125,12 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       });
     }
     const site = await repos.analyticsRepo.createSite(app.db, {
-      userId,
+      userId: req.userId!,
       originAllowlist: parsed.data.originAllowlist,
       mode: parsed.data.mode,
     });
     await repos.correctionsRepo.writeAuditLog(app.db, {
-      userId,
+      userId: req.userId,
       actor: "user",
       action: "analytics.site.create",
       targetType: "analytics_site",

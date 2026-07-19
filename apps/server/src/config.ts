@@ -13,6 +13,45 @@ export type ServerConfig = {
   gmailRedirectUri: string;
 };
 
+export type AuthConfig = {
+  sessionSecret: string;
+  sessionAbsoluteMs: number;
+  sessionIdleMs: number;
+  cookieSecure: boolean;
+  cookieName: string;
+  csrfCookieName: string;
+  internalJobSecret: string;
+};
+
+function positiveHours(value: string | undefined, fallback: number): number {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return parsed;
+}
+
+export function loadAuthConfig(
+  env: NodeJS.ProcessEnv = process.env,
+): AuthConfig {
+  const secret = env.SESSION_SECRET;
+  if (!secret && env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET is required in production");
+  }
+  const absoluteHours = positiveHours(env.SESSION_ABSOLUTE_HOURS, 24 * 30);
+  const idleHours = positiveHours(env.SESSION_IDLE_HOURS, 24);
+  return {
+    // Development/tests may use this deterministic non-secret. Production fails
+    // closed above and never accepts it.
+    sessionSecret: secret ?? "apptrack-development-session-secret-not-for-production",
+    sessionAbsoluteMs: absoluteHours * 60 * 60 * 1000,
+    sessionIdleMs: idleHours * 60 * 60 * 1000,
+    cookieSecure: env.NODE_ENV === "production",
+    cookieName: "apptrack_session",
+    csrfCookieName: "apptrack_csrf",
+    internalJobSecret: env.INTERNAL_JOB_SECRET ?? secret ??
+      "apptrack-development-internal-secret-not-for-production",
+  };
+}
+
 export function loadServerConfig(
   env: NodeJS.ProcessEnv = process.env,
 ): ServerConfig {

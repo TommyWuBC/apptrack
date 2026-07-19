@@ -1,4 +1,5 @@
 export * as usersRepo from "./users.js";
+export * as sessionsRepo from "./sessions.js";
 export * as accountsRepo from "./accounts.js";
 export * as oauthCredentialsRepo from "./oauth-credentials.js";
 export * as emailsRepo from "./emails.js";

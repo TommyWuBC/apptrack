@@ -42,6 +42,8 @@ export {
   AnalyticsIngestBatchV1Schema,
   AnalyticsSiteCreateV1Schema,
   AnalyticsSiteUpdateV1Schema,
+  AuthCredentialsV1Schema,
+  AuthMeV1Schema,
 } from "./schemas.js";
 export type {
   ExtractionV1,
@@ -63,6 +65,8 @@ export type {
   AnalyticsIngestBatchV1,
   AnalyticsSiteCreateV1,
   AnalyticsSiteUpdateV1,
+  AuthCredentialsV1,
+  AuthMeV1,
 } from "./schemas.js";
 export {
   FixtureExpectedV1Schema,

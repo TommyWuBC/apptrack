@@ -13,10 +13,7 @@ import {
 import { decrypt, unpackEncrypted } from "@apptrack/core";
 import { repos } from "@apptrack/db";
 import type { ServerConfig } from "../config.js";
-import {
-  ensureOwnerUser,
-  refreshGmailAccount,
-} from "../services/gmail-oauth-service.js";
+import { refreshGmailAccount } from "../services/gmail-oauth-service.js";
 import {
   getSyncStatus,
   runEmailBackfill,
@@ -90,7 +87,13 @@ export async function registerSyncRoutes(
       });
     }
     const body = (req.body ?? {}) as { accountId?: string };
-    const userId = await ensureOwnerUser(app.db);
+    const userId =
+      req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
+    if (!userId) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.SETUP_REQUIRED, message: "setup_required" },
+      });
+    }
     const accounts = await repos.accountsRepo.listAccountsForUser(
       app.db,
       userId,
@@ -129,7 +132,13 @@ export async function registerSyncRoutes(
       });
     }
     const q = req.query as { accountId?: string };
-    const userId = await ensureOwnerUser(app.db);
+    const userId =
+      req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
+    if (!userId) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.SETUP_REQUIRED, message: "setup_required" },
+      });
+    }
     const accounts = await repos.accountsRepo.listAccountsForUser(
       app.db,
       userId,
@@ -164,7 +173,13 @@ export async function registerSyncRoutes(
         },
       });
     }
-    const userId = await ensureOwnerUser(app.db);
+    const userId =
+      req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
+    if (!userId) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.SETUP_REQUIRED, message: "setup_required" },
+      });
+    }
     const accounts = await repos.accountsRepo.listAccountsForUser(
       app.db,
       userId,
