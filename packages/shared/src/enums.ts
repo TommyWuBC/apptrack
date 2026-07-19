@@ -103,3 +103,29 @@ export const GhostStatus = {
 } as const;
 
 export type GhostStatus = (typeof GhostStatus)[keyof typeof GhostStatus];
+
+/** Analytics site modes. AGENTS.md §20.3 */
+export const AnalyticsSiteMode = {
+  full: "full",
+  no_geo: "no_geo",
+  off: "off",
+} as const;
+
+export type AnalyticsSiteMode =
+  (typeof AnalyticsSiteMode)[keyof typeof AnalyticsSiteMode];
+
+/** Allowlisted analytics event types. AGENTS.md §20.4 / §10.6 */
+export const AnalyticsEventType = {
+  page_view: "page_view",
+  project_view: "project_view",
+  resume_view: "resume_view",
+  resume_download: "resume_download",
+  github_click: "github_click",
+  contact_click: "contact_click",
+  session_start: "session_start",
+  session_end: "session_end",
+  custom: "custom",
+} as const;
+
+export type AnalyticsEventType =
+  (typeof AnalyticsEventType)[keyof typeof AnalyticsEventType];

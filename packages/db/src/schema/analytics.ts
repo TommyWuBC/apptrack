@@ -49,17 +49,33 @@ export const analyticsSessions = pgTable("analytics_sessions", {
   ...timestamps,
 });
 
+/**
+ * Raw ingest rows carry visitor/context for deferred sessionization.
+ * session_id is null until analytics.aggregate links them. AGENTS.md §20.4
+ * INV-8: never add an IP column.
+ */
 export const analyticsEvents = pgTable(
   "analytics_events",
   {
     id: idColumn,
     eventId: uuid("event_id").notNull(),
+    siteId: uuid("site_id").references(() => analyticsSites.id, {
+      onDelete: "cascade",
+    }),
     sessionId: uuid("session_id").references(() => analyticsSessions.id),
+    visitorHash: text("visitor_hash"),
     eventType: text("event_type").notNull(),
     path: text("path"),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
     props: jsonb("props").default({}),
     srcToken: text("src_token"),
+    referrerHost: text("referrer_host"),
+    deviceCategory: text("device_category"),
+    browserFamily: text("browser_family"),
+    geoCountry: text("geo_country"),
+    geoRegion: text("geo_region"),
+    geoCity: text("geo_city"),
+    sessionizedAt: timestamp("sessionized_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [
@@ -67,6 +83,7 @@ export const analyticsEvents = pgTable(
     index("analytics_events_session_idx").on(t.sessionId),
     index("analytics_events_src_token_idx").on(t.srcToken),
     index("analytics_events_occurred_idx").on(t.occurredAt),
+    index("analytics_events_site_visitor_idx").on(t.siteId, t.visitorHash),
   ],
 );
 

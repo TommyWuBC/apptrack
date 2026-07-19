@@ -994,3 +994,60 @@ A: Delimited untrusted block, no tools, zod allowlist, and a deterministic canar
 ### Follow-up
 
 M14 analytics ingestion. Optional: swap fetch adapters for official SDKs if desired; live provider integration tests with recorded nock fixtures.
+
+## 2026-07-19 — cursor — M14 Analytics ingestion API
+
+**Meta:** branch `cursor/m14-analytics-ingestion-6a25` · milestone M14 · status completed
+
+### Problem being solved
+
+The tracker needs a privacy-conscious way to accept portfolio website events (page views, résumé downloads) so later correlation can score anonymous visits against applications — without cookies, fingerprinting, or storing raw IPs.
+
+### Background concepts
+
+**Cookie-free visitor hash.** Instead of a long-lived cookie, the server hashes `daily_salt + site_key + IP + coarse UA family` and then throws away the IP. Hashes are not linkable across UTC days.
+
+**Deferred sessionization.** The ingest endpoint only validates, rate-limits, hashes, and inserts. A separate `analytics.aggregate` job groups events into 30-minute idle sessions so the hot path stays under ~100 ms (NFR-2).
+
+**Origin allowlist.** Public ingest uses CORS + `origin_allowlist` on each `analytics_sites` row so arbitrary websites cannot spam a site key as easily.
+
+### Design decision
+
+1. Extended `analytics_events` with `site_id`, `visitor_hash`, geo/device context, and `sessionized_at` so aggregate can run after insert without an extra staging table (migration `0003`).
+2. In-memory token buckets for rate limits (no Redis — blueprint excluded list).
+3. Geo via optional lookup hook + CDN country headers; MaxMind file optional via `GEOLITE2_DB_PATH` later.
+
+### Implementation
+
+- Shared: analytics enums + ingest/site zod schemas + props allowlist.
+- Core: `computeVisitorHash`, `sessionizeEvents`, coarse UA parser.
+- DB: analytics repo; event context columns.
+- Server: ingest/aggregate/retention + sites CRUD routes.
+- Worker: 5-minute aggregate poll.
+- Web: Settings → Analytics sites.
+- Docs: `docs/analytics-integration.md`; load helper `scripts/analytics-load.ts`.
+
+### Runtime flow
+
+1. Browser/SDK POSTs batch with `siteKey` + ≤25 events.
+2. Server checks allowlist, rate limits, computes visitor hash + coarse geo, inserts events (no IP columns).
+3. Aggregate groups unsessionized rows into sessions and links `session_id`.
+4. Retention purges rows older than ~13 months.
+
+### Tests
+
+- Core identity/sessionize (4); INV-8 on sites/sessions/events; analytics routes (allowlist/rate-limit/schema/503); Playwright settings sites panel.
+- typecheck / lint / boundaries green.
+
+### Security & privacy review
+
+INV-8 enforced in schema tests. Props keys allowlisted (no fingerprint fields). Rate limits + payload size caps (F9).
+
+### Interview prep
+
+**Q: Why not assign a session on every ingest request?**  
+A: Keeps the public endpoint insert-only and fast; session windows need a global view of recent events per visitor, which fits a periodic job and stays crash-safe with idempotent event IDs.
+
+### Follow-up
+
+M15 browser SDK + example Astro site serving `/sdk.js`.

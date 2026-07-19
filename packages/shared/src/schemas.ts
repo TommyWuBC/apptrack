@@ -231,3 +231,74 @@ export const GhostEvaluateResultV1Schema = z.object({
 });
 
 export type GhostEvaluateResultV1 = z.infer<typeof GhostEvaluateResultV1Schema>;
+
+/** Allowlisted props keys on analytics events. AGENTS.md §20.4 */
+export const ANALYTICS_PROP_KEYS = [
+  "title",
+  "project",
+  "label",
+  "href",
+  "src",
+  "referrer",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_content",
+  "utm_term",
+] as const;
+
+const analyticsEventTypeValues = [
+  "page_view",
+  "project_view",
+  "resume_view",
+  "resume_download",
+  "github_click",
+  "contact_click",
+  "session_start",
+  "session_end",
+  "custom",
+] as const;
+
+export const AnalyticsEventV1Schema = z.object({
+  eventId: z.string().uuid(),
+  eventType: z.enum(analyticsEventTypeValues),
+  path: z.string().max(2000).optional(),
+  occurredAt: z.coerce.date(),
+  props: z
+    .record(z.unknown())
+    .optional()
+    .refine(
+      (props) => {
+        if (!props) return true;
+        return Object.keys(props).every((k) =>
+          (ANALYTICS_PROP_KEYS as readonly string[]).includes(k),
+        );
+      },
+      { message: "props contains non-allowlisted key" },
+    ),
+  srcToken: z.string().max(64).optional(),
+});
+
+export type AnalyticsEventV1 = z.infer<typeof AnalyticsEventV1Schema>;
+
+/** Public ingestion batch. ≤25 events. AGENTS.md §20.4 */
+export const AnalyticsIngestBatchV1Schema = z.object({
+  siteKey: z.string().min(8).max(128),
+  events: z.array(AnalyticsEventV1Schema).min(1).max(25),
+});
+
+export type AnalyticsIngestBatchV1 = z.infer<typeof AnalyticsIngestBatchV1Schema>;
+
+export const AnalyticsSiteCreateV1Schema = z.object({
+  originAllowlist: z.array(z.string().max(500)).max(50).default([]),
+  mode: z.enum(["full", "no_geo", "off"]).default("full"),
+});
+
+export type AnalyticsSiteCreateV1 = z.infer<typeof AnalyticsSiteCreateV1Schema>;
+
+export const AnalyticsSiteUpdateV1Schema = z.object({
+  originAllowlist: z.array(z.string().max(500)).max(50).optional(),
+  mode: z.enum(["full", "no_geo", "off"]).optional(),
+});
+
+export type AnalyticsSiteUpdateV1 = z.infer<typeof AnalyticsSiteUpdateV1Schema>;

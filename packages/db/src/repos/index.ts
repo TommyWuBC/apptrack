@@ -9,3 +9,4 @@ export * as matchingRepo from "./matching.js";
 export * as correctionsRepo from "./corrections.js";
 export * as settingsRepo from "./settings.js";
 export * as notificationsRepo from "./notifications.js";
+export * as analyticsRepo from "./analytics.js";

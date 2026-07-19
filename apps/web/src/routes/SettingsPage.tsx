@@ -12,6 +12,10 @@ export function SettingsPage() {
     queryKey: ["classifier-settings"],
     queryFn: () => api.classifierSettings(),
   });
+  const analyticsSites = useQuery({
+    queryKey: ["analytics-sites"],
+    queryFn: () => api.analyticsSites(),
+  });
   const notifications = useQuery({
     queryKey: ["notifications"],
     queryFn: () => api.notifications(),
@@ -21,6 +25,8 @@ export function SettingsPage() {
   const [ghost, setGhost] = useState<string>("");
   const [mode, setMode] = useState("deterministic");
   const [provider, setProvider] = useState<string>("");
+  const [siteOrigins, setSiteOrigins] = useState("http://localhost:4321");
+  const [siteMode, setSiteMode] = useState<"full" | "no_geo" | "off">("full");
 
   useEffect(() => {
     if (classifier.data?.settings.mode) {
@@ -79,6 +85,20 @@ export function SettingsPage() {
     },
   });
 
+  const createSite = useMutation({
+    mutationFn: () =>
+      api.createAnalyticsSite({
+        originAllowlist: siteOrigins
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        mode: siteMode,
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["analytics-sites"] });
+    },
+  });
+
   const t = settings.data?.thresholds;
   const egress =
     saveClassifier.data?.egressDisclosure ??
@@ -90,8 +110,8 @@ export function SettingsPage() {
       <div>
         <h2 className="mb-1 font-display text-xl font-semibold">Settings</h2>
         <p className="text-sm text-ink-600">
-          Gmail connection, classifier mode, and ghost thresholds. Analytics
-          site keys are deferred (M14).
+          Gmail connection, classifier mode, ghost thresholds, and analytics
+          sites. Portfolio SDK embed is M15.
         </p>
       </div>
 
@@ -258,11 +278,71 @@ export function SettingsPage() {
           <code className="font-mono text-xs">EMAIL_PROVIDER=mock</code>.
         </p>
       </section>
-      <section className="panel space-y-2 p-4 opacity-60">
+
+      <section className="panel space-y-3 p-4" data-testid="analytics-sites">
         <h3 className="font-medium">Analytics sites</h3>
         <p className="text-sm text-ink-700">
-          Coming in M14 — not part of this settings surface yet.
+          Cookie-free ingest at{" "}
+          <code className="font-mono text-xs">POST /api/v1/analytics/events</code>
+          . Modes: full (optional geo), no_geo, off. Raw IPs are never stored.
         </p>
+        <ul className="space-y-2 text-sm">
+          {(analyticsSites.data?.sites ?? []).map((s) => (
+            <li key={s.id} className="border-b border-ink-900/10 pb-2">
+              <p className="font-mono text-xs">{s.siteKey}</p>
+              <p className="text-ink-600">
+                mode={s.mode} · origins=
+                {(s.originAllowlist ?? []).join(", ") || "(any)"}
+              </p>
+            </li>
+          ))}
+          {(analyticsSites.data?.sites ?? []).length === 0 ? (
+            <li className="text-ink-600">No sites yet — create one below.</li>
+          ) : null}
+        </ul>
+        <div className="flex flex-wrap gap-3">
+          <label className="text-sm grow">
+            Origin allowlist (comma-separated)
+            <input
+              className="input mt-1"
+              data-testid="analytics-origins"
+              value={siteOrigins}
+              onChange={(e) => setSiteOrigins(e.target.value)}
+            />
+          </label>
+          <label className="text-sm">
+            Mode
+            <select
+              className="input mt-1 max-w-[8rem]"
+              data-testid="analytics-mode"
+              value={siteMode}
+              onChange={(e) =>
+                setSiteMode(e.target.value as "full" | "no_geo" | "off")
+              }
+            >
+              <option value="full">full</option>
+              <option value="no_geo">no_geo</option>
+              <option value="off">off</option>
+            </select>
+          </label>
+        </div>
+        <button
+          type="button"
+          className="btn"
+          data-testid="create-analytics-site"
+          disabled={createSite.isPending}
+          onClick={() => createSite.mutate()}
+        >
+          Create site key
+        </button>
+        {createSite.isSuccess ? (
+          <p className="text-xs text-moss-600">
+            Created{" "}
+            <code className="font-mono">
+              {(createSite.data as { site: { siteKey: string } }).site.siteKey}
+            </code>
+          </p>
+        ) : null}
       </section>
     </div>
   );

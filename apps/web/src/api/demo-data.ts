@@ -292,6 +292,20 @@ let demoClassifierSettings: {
   modelId: null,
 };
 
+let demoAnalyticsSites: Array<{
+  id: string;
+  siteKey: string;
+  originAllowlist: string[];
+  mode: string;
+}> = [
+  {
+    id: "site-demo",
+    siteKey: "pk_demo_initech_portfolio",
+    originAllowlist: ["http://localhost:4321"],
+    mode: "full",
+  },
+];
+
 const demoNotifications: Array<{
   id: string;
   kind: string;
@@ -421,6 +435,9 @@ export const demoStore = {
         classifierVersion: "clf-2026.07.1",
         promptVersion: "extract.v1",
       };
+    }
+    if (p === "/api/v1/analytics/sites") {
+      return { sites: demoAnalyticsSites, userId: "user-demo" };
     }
     if (p === "/api/v1/notifications") {
       return { notifications: demoNotifications, userId: "user-demo" };
@@ -575,6 +592,17 @@ export const demoStore = {
           disclosures.deterministic,
         classifierVersion: "clf-2026.07.1",
       };
+    }
+    if (method === "POST" && p === "/api/v1/analytics/sites") {
+      const b = body as { originAllowlist?: string[]; mode?: string };
+      const site = {
+        id: `site-${demoAnalyticsSites.length + 1}`,
+        siteKey: `pk_demo_${demoAnalyticsSites.length + 1}`,
+        originAllowlist: b.originAllowlist ?? [],
+        mode: b.mode ?? "full",
+      };
+      demoAnalyticsSites = [...demoAnalyticsSites, site];
+      return { site };
     }
     if (method === "POST" && p === "/api/v1/ghost/evaluate") {
       return {
