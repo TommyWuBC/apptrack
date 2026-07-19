@@ -227,6 +227,24 @@ describe("reduce — transitions", () => {
     ]);
     expect(r.state).toBe(ApplicationState.confirmation_received);
   });
+
+  it("ghost_flagged level=stale does not change current_state", () => {
+    const r = reduce([
+      ev({
+        id: "1",
+        eventType: EventType.application_confirmation,
+        occurredAt: new Date("2026-01-01T12:00:00Z"),
+      }),
+      ev({
+        id: "2",
+        eventType: ApplicationEventType.ghost_flagged,
+        occurredAt: new Date("2026-03-01T12:00:00Z"),
+        source: "system",
+        payload: { level: "stale" },
+      }),
+    ]);
+    expect(r.state).toBe(ApplicationState.confirmation_received);
+  });
 });
 
 describe("reduce — ordering & property", () => {

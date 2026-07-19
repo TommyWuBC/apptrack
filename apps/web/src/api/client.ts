@@ -153,5 +153,53 @@ export const api = {
     apiGet<{ applicationId: string; corrections: CorrectionRow[] }>(
       `/api/v1/applications/${applicationId}/corrections`,
     ),
+  ghostSettings: () =>
+    apiGet<{
+      userId: string | null;
+      thresholds: {
+        staleAfterDays: number;
+        ghostAfterDays: number;
+        perStage: Record<string, { staleAfterDays: number; ghostAfterDays: number }>;
+        perType: Record<string, { staleAfterDays: number; ghostAfterDays: number }>;
+        perCompany: Record<string, { staleAfterDays: number; ghostAfterDays: number }>;
+      };
+      algorithmVersion: string;
+    }>("/api/v1/settings/ghost"),
+  updateGhostSettings: (thresholds: {
+    staleAfterDays: number;
+    ghostAfterDays: number;
+    perStage?: Record<string, { staleAfterDays: number; ghostAfterDays: number }>;
+    perType?: Record<string, { staleAfterDays: number; ghostAfterDays: number }>;
+    perCompany?: Record<string, { staleAfterDays: number; ghostAfterDays: number }>;
+  }) =>
+    apiSend<{ thresholds: unknown; algorithmVersion: string }>(
+      "PATCH",
+      "/api/v1/settings/ghost",
+      { thresholds },
+    ),
+  evaluateGhosts: () =>
+    apiSend<{
+      algorithmVersion: string;
+      scanned: number;
+      transitions: unknown[];
+    }>("POST", "/api/v1/ghost/evaluate", {}),
+  dismissGhost: (applicationId: string) =>
+    apiSend<unknown>(
+      "POST",
+      `/api/v1/applications/${applicationId}/ghost/dismiss`,
+      {},
+    ),
+  notifications: () =>
+    apiGet<{
+      notifications: Array<{
+        id: string;
+        kind: string;
+        title: string;
+        body: string | null;
+        link: string | null;
+        readAt: string | null;
+      }>;
+      userId: string | null;
+    }>("/api/v1/notifications"),
   isDemo: demoEnabled,
 };

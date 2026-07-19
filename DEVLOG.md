@@ -872,3 +872,66 @@ Automation will be wrong sometimes. Users need to correct stages, lock fields so
 ### Follow-up
 
 **M12 Ghosting.** Live Postgres merge/split roundtrip when Docker available.
+
+## 2026-07-19 — cursor — M12 Ghosting inference
+
+**Meta:** branch `cursor/m12-ghosting-6a25` · milestone M12 · status completed
+
+### Problem being solved
+
+Applications often go silent. The dashboard needs a careful "possibly ghosted" signal — with thresholds the user can tune — without claiming a recruiter ghosted them as fact. Timers must pause around scheduled interviews/OAs, reset on real activity, and respect a user dismiss.
+
+### Background concepts
+
+**Ghost status vs application state.** `ghost_status` (`none` / `stale` / `possibly_ghosted` / `dismissed`) is a separate projection field. Only the possibly-ghosted transition also moves `current_state` to `ghosted` via a `ghost_flagged` event. Stale is a softer badge that does not rewrite the pipeline column.
+
+**Pause / reset.** If an interview datetime or OA deadline is still in the future, the inactivity clock pauses. Any meaningful email event clears prior ghost flags (`ghost_cleared`) during recompute.
+
+**Dismiss until state change.** Dismiss stores the stage at dismissal time. The evaluator will not re-flag until `current_state` differs from that snapshot.
+
+### Design decision
+
+1. Pure `evaluateGhost` in `packages/core/ghosting` (`ghost-v1`) with threshold precedence company > type > stage > default.
+2. `user_settings.ghost_thresholds` jsonb (migration `0001_user_settings`).
+3. Daily evaluate via API + worker HTTP poll (same pattern as email.sync — no worker→server import).
+4. Notification + `ghost_confirm` review item only at the ghost threshold.
+5. Reducer: `ghost_flagged` with `level: "stale"` does not change `current_state`.
+
+### Implementation
+
+- Core: `evaluateGhost`, `resolveGhostThresholds`, matrix tests.
+- DB: `userSettings`, settings + notifications repos.
+- Server: `ghost-evaluate-service`, routes (evaluate / dismiss / settings / notifications); recompute auto-clear.
+- Web: badges, detail banner + dismiss, settings thresholds, demo fixtures for stale/ghosted apps.
+- Docs: `docs/ghosting.md`.
+
+### Runtime flow
+
+1. Cron/worker (or Settings “Run now”) POSTs `/api/v1/ghost/evaluate`.
+2. For each application: reduce events → `evaluateGhost` → append `ghost_flagged` / `ghost_cleared` → update `ghost_status` → notify on possibly_ghosted.
+3. New meaningful email → recompute → `action: clear` → `ghost_cleared` + status `none`.
+
+### Bugs & failed approaches
+
+- Playwright preview serves **built** dist; e2e failed until `pnpm --filter @apptrack/web build`. Lesson: rebuild before e2e when UI changes.
+
+### Tests
+
+- Core ghosting 11 + reducer stale-level; server ghost routes; Playwright dismiss on `app-5`.
+- `pnpm typecheck` (touched pkgs) · lint · boundaries · core/server/web/db tests green.
+
+### Security & privacy review
+
+No new egress. Notifications store titles/bodies without email content. INV-7 untouched. Ghost copy uses “possibly” / “inference”.
+
+### Interview prep
+
+**Q: Why not just set status=ghosted after 90 days?**  
+A: Status is event-sourced. Ghosting is an inference with its own field so stale can show without collapsing the pipeline; dismiss and auto-clear need auditable events (`ghost_flagged` / `ghost_dismissed` / `ghost_cleared`).
+
+**Q: How do you avoid nagging after dismiss?**  
+A: Store `dismissedAtState`; suppress until the application’s derived state changes (e.g. a new interview invite).
+
+### Follow-up
+
+M13 LLM extraction or M14 analytics. Live DB proof of migration `0001` + evaluate when Docker available.
