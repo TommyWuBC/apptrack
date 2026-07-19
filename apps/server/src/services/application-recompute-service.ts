@@ -49,8 +49,8 @@ export type RecomputeResult = {
 };
 
 /**
- * Load events, reduce, overlay corrections stub, write projection.
- * // AGENTS.md §16.5
+ * Load events, reduce, overlay active corrections from DB (INV-7), write projection.
+ * // AGENTS.md §16.5 / §18.2
  */
 export async function recomputeApplication(
   db: Database,
@@ -66,12 +66,30 @@ export async function recomputeApplication(
   );
   const reduced = reduce(toReducerEvents(rows), REDUCER_VERSION);
 
+  const corrections =
+    opts.corrections ??
+    (
+      await repos.correctionsRepo.listCorrectionsForTarget(
+        db,
+        "application",
+        applicationId,
+      )
+    ).map((r) => ({
+      id: r.id,
+      field: r.field,
+      machineValue: r.machineValue,
+      userValue: r.userValue,
+      locked: r.locked,
+      revertedAt: r.revertedAt,
+      createdAt: r.createdAt,
+    }));
+
   const overlaid = applyCorrections(
     {
       currentState: reduced.state,
       actionRequired: reduced.actionRequired,
     },
-    opts.corrections ?? [],
+    corrections,
   );
 
   const currentState = String(overlaid.currentState);
@@ -148,6 +166,21 @@ export async function getApplicationTimeline(
     appliedAt: app.appliedAt,
     lastEventAt: app.lastEventAt,
     reduce: reduced,
+    corrections: (
+      await repos.correctionsRepo.listCorrectionsForTarget(
+        db,
+        "application",
+        applicationId,
+      )
+    ).map((r) => ({
+      id: r.id,
+      field: r.field,
+      machineValue: r.machineValue,
+      userValue: r.userValue,
+      locked: r.locked,
+      revertedAt: r.revertedAt,
+      createdAt: r.createdAt,
+    })),
     events: rows.map((r) => ({
       id: r.id,
       eventType: r.eventType,

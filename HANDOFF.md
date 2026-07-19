@@ -1,26 +1,26 @@
 # HANDOFF
 
 ## Current state
-**M10 complete.** Dashboard SPA: overview / applications / timeline / companies / stats / settings stub; typed API client; sandboxed evidence viewer; small-sample stats guard; demo fixtures (`?demo=1`). Server: `/api/v1/stats`, `/companies`, `/emails/:id/evidence`, `/me`.
+**M11 complete.** Corrections precedence (INV-7), review queue UI + resolve API, merge/split/reattach, company merge, locks/undo, audit_log. Recompute loads corrections from DB.
 
 ## Last action taken
-Implemented M10; ran M8–M10 tests + full gate (typecheck/lint/test/boundaries) + Playwright demo smoke — green. Fixed client↔demo circular import.
+Implemented M11; gate + Playwright (incl. review + corrections panel) green.
 
 ## Next action
-**M11 — Manual corrections & review:** corrections precedence (INV-7 UI), review queue UI, merge/split, reattach, locks, undo, audit_log.
+**M12 — Ghosting:** §17 evaluate job, thresholds settings UI, notifications, pause/reset/dismiss matrix.
 
 ## Open blockers
-- Docker Desktop (live DB proof). Integration tests skip without `DATABASE_URL`.
+- Docker Desktop (live DB proof for merge/split roundtrip + INV-7 persistence).
 
 ## Gotchas
-- SPA demo: `?demo=1` or `VITE_DEMO=1` — offline navigable without Postgres.
-- Review route intentionally omitted (M11). Analytics settings deferred (M14).
-- Small-sample: n < 10 → n/N, never bold % (`RateStatDisplay` + server `rateStat`).
-- Evidence iframe uses `sandbox=""` (T4); HTML sanitized on ingest.
-- Playwright: `pnpm --filter @apptrack/web e2e` (needs Chromium once via `playwright install chromium`).
+- Demo mode persists via `sessionStorage` after `?demo=1` so client-side navigations keep fixtures.
+- Undo = `reverted_at`; earlier corrections for the same field remain active.
+- Event reattach: new event + `superseded_by` on old (only allowed event mutation).
+- Review resolve body is a tagged union by `kind`.
+- Playwright: `pnpm --filter @apptrack/web e2e`.
 
 ## Do not
-- Add review/corrections UI here (M11).
-- Fetch URLs from email (INV-6).
+- Silent company merges (§14.4).
+- Overwrite locked fields from automation (INV-7).
+- UPDATE/DELETE `application_events` except `superseded_by`.
 - Commit real emails or `.env` secrets.
-- Reintroduce circular imports under `apps/web/src/api/`.

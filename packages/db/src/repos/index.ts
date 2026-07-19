@@ -6,3 +6,4 @@ export * as applicationsRepo from "./applications.js";
 export * as normalizedEmailsRepo from "./normalized-emails.js";
 export * as classificationRepo from "./classification.js";
 export * as matchingRepo from "./matching.js";
+export * as correctionsRepo from "./corrections.js";

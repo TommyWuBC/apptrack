@@ -832,3 +832,43 @@ Evidence endpoint returns sanitized HTML + classification evidence only. Iframe 
 ### Follow-up
 
 **M11** review queue UI + corrections. Wire real session auth into `/me` when auth middleware lands.
+
+## 2026-07-19 — cursor — Human-in-the-loop corrections and review
+
+**Meta:** branch `cursor/m11-corrections-review-6a25` · milestone M11 · status completed
+
+### Problem being solved
+
+Automation will be wrong sometimes. Users need to correct stages, lock fields so reprocessing cannot overwrite them, resolve ambiguous matches, merge/split applications and companies, and reattach emails — with an audit trail.
+
+### Background concepts
+
+**Field-level precedence (INV-7).** Machine projection is computed first; active user corrections overlay it. A locked correction always wins. Undo does not delete history — it sets `reverted_at`, and the prior correction for that field becomes active again.
+
+**Supersede, don't delete.** Reattaching an email appends a new `application_events` row and points `superseded_by` on the old one. The timeline stays explainable.
+
+**Review queue.** Ambiguous matches and merge suggestions sit in one inbox until the user chooses attach / new / dismiss / merge.
+
+### Design decision
+
+1. `user_corrections` + `audit_log` repos; `patchApplication` writes corrections and optional `manual_override` events, then recomputes with DB-loaded corrections.
+2. Review resolve is a tagged union by `kind` (contract-first for the SPA).
+3. Company merge is explicit only (no silent fuzzy merges).
+4. Demo fixtures cover review + a locked correction; demo flag sticks in `sessionStorage`.
+
+### Implementation
+
+- Core: `activeCorrections`, `isFieldLocked`, adversarial INV-7 tests.
+- DB: `correctionsRepo`; applications helpers for supersede / company reassign.
+- Server: `corrections-service` + routes (PATCH/merge/split/reattach/undo/review resolve/companies merge).
+- Web: `/review`, `CorrectionsPanel`, company merge form.
+- Docs: `docs/corrections-review.md`.
+
+### Tests
+
+- Core INV-7 (4) + full core 59; server corrections routes 503; Playwright review + corrections panel.
+- `pnpm typecheck && pnpm lint && pnpm test && pnpm boundaries` green.
+
+### Follow-up
+
+**M12 Ghosting.** Live Postgres merge/split roundtrip when Docker available.

@@ -5,6 +5,7 @@ import {
   applicationEvents,
   applications,
   companies,
+  companyAliases,
 } from "../schema/index.js";
 
 export async function createCompany(
@@ -194,4 +195,78 @@ export async function listApplicationsWithCompany(
     .from(applications)
     .innerJoin(companies, eq(companies.id, applications.companyId))
     .where(eq(applications.userId, userId));
+}
+
+export async function getEventById(db: Database, eventId: string) {
+  const [row] = await db
+    .select()
+    .from(applicationEvents)
+    .where(eq(applicationEvents.id, eventId))
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * Mark an event superseded (reattach path). Allowed mutation of superseded_by only.
+ * // AGENTS.md §10.4 / §18
+ */
+export async function markEventSuperseded(
+  db: Database,
+  eventId: string,
+  supersededBy: string,
+) {
+  const [row] = await db
+    .update(applicationEvents)
+    .set({ supersededBy })
+    .where(eq(applicationEvents.id, eventId))
+    .returning();
+  return row ?? null;
+}
+
+export async function updateApplicationCompany(
+  db: Database,
+  applicationId: string,
+  companyId: string,
+) {
+  const [row] = await db
+    .update(applications)
+    .set({ companyId })
+    .where(eq(applications.id, applicationId))
+    .returning();
+  return row ?? null;
+}
+
+export async function updateCompanyCanonicalName(
+  db: Database,
+  companyId: string,
+  canonicalName: string,
+) {
+  const [row] = await db
+    .update(companies)
+    .set({ canonicalName })
+    .where(eq(companies.id, companyId))
+    .returning();
+  return row ?? null;
+}
+
+export async function reassignCompanyAliases(
+  db: Database,
+  fromCompanyId: string,
+  toCompanyId: string,
+) {
+  await db
+    .update(companyAliases)
+    .set({ companyId: toCompanyId })
+    .where(eq(companyAliases.companyId, fromCompanyId));
+}
+
+export async function reassignApplicationsCompany(
+  db: Database,
+  fromCompanyId: string,
+  toCompanyId: string,
+) {
+  await db
+    .update(applications)
+    .set({ companyId: toCompanyId })
+    .where(eq(applications.companyId, fromCompanyId));
 }

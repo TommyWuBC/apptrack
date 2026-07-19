@@ -47,6 +47,15 @@ export type TimelineResponse = {
     flags: { conflict: boolean; reopened: boolean; onHold: boolean };
     reducerVersion: string;
   };
+  corrections?: Array<{
+    id: string;
+    field: string;
+    machineValue: unknown;
+    userValue: unknown;
+    locked: boolean;
+    revertedAt: string | null;
+    createdAt: string;
+  }>;
   events: TimelineEvent[];
 };
 
