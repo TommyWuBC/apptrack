@@ -1,11 +1,20 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { RouterProvider } from "@tanstack/react-router";
+import { router } from "./router.js";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 15_000,
+      retry: 1,
+    },
+  },
+});
+
 export function App() {
   return (
-    <main style={{ fontFamily: "Georgia, serif", padding: "2rem", maxWidth: 40 + "rem" }}>
-      <h1>apptrack</h1>
-      <p>
-        Self-hostable job application tracker. Dashboard routes land in M10 —
-        this shell proves the SPA package builds.
-      </p>
-    </main>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   );
 }

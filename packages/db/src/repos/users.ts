@@ -41,3 +41,8 @@ export async function countUsers(db: Database): Promise<number> {
   const rows = await db.select({ id: users.id }).from(users);
   return rows.length;
 }
+
+export async function getFirstUser(db: Database) {
+  const [row] = await db.select().from(users).limit(1);
+  return row ?? null;
+}

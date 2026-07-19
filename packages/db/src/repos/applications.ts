@@ -166,6 +166,10 @@ export async function getCompanyById(db: Database, id: string) {
   return row ?? null;
 }
 
+export async function listCompanies(db: Database) {
+  return db.select().from(companies);
+}
+
 export async function listApplicationsWithCompany(
   db: Database,
   userId: string,

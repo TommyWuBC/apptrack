@@ -10,4 +10,10 @@ export default defineConfig({
       "/healthz": "http://localhost:3000",
     },
   },
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    globals: false,
+    exclude: ["**/node_modules/**", "**/e2e/**", "**/dist/**"],
+  },
 });

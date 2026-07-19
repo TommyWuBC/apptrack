@@ -22,20 +22,25 @@ export async function registerApplicationRoutes(app: FastifyInstance) {
       });
     }
     const q = req.query as { userId?: string };
-    if (!q.userId) {
-      return reply.code(400).send({
-        error: {
-          code: ErrorCode.VALIDATION_ERROR,
-          message: "userId query param required",
-        },
-      });
+    let userId = q.userId;
+    if (!userId) {
+      const owner = await repos.usersRepo.getFirstUser(app.db);
+      if (!owner) {
+        return reply.code(400).send({
+          error: {
+            code: ErrorCode.VALIDATION_ERROR,
+            message: "userId query param required",
+          },
+        });
+      }
+      userId = owner.id;
     }
     const applications =
       await repos.applicationsRepo.listApplicationsWithCompany(
         app.db,
-        q.userId,
+        userId,
       );
-    return { applications };
+    return { applications, userId };
   });
 
   app.get("/api/v1/applications/:id", async (req, reply) => {
