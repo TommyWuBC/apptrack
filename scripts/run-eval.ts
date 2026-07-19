@@ -58,7 +58,7 @@ async function classifyEml(emlPath: string): Promise<string> {
   if (listId) headers["List-Id"] = listId;
   if (listUnsub) headers["List-Unsubscribe"] = listUnsub;
 
-  const result = classifyEmail({
+  const result = await classifyEmail({
     subject: n.subject,
     textPlain: n.textPlain,
     textFull: n.textFull,

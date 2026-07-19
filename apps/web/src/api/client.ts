@@ -201,5 +201,28 @@ export const api = {
       }>;
       userId: string | null;
     }>("/api/v1/notifications"),
+  classifierSettings: () =>
+    apiGet<{
+      userId: string | null;
+      settings: {
+        mode: string;
+        provider: string | null;
+        modelId: string | null;
+      };
+      keysPresent: { anthropic: boolean; openai: boolean; ollamaUrl: boolean };
+      egressDisclosure: string;
+      classifierVersion: string;
+      promptVersion: string;
+    }>("/api/v1/settings/classifier"),
+  updateClassifierSettings: (settings: {
+    mode: "deterministic" | "local" | "api" | "hybrid";
+    provider?: "anthropic" | "openai" | "ollama" | null;
+    modelId?: string | null;
+  }) =>
+    apiSend<{
+      settings: unknown;
+      egressDisclosure: string;
+      classifierVersion: string;
+    }>("PATCH", "/api/v1/settings/classifier", { settings }),
   isDemo: demoEnabled,
 };

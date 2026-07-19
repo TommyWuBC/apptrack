@@ -213,6 +213,8 @@ export const userSettings = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     ghostThresholds: jsonb("ghost_thresholds").notNull().default({}),
+    /** Classifier mode / provider prefs. AGENTS.md §13.2 / M13 */
+    classifierSettings: jsonb("classifier_settings").notNull().default({}),
     ...mutableTimestamps,
   },
   (t) => [uniqueIndex("user_settings_user_uidx").on(t.userId)],
