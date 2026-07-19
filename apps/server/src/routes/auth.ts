@@ -1,9 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { createHash } from "node:crypto";
-import {
-  AuthCredentialsV1Schema,
-  ErrorCode,
-} from "@apptrack/shared";
+import { AuthCredentialsV1Schema, ErrorCode } from "@apptrack/shared";
 import { repos } from "@apptrack/db";
 import type { AuthConfig } from "../config.js";
 import { generateCsrfToken } from "../auth/security.js";
@@ -13,12 +10,13 @@ import { TokenBucketLimiter } from "../services/rate-limit.js";
 const loginLimiter = new TokenBucketLimiter(5, 5 / 60_000);
 
 function sourceKey(req: FastifyRequest): string {
-  return createHash("sha256").update(req.ip || "unknown").digest("hex");
+  return createHash("sha256")
+    .update(req.ip || "unknown")
+    .digest("hex");
 }
 
 function coarseCountry(req: FastifyRequest): string | null {
-  const value =
-    req.headers["cf-ipcountry"] ?? req.headers["x-vercel-ip-country"];
+  const value = req.headers["cf-ipcountry"] ?? req.headers["x-vercel-ip-country"];
   return typeof value === "string" && /^[A-Z]{2}$/i.test(value)
     ? value.toUpperCase()
     : null;
@@ -91,12 +89,7 @@ export async function registerAuthRoutes(
       });
     }
     try {
-      const session = await setupOwner(
-        app.db,
-        config,
-        parsed.data,
-        coarseCountry(req),
-      );
+      const session = await setupOwner(app.db, config, parsed.data, coarseCountry(req));
       setAuthCookies(reply, config, session);
       return reply.code(201).send(publicUser(session));
     } catch (error) {
@@ -127,12 +120,7 @@ export async function registerAuthRoutes(
       });
     }
     try {
-      const session = await loginOwner(
-        app.db,
-        config,
-        parsed.data,
-        coarseCountry(req),
-      );
+      const session = await loginOwner(app.db, config, parsed.data, coarseCountry(req));
       setAuthCookies(reply, config, session);
       return publicUser(session);
     } catch (error) {
@@ -151,10 +139,7 @@ export async function registerAuthRoutes(
         error: { code: ErrorCode.UNAUTHORIZED, message: "authentication_required" },
       });
     }
-    const csrfToken = generateCsrfToken(
-      req.sessionTokenHash,
-      config.sessionSecret,
-    );
+    const csrfToken = generateCsrfToken(req.sessionTokenHash, config.sessionSecret);
     reply.setCookie(config.csrfCookieName, csrfToken, {
       path: "/",
       sameSite: "lax",

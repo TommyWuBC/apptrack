@@ -5,15 +5,10 @@
 import { callInternalApi } from "../internal-api.js";
 
 const intervalMs =
-  Number.parseInt(process.env.GHOST_EVAL_INTERVAL_MS ?? "", 10) ||
-  24 * 60 * 60 * 1000;
+  Number.parseInt(process.env.GHOST_EVAL_INTERVAL_MS ?? "", 10) || 24 * 60 * 60 * 1000;
 
 export async function triggerGhostEvaluate(userId?: string): Promise<unknown> {
-  return callInternalApi(
-    "POST",
-    "/api/v1/ghost/evaluate",
-    userId ? { userId } : {},
-  );
+  return callInternalApi("POST", "/api/v1/ghost/evaluate", userId ? { userId } : {});
 }
 
 export async function startGhostEvaluatePolling(): Promise<void> {

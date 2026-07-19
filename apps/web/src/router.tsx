@@ -30,11 +30,7 @@ function RootLayout() {
   const me = useQuery({
     queryKey: ["auth-me"],
     queryFn: api.me,
-    enabled:
-      !demo &&
-      !authRoute &&
-      status.isSuccess &&
-      !status.data.setupRequired,
+    enabled: !demo && !authRoute && status.isSuccess && !status.data.setupRequired,
     retry: false,
   });
 

@@ -49,10 +49,7 @@ export async function listNotificationsForUser(
   return q;
 }
 
-export async function markNotificationRead(
-  db: Database,
-  notificationId: string,
-) {
+export async function markNotificationRead(db: Database, notificationId: string) {
   const [row] = await db
     .update(notifications)
     .set({ readAt: new Date() })
@@ -61,18 +58,10 @@ export async function markNotificationRead(
   return row ?? null;
 }
 
-export async function deleteOldReadNotifications(
-  db: Database,
-  cutoff: Date,
-) {
+export async function deleteOldReadNotifications(db: Database, cutoff: Date) {
   const rows = await db
     .delete(notifications)
-    .where(
-      and(
-        isNotNull(notifications.readAt),
-        lt(notifications.readAt, cutoff),
-      ),
-    )
+    .where(and(isNotNull(notifications.readAt), lt(notifications.readAt, cutoff)))
     .returning({ id: notifications.id });
   return rows.length;
 }

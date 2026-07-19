@@ -26,8 +26,7 @@ export function OverviewPage() {
   if (error) {
     return (
       <p className="text-sm text-red-700">
-        {(error as Error).message}. Try{" "}
-        <a href="?demo=1">demo mode</a>.
+        {(error as Error).message}. Try <a href="?demo=1">demo mode</a>.
       </p>
     );
   }
@@ -40,11 +39,13 @@ export function OverviewPage() {
     byState.set(a.currentState, list);
   }
   const actionRequired = apps.filter((a) => a.actionRequired);
-  const recent = [...apps].sort((a, b) => {
-    const ta = a.lastEventAt ? Date.parse(a.lastEventAt) : 0;
-    const tb = b.lastEventAt ? Date.parse(b.lastEventAt) : 0;
-    return tb - ta;
-  }).slice(0, 6);
+  const recent = [...apps]
+    .sort((a, b) => {
+      const ta = a.lastEventAt ? Date.parse(a.lastEventAt) : 0;
+      const tb = b.lastEventAt ? Date.parse(b.lastEventAt) : 0;
+      return tb - ta;
+    })
+    .slice(0, 6);
 
   const columns = PIPELINE_ORDER.filter((s) => (byState.get(s)?.length ?? 0) > 0);
   for (const s of byState.keys()) {
@@ -65,9 +66,7 @@ export function OverviewPage() {
               className="panel min-w-[11rem] flex-shrink-0 p-3"
               data-testid="pipeline-column"
             >
-              <p className="mb-2 font-mono text-xs uppercase text-ink-600">
-                {state}
-              </p>
+              <p className="mb-2 font-mono text-xs uppercase text-ink-600">{state}</p>
               <ul className="space-y-2">
                 {(byState.get(state) ?? []).map((a) => (
                   <li key={a.id}>
@@ -75,8 +74,7 @@ export function OverviewPage() {
                       to="/applications/$id"
                       params={{ id: a.id }}
                       className={`block text-sm font-medium text-ink-950 no-underline hover:text-moss-600 ${
-                        a.ghostStatus === "stale" ||
-                        a.ghostStatus === "possibly_ghosted"
+                        a.ghostStatus === "stale" || a.ghostStatus === "possibly_ghosted"
                           ? "border-b border-dashed border-ink-900/40"
                           : ""
                       }`}
@@ -97,9 +95,7 @@ export function OverviewPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 font-display text-xl font-semibold">
-          Action required
-        </h2>
+        <h2 className="mb-3 font-display text-xl font-semibold">Action required</h2>
         {actionRequired.length === 0 ? (
           <p className="text-sm text-ink-600">Nothing urgent.</p>
         ) : (
@@ -128,17 +124,11 @@ export function OverviewPage() {
         <ul className="divide-y divide-ink-900/10 panel">
           {recent.map((a) => (
             <li key={a.id} className="flex justify-between px-3 py-2 text-sm">
-              <Link
-                to="/applications/$id"
-                params={{ id: a.id }}
-                className="no-underline"
-              >
+              <Link to="/applications/$id" params={{ id: a.id }} className="no-underline">
                 {a.companyName}
               </Link>
               <span className="font-mono text-xs text-ink-600">
-                {a.lastEventAt
-                  ? new Date(a.lastEventAt).toLocaleDateString()
-                  : "—"}
+                {a.lastEventAt ? new Date(a.lastEventAt).toLocaleDateString() : "—"}
               </span>
             </li>
           ))}

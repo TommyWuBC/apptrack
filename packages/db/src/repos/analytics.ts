@@ -6,11 +6,7 @@ import { and, desc, eq, isNull, lt, sql } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 import type { Database } from "../client.js";
 import { uuidv7 } from "../ids.js";
-import {
-  analyticsEvents,
-  analyticsSessions,
-  analyticsSites,
-} from "../schema/index.js";
+import { analyticsEvents, analyticsSessions, analyticsSites } from "../schema/index.js";
 
 function mintSiteKey(): string {
   return `pk_${randomBytes(18).toString("base64url")}`;
@@ -40,10 +36,7 @@ export async function createSite(
 }
 
 export async function listSitesForUser(db: Database, userId: string) {
-  return db
-    .select()
-    .from(analyticsSites)
-    .where(eq(analyticsSites.userId, userId));
+  return db.select().from(analyticsSites).where(eq(analyticsSites.userId, userId));
 }
 
 export async function getSiteById(db: Database, id: string) {
@@ -51,6 +44,15 @@ export async function getSiteById(db: Database, id: string) {
     .select()
     .from(analyticsSites)
     .where(eq(analyticsSites.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function getSiteForUser(db: Database, id: string, userId: string) {
+  const [row] = await db
+    .select()
+    .from(analyticsSites)
+    .where(and(eq(analyticsSites.id, id), eq(analyticsSites.userId, userId)))
     .limit(1);
   return row ?? null;
 }
@@ -67,20 +69,21 @@ export async function getSiteByKey(db: Database, siteKey: string) {
 export async function updateSite(
   db: Database,
   id: string,
+  userId: string,
   patch: { originAllowlist?: string[]; mode?: string },
 ) {
   const [row] = await db
     .update(analyticsSites)
     .set({ ...patch, updatedAt: new Date() })
-    .where(eq(analyticsSites.id, id))
+    .where(and(eq(analyticsSites.id, id), eq(analyticsSites.userId, userId)))
     .returning();
   return row ?? null;
 }
 
-export async function deleteSite(db: Database, id: string) {
+export async function deleteSite(db: Database, id: string, userId: string) {
   const [row] = await db
     .delete(analyticsSites)
-    .where(eq(analyticsSites.id, id))
+    .where(and(eq(analyticsSites.id, id), eq(analyticsSites.userId, userId)))
     .returning();
   return row ?? null;
 }
@@ -146,12 +149,7 @@ export async function listUnsessionizedEvents(
   return db
     .select()
     .from(analyticsEvents)
-    .where(
-      and(
-        isNull(analyticsEvents.sessionId),
-        isNull(analyticsEvents.sessionizedAt),
-      ),
-    )
+    .where(and(isNull(analyticsEvents.sessionId), isNull(analyticsEvents.sessionizedAt)))
     .limit(opts.limit ?? 2000);
 }
 
@@ -253,18 +251,14 @@ export async function reopenAndAttachEventsToSession(
     .where(eq(analyticsSessions.id, sessionId));
 }
 
-export async function closeIdleSessions(
-  db: Database,
-  idleBefore: Date,
-) {
+export async function closeIdleSessions(db: Database, idleBefore: Date) {
   const open = await db
     .select()
     .from(analyticsSessions)
     .where(isNull(analyticsSessions.endedAt));
   let n = 0;
   for (const s of open) {
-    const lastActivity =
-      (await getSessionLastActivity(db, s.id)) ?? s.startedAt;
+    const lastActivity = (await getSessionLastActivity(db, s.id)) ?? s.startedAt;
     if (lastActivity.getTime() < idleBefore.getTime()) {
       await db
         .update(analyticsSessions)

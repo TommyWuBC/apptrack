@@ -2,10 +2,7 @@ import { describe, expect, it } from "vitest";
 import { TokenBucketLimiter } from "../services/rate-limit.js";
 import { resolveGeo } from "../services/geo-lookup.js";
 import { originAllowed } from "../services/analytics-ingest-service.js";
-import {
-  AnalyticsIngestBatchV1Schema,
-  ANALYTICS_PROP_KEYS,
-} from "@apptrack/shared";
+import { AnalyticsIngestBatchV1Schema, ANALYTICS_PROP_KEYS } from "@apptrack/shared";
 import { buildApp } from "../app.js";
 
 describe("rate limiter", () => {
@@ -23,13 +20,11 @@ describe("originAllowed", () => {
   });
   it("matches allowlist origins", () => {
     expect(
-      originAllowed("https://portfolio.example", [
-        "https://portfolio.example",
-      ]),
+      originAllowed("https://portfolio.example", ["https://portfolio.example"]),
     ).toBe(true);
-    expect(
-      originAllowed("https://evil.example", ["https://portfolio.example"]),
-    ).toBe(false);
+    expect(originAllowed("https://evil.example", ["https://portfolio.example"])).toBe(
+      false,
+    );
   });
 });
 

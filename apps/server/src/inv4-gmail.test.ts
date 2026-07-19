@@ -20,10 +20,7 @@ describe("INV-4 gmail response hygiene", () => {
   });
 
   it("PublicAccountView type has no token fields", () => {
-    const src = readFileSync(
-      join(srcDir, "services/gmail-oauth-service.ts"),
-      "utf8",
-    );
+    const src = readFileSync(join(srcDir, "services/gmail-oauth-service.ts"), "utf8");
     expect(src).toMatch(/export type PublicAccountView/);
     const start = src.indexOf("export type PublicAccountView");
     const end = src.indexOf("};", start) + 2;

@@ -68,6 +68,11 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       }
       return reply.code(202).send(out);
     } catch (err) {
+      const origin = req.headers.origin;
+      if (origin) {
+        reply.header("access-control-allow-origin", origin);
+        reply.header("vary", "Origin");
+      }
       const status = (err as { statusCode?: number }).statusCode ?? 500;
       const msg = (err as Error).message;
       if (status === 429) {
@@ -99,10 +104,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const sites = await repos.analyticsRepo.listSitesForUser(
-      app.db,
-      req.userId!,
-    );
+    const sites = await repos.analyticsRepo.listSitesForUser(app.db, req.userId!);
     return { sites, userId: req.userId };
   });
 
@@ -160,7 +162,12 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         },
       });
     }
-    const site = await repos.analyticsRepo.updateSite(app.db, id, parsed.data);
+    const site = await repos.analyticsRepo.updateSite(
+      app.db,
+      id,
+      req.userId!,
+      parsed.data,
+    );
     if (!site) {
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },
@@ -176,7 +183,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
-    const site = await repos.analyticsRepo.deleteSite(app.db, id);
+    const site = await repos.analyticsRepo.deleteSite(app.db, id, req.userId!);
     if (!site) {
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },
@@ -200,10 +207,17 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         },
       });
     }
-    const sessions = await repos.analyticsRepo.listSessionsForSite(
+    const owned = await repos.analyticsRepo.getSiteForUser(
       app.db,
       q.siteId,
+      req.userId!,
     );
+    if (!owned) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },
+      });
+    }
+    const sessions = await repos.analyticsRepo.listSessionsForSite(app.db, q.siteId);
     return { sessions };
   });
 
@@ -220,6 +234,16 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
           code: ErrorCode.VALIDATION_ERROR,
           message: "siteId required",
         },
+      });
+    }
+    const owned = await repos.analyticsRepo.getSiteForUser(
+      app.db,
+      q.siteId,
+      req.userId!,
+    );
+    if (!owned) {
+      return reply.code(404).send({
+        error: { code: ErrorCode.NOT_FOUND, message: "site_not_found" },
       });
     }
     const summary = await repos.analyticsRepo.summarizeSite(app.db, q.siteId);

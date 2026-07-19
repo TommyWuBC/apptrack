@@ -20,7 +20,4 @@ export {
   GmailEmailProvider,
   HistoryExpiredError,
 } from "./adapter.js";
-export type {
-  GmailAccessTokenProvider,
-  GmailEmailProviderOpts,
-} from "./adapter.js";
+export type { GmailAccessTokenProvider, GmailEmailProviderOpts } from "./adapter.js";

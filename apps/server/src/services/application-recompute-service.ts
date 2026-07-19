@@ -74,10 +74,7 @@ export async function recomputeApplication(
   const app = await applicationsRepo.getApplicationById(db, applicationId);
   if (!app) throw new Error("application_not_found");
 
-  let rows = await applicationsRepo.listEventsForApplication(
-    db,
-    applicationId,
-  );
+  let rows = await applicationsRepo.listEventsForApplication(db, applicationId);
   let reduced = reduce(toReducerEvents(rows), REDUCER_VERSION);
   let ghostCleared = false;
 
@@ -218,17 +215,11 @@ export async function recomputeApplication(
 }
 
 /** Build timeline DTO: ordered events + reduce result. */
-export async function getApplicationTimeline(
-  db: Database,
-  applicationId: string,
-) {
+export async function getApplicationTimeline(db: Database, applicationId: string) {
   const app = await applicationsRepo.getApplicationById(db, applicationId);
   if (!app) return null;
 
-  const rows = await applicationsRepo.listEventsForApplication(
-    db,
-    applicationId,
-  );
+  const rows = await applicationsRepo.listEventsForApplication(db, applicationId);
   const events = toReducerEvents(rows);
   const reduced = reduce(events, app.stateVersion ?? REDUCER_VERSION);
 

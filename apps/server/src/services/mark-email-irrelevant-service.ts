@@ -1,7 +1,4 @@
-import {
-  ApplicationEventType,
-  EventType,
-} from "@apptrack/shared";
+import { ApplicationEventType, EventType } from "@apptrack/shared";
 import { repos, type Database } from "@apptrack/db";
 import { recomputeApplication } from "./application-recompute-service.js";
 
@@ -13,8 +10,10 @@ export async function markEmailIrrelevant(
 ) {
   const message = await repos.emailsRepo.getEmailMessageById(db, messageId);
   if (!message) throw new Error("message_not_found");
-  const classification =
-    await repos.classificationRepo.getLatestClassification(db, messageId);
+  const classification = await repos.classificationRepo.getLatestClassification(
+    db,
+    messageId,
+  );
   if (!classification) throw new Error("classification_not_found");
 
   const correction = await repos.correctionsRepo.insertCorrection(db, {
@@ -26,28 +25,25 @@ export async function markEmailIrrelevant(
     locked: true,
   });
 
-  const activeEvents =
-    await repos.applicationsRepo.listActiveEventsByMessageId(db, messageId);
+  const activeEvents = await repos.applicationsRepo.listActiveEventsByMessageId(
+    db,
+    messageId,
+  );
   const affected = new Set<string>();
   for (const event of activeEvents) {
-    const breadcrumb =
-      await repos.applicationsRepo.appendApplicationEvent(db, {
-        applicationId: event.applicationId,
-        eventType: ApplicationEventType.match_reassigned,
-        occurredAt: new Date(),
-        source: "user",
-        payload: {
-          detachedEventId: event.id,
-          messageId,
-          reason: "marked_irrelevant",
-          correctionId: correction.id,
-        },
-      });
-    await repos.applicationsRepo.markEventSuperseded(
-      db,
-      event.id,
-      breadcrumb.id,
-    );
+    const breadcrumb = await repos.applicationsRepo.appendApplicationEvent(db, {
+      applicationId: event.applicationId,
+      eventType: ApplicationEventType.match_reassigned,
+      occurredAt: new Date(),
+      source: "user",
+      payload: {
+        detachedEventId: event.id,
+        messageId,
+        reason: "marked_irrelevant",
+        correctionId: correction.id,
+      },
+    });
+    await repos.applicationsRepo.markEventSuperseded(db, event.id, breadcrumb.id);
     affected.add(event.applicationId);
   }
   for (const applicationId of affected) {

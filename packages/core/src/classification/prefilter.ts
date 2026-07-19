@@ -2,10 +2,7 @@
  * L0 prefilter — headers only. AGENTS.md §13.1 / §11.3.5
  * Pure function: decide whether to fetch a full body during sync.
  */
-import {
-  domainOfAddress,
-  isAtsSenderDomain,
-} from "./ats/senders.js";
+import { domainOfAddress, isAtsSenderDomain } from "./ats/senders.js";
 
 export type PrefilterDecision =
   | { action: "fetch"; reason: string }

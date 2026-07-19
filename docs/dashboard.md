@@ -4,14 +4,14 @@ Last verified against code: 2026-07-18 (M10).
 
 ## Routes
 
-| Path | Purpose |
-|------|---------|
-| `/` | Pipeline board, action-required, recent changes |
-| `/applications` | Search / filter / sort table |
-| `/applications/:id` | Timeline + evidence viewer |
-| `/companies` | Resolved companies (merge/split = M11) |
-| `/stats` | Metrics + **small-sample guard** (n&lt;10 → n/N) |
-| `/settings` | Gmail/classifier stubs (analytics sites deferred M14) |
+| Path                | Purpose                                               |
+| ------------------- | ----------------------------------------------------- |
+| `/`                 | Pipeline board, action-required, recent changes       |
+| `/applications`     | Search / filter / sort table                          |
+| `/applications/:id` | Timeline + evidence viewer                            |
+| `/companies`        | Resolved companies (merge/split = M11)                |
+| `/stats`            | Metrics + **small-sample guard** (n&lt;10 → n/N)      |
+| `/settings`         | Gmail/classifier stubs (analytics sites deferred M14) |
 
 Review queue UI is **M11** (API already exists from M8).
 
@@ -37,13 +37,13 @@ Sandboxed iframe (`sandbox=""`) for sanitized HTML — T4. Classification eviden
 
 ## API (server)
 
-| Method | Path |
-|--------|------|
-| GET | `/api/v1/me` |
-| GET | `/api/v1/stats` |
-| GET | `/api/v1/companies` |
-| GET | `/api/v1/emails/:id/evidence` |
-| GET | `/api/v1/applications` (owner fallback when `userId` omitted) |
+| Method | Path                                                          |
+| ------ | ------------------------------------------------------------- |
+| GET    | `/api/v1/me`                                                  |
+| GET    | `/api/v1/stats`                                               |
+| GET    | `/api/v1/companies`                                           |
+| GET    | `/api/v1/emails/:id/evidence`                                 |
+| GET    | `/api/v1/applications` (owner fallback when `userId` omitted) |
 
 ## Tests
 

@@ -6,9 +6,7 @@ import { startGhostEvaluatePolling } from "./jobs/ghost-evaluate.js";
 import { startAnalyticsAggregatePolling } from "./jobs/analytics-aggregate.js";
 import { startBossWorker } from "./jobs/boss.js";
 
-console.info(
-  "[worker] starting — email.sync + ghost.evaluate + analytics.aggregate",
-);
+console.info("[worker] starting — email.sync + ghost.evaluate + analytics.aggregate");
 
 if (process.env.WORKER_STUB_EXIT === "1") {
   console.info("[worker] WORKER_STUB_EXIT=1 — exiting");

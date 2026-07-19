@@ -1,8 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import {
-  EmailReprocessJobV1Schema,
-  JobName,
-} from "@apptrack/shared/jobs";
+import { EmailReprocessJobV1Schema, JobName } from "@apptrack/shared/jobs";
 import { ErrorCode } from "@apptrack/shared";
 import { runEmailReprocess } from "../services/email-reprocess-service.js";
 
@@ -10,9 +7,7 @@ function singletonKey(input: unknown): string {
   return `email.reprocess:${Buffer.from(JSON.stringify(input)).toString("base64url").slice(0, 120)}`;
 }
 
-export async function registerReprocessRoutes(
-  app: FastifyInstance,
-): Promise<void> {
+export async function registerReprocessRoutes(app: FastifyInstance): Promise<void> {
   app.post("/api/v1/reprocess", async (req, reply) => {
     if (!app.db) {
       return reply.code(503).send({

@@ -24,9 +24,7 @@ export type GmailEmailProviderOpts = {
 
 type GmailHeader = { name: string; value: string };
 
-function headersToRecord(
-  headers: GmailHeader[] | undefined,
-): Record<string, string> {
+function headersToRecord(headers: GmailHeader[] | undefined): Record<string, string> {
   const out: Record<string, string> = {};
   for (const h of headers ?? []) {
     out[h.name] = h.value;
@@ -34,13 +32,8 @@ function headersToRecord(
   return out;
 }
 
-function pickHeader(
-  headers: Record<string, string>,
-  name: string,
-): string | undefined {
-  const key = Object.keys(headers).find(
-    (k) => k.toLowerCase() === name.toLowerCase(),
-  );
+function pickHeader(headers: Record<string, string>, name: string): string | undefined {
+  const key = Object.keys(headers).find((k) => k.toLowerCase() === name.toLowerCase());
   return key ? headers[key] : undefined;
 }
 
@@ -176,9 +169,7 @@ export class GmailEmailProvider implements EmailProvider {
 
   async *listHistorical(query: BackfillQuery): AsyncIterable<RawEmailRef[]> {
     const after = formatGmailDate(query.afterDate);
-    const before = query.beforeDate
-      ? formatGmailDate(query.beforeDate)
-      : undefined;
+    const before = query.beforeDate ? formatGmailDate(query.beforeDate) : undefined;
     const qParts = [
       `after:${after}`,
       before ? `before:${before}` : null,

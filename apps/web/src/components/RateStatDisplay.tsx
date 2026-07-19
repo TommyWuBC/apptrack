@@ -28,18 +28,12 @@ export function RateStatDisplay({
             : "font-mono text-2xl text-ink-800"
         }
         data-small-sample={stat.smallSample ? "true" : "false"}
-        title={
-          stat.smallSample
-            ? "Sample too small for a percentage"
-            : undefined
-        }
+        title={stat.smallSample ? "Sample too small for a percentage" : undefined}
       >
         {text}
       </p>
       {stat.smallSample ? (
-        <p className="mt-1 text-xs text-ink-600">
-          sample too small for a percentage
-        </p>
+        <p className="mt-1 text-xs text-ink-600">sample too small for a percentage</p>
       ) : null}
     </div>
   );

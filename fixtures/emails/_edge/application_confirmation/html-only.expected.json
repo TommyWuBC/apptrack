@@ -6,8 +6,5 @@
     "atsPlatform": "lever"
   },
   "minConfidence": 0.7,
-  "tags": [
-    "edge",
-    "html_only"
-  ]
+  "tags": ["edge", "html_only"]
 }

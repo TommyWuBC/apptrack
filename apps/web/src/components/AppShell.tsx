@@ -66,8 +66,8 @@ export function AppShell({
           data-testid="demo-banner"
         >
           Demo fixtures — add <code className="font-mono">?demo=1</code> (or{" "}
-          <code className="font-mono">VITE_DEMO=1</code>) for offline UI.
-          Analytics settings are available under Settings.
+          <code className="font-mono">VITE_DEMO=1</code>) for offline UI. Analytics
+          settings are available under Settings.
         </p>
       ) : null}
       <div className="flex-1">{children}</div>

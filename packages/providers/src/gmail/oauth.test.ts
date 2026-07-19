@@ -41,15 +41,13 @@ describe("gmail oauth helpers", () => {
   });
 
   it("exchanges authorization code (happy path)", async () => {
-    nock("https://oauth2.googleapis.com")
-      .post("/token")
-      .reply(200, {
-        access_token: "ya29.access",
-        refresh_token: "1//refresh",
-        expires_in: 3600,
-        scope: "https://www.googleapis.com/auth/gmail.readonly",
-        token_type: "Bearer",
-      });
+    nock("https://oauth2.googleapis.com").post("/token").reply(200, {
+      access_token: "ya29.access",
+      refresh_token: "1//refresh",
+      expires_in: 3600,
+      scope: "https://www.googleapis.com/auth/gmail.readonly",
+      token_type: "Bearer",
+    });
 
     const tokens = await exchangeAuthorizationCode(config, {
       code: "auth-code",
@@ -61,13 +59,11 @@ describe("gmail oauth helpers", () => {
   });
 
   it("refresh rotates access token", async () => {
-    nock("https://oauth2.googleapis.com")
-      .post("/token")
-      .reply(200, {
-        access_token: "ya29.new",
-        expires_in: 3600,
-        token_type: "Bearer",
-      });
+    nock("https://oauth2.googleapis.com").post("/token").reply(200, {
+      access_token: "ya29.new",
+      expires_in: 3600,
+      token_type: "Bearer",
+    });
 
     const tokens = await refreshAccessToken(config, "1//refresh");
     expect(tokens.accessToken).toBe("ya29.new");
@@ -85,10 +81,7 @@ describe("gmail oauth helpers", () => {
   });
 
   it("revokes a token", async () => {
-    nock("https://oauth2.googleapis.com")
-      .post("/revoke")
-      .query(true)
-      .reply(200, {});
+    nock("https://oauth2.googleapis.com").post("/revoke").query(true).reply(200, {});
     await expect(revokeToken("1//refresh")).resolves.toBeUndefined();
     expect(GOOGLE_REVOKE_URL).toContain("revoke");
   });
@@ -97,9 +90,7 @@ describe("gmail oauth helpers", () => {
     nock("https://www.googleapis.com")
       .get("/oauth2/v3/userinfo")
       .reply(200, { email: "Alex@Example.COM" });
-    await expect(fetchUserEmail("ya29.access")).resolves.toBe(
-      "alex@example.com",
-    );
+    await expect(fetchUserEmail("ya29.access")).resolves.toBe("alex@example.com");
     expect(GOOGLE_USERINFO_URL).toContain("userinfo");
   });
 });

@@ -52,11 +52,7 @@ describeDb("db repos (integration)", () => {
       providerAccountEmail: "me@gmail.com",
     });
 
-    const blob = Buffer.concat([
-      randomBytes(12),
-      randomBytes(16),
-      randomBytes(32),
-    ]);
+    const blob = Buffer.concat([randomBytes(12), randomBytes(16), randomBytes(32)]);
     const creds = await oauthCredentialsRepo.upsertOauthCredentials(db, {
       accountId: account.id,
       encryptedRefreshToken: blob,
@@ -107,10 +103,7 @@ describeDb("db repos (integration)", () => {
       email: `app-${Date.now()}@example.com`,
       passwordHash: "x",
     });
-    const company = await applicationsRepo.createCompany(
-      db,
-      `Initech ${Date.now()}`,
-    );
+    const company = await applicationsRepo.createCompany(db, `Initech ${Date.now()}`);
     const app = await applicationsRepo.createApplication(db, {
       userId: user.id,
       companyId: company.id,

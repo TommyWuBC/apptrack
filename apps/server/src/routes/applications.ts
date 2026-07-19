@@ -21,11 +21,10 @@ export async function registerApplicationRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
       });
     }
-    const applications =
-      await repos.applicationsRepo.listApplicationsWithCompany(
-        app.db,
-        req.userId!,
-      );
+    const applications = await repos.applicationsRepo.listApplicationsWithCompany(
+      app.db,
+      req.userId!,
+    );
     return { applications, userId: req.userId };
   });
 
@@ -36,10 +35,7 @@ export async function registerApplicationRoutes(app: FastifyInstance) {
       });
     }
     const { id } = req.params as { id: string };
-    const application = await repos.applicationsRepo.getApplicationById(
-      app.db,
-      id,
-    );
+    const application = await repos.applicationsRepo.getApplicationById(app.db, id);
     if (!application) {
       return reply.code(404).send({
         error: { code: ErrorCode.NOT_FOUND, message: "application_not_found" },

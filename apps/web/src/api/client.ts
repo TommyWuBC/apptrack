@@ -48,11 +48,7 @@ async function apiGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-async function apiSend<T>(
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<T> {
+async function apiSend<T>(method: string, path: string, body?: unknown): Promise<T> {
   if (demoEnabled()) {
     return demoStore.mutate(method, path, body) as T;
   }
@@ -68,9 +64,7 @@ async function apiSend<T>(
     credentials: "include",
     headers: {
       "content-type": "application/json",
-      ...(csrfToken
-        ? { "x-csrf-token": decodeURIComponent(csrfToken) }
-        : {}),
+      ...(csrfToken ? { "x-csrf-token": decodeURIComponent(csrfToken) } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
@@ -107,8 +101,7 @@ export const api = {
       role: "owner";
       csrfToken: string;
     }>("/api/v1/auth/me"),
-  authStatus: () =>
-    apiGet<{ setupRequired: boolean }>("/api/v1/auth/status"),
+  authStatus: () => apiGet<{ setupRequired: boolean }>("/api/v1/auth/status"),
   setup: (email: string, password: string) =>
     apiSend<{ userId: string; email: string; role: "owner"; csrfToken: string }>(
       "POST",
@@ -138,9 +131,7 @@ export const api = {
     apiGet<TimelineResponse>(`/api/v1/applications/${id}/timeline`),
   stats: (userId?: string) =>
     apiGet<StatsResponse>(
-      userId
-        ? `/api/v1/stats?userId=${encodeURIComponent(userId)}`
-        : "/api/v1/stats",
+      userId ? `/api/v1/stats?userId=${encodeURIComponent(userId)}` : "/api/v1/stats",
     ),
   companies: () => apiGet<{ companies: CompanyRow[] }>("/api/v1/companies"),
   evidence: (messageId: string) =>
@@ -159,9 +150,7 @@ export const api = {
   }) => apiSend<unknown>("POST", "/api/v1/reprocess", body),
   review: (kind?: string) =>
     apiGet<{ items: ReviewItem[] }>(
-      kind
-        ? `/api/v1/review?kind=${encodeURIComponent(kind)}`
-        : "/api/v1/review",
+      kind ? `/api/v1/review?kind=${encodeURIComponent(kind)}` : "/api/v1/review",
     ),
   resolveReview: (id: string, body: unknown) =>
     apiSend<unknown>("POST", `/api/v1/review/${id}/resolve`, body),
@@ -228,11 +217,7 @@ export const api = {
       transitions: unknown[];
     }>("POST", "/api/v1/ghost/evaluate", {}),
   dismissGhost: (applicationId: string) =>
-    apiSend<unknown>(
-      "POST",
-      `/api/v1/applications/${applicationId}/ghost/dismiss`,
-      {},
-    ),
+    apiSend<unknown>("POST", `/api/v1/applications/${applicationId}/ghost/dismiss`, {}),
   notifications: () =>
     apiGet<{
       notifications: Array<{

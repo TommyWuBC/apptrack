@@ -13,9 +13,9 @@ describe("auth security primitives", () => {
     const hash = await hashPassword("correct horse battery staple");
     expect(hash).toContain("$argon2id$");
     expect(hash).not.toContain("correct horse");
-    await expect(
-      verifyPassword(hash, "correct horse battery staple"),
-    ).resolves.toBe(true);
+    await expect(verifyPassword(hash, "correct horse battery staple")).resolves.toBe(
+      true,
+    );
     await expect(verifyPassword(hash, "wrong password")).resolves.toBe(false);
   });
 
@@ -31,9 +31,7 @@ describe("auth security primitives", () => {
     const token = generateCsrfToken(sessionHash, "secret-a");
     expect(verifyCsrfToken(token, sessionHash, "secret-a")).toBe(true);
     expect(verifyCsrfToken(token, sessionHash, "secret-b")).toBe(false);
-    expect(
-      verifyCsrfToken(token, hashSessionToken("another"), "secret-a"),
-    ).toBe(false);
+    expect(verifyCsrfToken(token, hashSessionToken("another"), "secret-a")).toBe(false);
     expect(verifyCsrfToken(`${token}x`, sessionHash, "secret-a")).toBe(false);
   });
 });

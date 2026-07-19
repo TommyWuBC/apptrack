@@ -19,7 +19,10 @@ import {
   type ReviewResolution,
 } from "../services/corrections-service.js";
 
-function mapErr(err: unknown, reply: { code: (n: number) => { send: (b: unknown) => unknown } }) {
+function mapErr(
+  err: unknown,
+  reply: { code: (n: number) => { send: (b: unknown) => unknown } },
+) {
   const msg = (err as Error).message;
   if (msg === "application_not_found" || msg.startsWith("application_not_found:")) {
     return reply.code(404).send({
@@ -45,8 +48,8 @@ function mapErr(err: unknown, reply: { code: (n: number) => { send: (b: unknown)
     msg === "review_not_open" ||
     msg === "event_already_superseded" ||
     msg === "merge_user_mismatch" ||
-    msg === "merge_same_company"
-    || msg.startsWith("invalid_")
+    msg === "merge_same_company" ||
+    msg.startsWith("invalid_")
   ) {
     return reply.code(400).send({
       error: { code: ErrorCode.VALIDATION_ERROR, message: msg },
@@ -97,12 +100,7 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const body = req.body as { sourceIds: string[] };
     try {
-      return await mergeApplications(
-        app.db,
-        id,
-        body.sourceIds ?? [],
-        req.userId,
-      );
+      return await mergeApplications(app.db, id, body.sourceIds ?? [], req.userId);
     } catch (err) {
       return mapErr(err, reply);
     }
@@ -129,28 +127,20 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
     }
   });
 
-  app.post(
-    "/api/v1/applications/:id/events/:eventId/reattach",
-    async (req, reply) => {
-      if (!app.db) {
-        return reply.code(503).send({
-          error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
-        });
-      }
-      const { eventId } = req.params as { id: string; eventId: string };
-      const body = req.body as { toApplicationId: string };
-      try {
-        return await reattachEvent(
-          app.db,
-          eventId,
-          body.toApplicationId,
-          req.userId,
-        );
-      } catch (err) {
-        return mapErr(err, reply);
-      }
-    },
-  );
+  app.post("/api/v1/applications/:id/events/:eventId/reattach", async (req, reply) => {
+    if (!app.db) {
+      return reply.code(503).send({
+        error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
+      });
+    }
+    const { eventId } = req.params as { id: string; eventId: string };
+    const body = req.body as { toApplicationId: string };
+    try {
+      return await reattachEvent(app.db, eventId, body.toApplicationId, req.userId);
+    } catch (err) {
+      return mapErr(err, reply);
+    }
+  });
 
   app.post("/api/v1/corrections/:id/undo", async (req, reply) => {
     if (!app.db) {
@@ -199,12 +189,7 @@ export async function registerCorrectionsRoutes(app: FastifyInstance) {
       });
     }
     try {
-      return await resolveReview(
-        app.db,
-        id,
-        parsed.data as ReviewResolution,
-        req.userId,
-      );
+      return await resolveReview(app.db, id, parsed.data as ReviewResolution, req.userId);
     } catch (err) {
       return mapErr(err, reply);
     }

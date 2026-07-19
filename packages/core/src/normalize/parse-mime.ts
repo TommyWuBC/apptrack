@@ -35,10 +35,7 @@ function headersFromParsed(mail: ParsedMail): Record<string, string> {
   return out;
 }
 
-function collectCalendar(
-  mail: ParsedMail,
-  attachments: Attachment[],
-): string[] {
+function collectCalendar(mail: ParsedMail, attachments: Attachment[]): string[] {
   const parts: string[] = [];
   for (const att of attachments) {
     const ct = (att.contentType ?? "").toLowerCase();
@@ -64,7 +61,7 @@ export async function parseMimeBuffer(raw: Buffer): Promise<ParsedMime> {
   const from = mail.from?.value?.[0];
   const toAddresses =
     mail.to && "value" in mail.to
-      ? (mail.to.value ?? []).map((a) => a.address).filter(Boolean) as string[]
+      ? ((mail.to.value ?? []).map((a) => a.address).filter(Boolean) as string[])
       : [];
 
   return {

@@ -3,19 +3,10 @@
  */
 import { EventType } from "@apptrack/shared";
 import { roleTitleSimilarity } from "../resolution/normalize-role.js";
-import {
-  MATCH_WEIGHTS,
-  RECENCY_WINDOW_DAYS,
-  TERMINAL_STALE_DAYS,
-} from "./weights.js";
+import { MATCH_WEIGHTS, RECENCY_WINDOW_DAYS, TERMINAL_STALE_DAYS } from "./weights.js";
 import type { MatchSignal } from "@apptrack/shared";
 
-const TERMINAL_STATES = new Set([
-  "offer",
-  "rejected",
-  "withdrawn",
-  "ghosted",
-]);
+const TERMINAL_STATES = new Set(["offer", "rejected", "withdrawn", "ghosted"]);
 
 /** Event types that fit assessment_received stage. */
 const ASSESSMENT_EVENTS = new Set<string>([
@@ -78,9 +69,7 @@ function extractReqTokens(...values: Array<string | null | undefined>): Set<stri
   const out = new Set<string>();
   for (const v of values) {
     if (!v) continue;
-    const matches = v.match(
-      /\b(?:R[-_]?\d{4,}|JR\d{5,}|REQ[-_]?\d{3,}|\d{6,})\b/gi,
-    );
+    const matches = v.match(/\b(?:R[-_]?\d{4,}|JR\d{5,}|REQ[-_]?\d{3,}|\d{6,})\b/gi);
     for (const m of matches ?? []) out.add(m.toUpperCase());
     // Greenhouse/Lever path ids
     const pathIds = v.match(/\/(?:jobs|job)\/([a-zA-Z0-9_-]{6,})/g);
@@ -165,9 +154,7 @@ export function computeSignals(
   );
 
   // Same recruiter sender
-  const from = (email.fromAddress ?? email.recruiterEmail ?? "")
-    .toLowerCase()
-    .trim();
+  const from = (email.fromAddress ?? email.recruiterEmail ?? "").toLowerCase().trim();
   const recruiterHit =
     from.length > 0 &&
     (candidate.recruiterEmails ?? []).some((e) => e.toLowerCase() === from);
@@ -191,27 +178,21 @@ export function computeSignals(
     weight: MATCH_WEIGHTS.roleTitleSimilarity,
     fired: titleSim >= 0.34,
     contribution: titleContrib,
-    detail:
-      titleSim > 0
-        ? `Title similarity ${(titleSim * 100).toFixed(0)}%`
-        : undefined,
+    detail: titleSim > 0 ? `Title similarity ${(titleSim * 100).toFixed(0)}%` : undefined,
   });
 
   // Assessment provider continuity
   const assessHit =
     Boolean(email.assessmentProvider) &&
     (candidate.assessmentProviders ?? []).some(
-      (p) =>
-        p.toLowerCase() === email.assessmentProvider!.toLowerCase(),
+      (p) => p.toLowerCase() === email.assessmentProvider!.toLowerCase(),
     );
   signals.push(
     signal(
       "assessmentContinuity",
       MATCH_WEIGHTS.assessmentContinuity,
       assessHit,
-      assessHit
-        ? `Assessment provider ${email.assessmentProvider}`
-        : undefined,
+      assessHit ? `Assessment provider ${email.assessmentProvider}` : undefined,
     ),
   );
 
@@ -239,8 +220,7 @@ export function computeSignals(
     const days = daysBetween(email.occurredAt, anchor);
     if (days <= RECENCY_WINDOW_DAYS) {
       recencyFired = true;
-      recencyContrib =
-        MATCH_WEIGHTS.recencyPrior * (1 - days / RECENCY_WINDOW_DAYS);
+      recencyContrib = MATCH_WEIGHTS.recencyPrior * (1 - days / RECENCY_WINDOW_DAYS);
     }
   }
   signals.push({
@@ -275,18 +255,12 @@ export function computeSignals(
   } else if (email.eventType === EventType.offer) {
     stateOk = state !== "withdrawn";
   } else if (email.eventType === EventType.application_confirmation) {
-    stateOk =
-      state === "draft" || state === "applied" || state === "unknown";
+    stateOk = state === "draft" || state === "applied" || state === "unknown";
   } else {
     stateOk = !TERMINAL_STATES.has(state);
   }
   signals.push(
-    signal(
-      "stateCompatibility",
-      MATCH_WEIGHTS.stateCompatibility,
-      stateOk,
-      stateDetail,
-    ),
+    signal("stateCompatibility", MATCH_WEIGHTS.stateCompatibility, stateOk, stateDetail),
   );
 
   // Negative: terminal + stale

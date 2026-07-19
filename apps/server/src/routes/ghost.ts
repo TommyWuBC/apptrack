@@ -2,11 +2,7 @@
  * Ghost evaluate, dismiss, settings, notifications. AGENTS.md §17 / §22 / M12
  */
 import type { FastifyInstance } from "fastify";
-import {
-  ErrorCode,
-  GhostThresholdsV1Schema,
-  JobName,
-} from "@apptrack/shared";
+import { ErrorCode, GhostThresholdsV1Schema, JobName } from "@apptrack/shared";
 import { DEFAULT_GHOST_THRESHOLDS, GHOST_VERSION } from "@apptrack/core";
 import { repos } from "@apptrack/db";
 import {

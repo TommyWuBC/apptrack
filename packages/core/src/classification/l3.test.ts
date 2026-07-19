@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  ClassifierMode,
-  EventType,
-  LlmExtractionV1Schema,
-} from "@apptrack/shared";
+import { ClassifierMode, EventType, LlmExtractionV1Schema } from "@apptrack/shared";
 import { classifyEmail } from "./classify.js";
 import {
   arbitrate,
@@ -83,9 +79,7 @@ describe("L3 / arbitration", () => {
       evilToolCall: "rm -rf",
     });
     expect(parsed.company).toBe("Initech");
-    expect(
-      (parsed as Record<string, unknown>).evilToolCall,
-    ).toBeUndefined();
+    expect((parsed as Record<string, unknown>).evilToolCall).toBeUndefined();
   });
 });
 
@@ -143,9 +137,7 @@ describe("classifyEmail + L3", () => {
       { mode: ClassifierMode.api, llm },
     );
     expect(r.needsReview).toBe(true);
-    expect(r.evidence.some((e) => e.detail.includes("schema_invalid"))).toBe(
-      true,
-    );
+    expect(r.evidence.some((e) => e.detail.includes("schema_invalid"))).toBe(true);
   });
 
   it("injection canary never calls LLM even in api mode", async () => {

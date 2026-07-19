@@ -72,10 +72,7 @@ export type {
   ApplicationPatchV1,
   ReviewResolutionV1,
 } from "./schemas.js";
-export {
-  FixtureExpectedV1Schema,
-  GoldenBaselineV1Schema,
-} from "./fixtures.js";
+export { FixtureExpectedV1Schema, GoldenBaselineV1Schema } from "./fixtures.js";
 export type { FixtureExpectedV1, GoldenBaselineV1 } from "./fixtures.js";
 export {
   JobName,

@@ -65,9 +65,7 @@ export function SettingsPage() {
       api.updateClassifierSettings({
         mode: mode as "deterministic" | "local" | "api" | "hybrid",
         provider:
-          provider === "anthropic" ||
-          provider === "openai" ||
-          provider === "ollama"
+          provider === "anthropic" || provider === "openai" || provider === "ollama"
             ? provider
             : null,
         modelId: null,
@@ -108,25 +106,23 @@ export function SettingsPage() {
 
   const t = settings.data?.thresholds;
   const egress =
-    saveClassifier.data?.egressDisclosure ??
-    classifier.data?.egressDisclosure ??
-    "";
+    saveClassifier.data?.egressDisclosure ?? classifier.data?.egressDisclosure ?? "";
 
   return (
     <div data-testid="settings-page" className="space-y-6">
       <div>
         <h2 className="mb-1 font-display text-xl font-semibold">Settings</h2>
         <p className="text-sm text-ink-600">
-          Gmail connection, classifier mode, ghost thresholds, and analytics
-          sites. Portfolio SDK embed is M15.
+          Gmail connection, classifier mode, ghost thresholds, and analytics sites.
+          Portfolio SDK embed is M15.
         </p>
       </div>
 
       <section className="panel space-y-3 p-4" data-testid="classifier-settings">
         <h3 className="font-medium">Classifier</h3>
         <p className="text-sm text-ink-700">
-          Default is <code className="font-mono text-xs">deterministic</code> —
-          fully local, no model keys required. LLM modes are opt-in.
+          Default is <code className="font-mono text-xs">deterministic</code> — fully
+          local, no model keys required. LLM modes are opt-in.
           {classifier.data?.classifierVersion
             ? ` (${classifier.data.classifierVersion} / ${classifier.data.promptVersion})`
             : ""}
@@ -194,9 +190,8 @@ export function SettingsPage() {
       <section className="panel space-y-3 p-4" data-testid="reprocess-settings">
         <h3 className="font-medium">Reprocess stored email</h3>
         <p className="text-sm text-ink-700">
-          Re-run normalization, classification, matching, and projections from
-          local data. Gmail is not contacted; versioned results make retries
-          idempotent.
+          Re-run normalization, classification, matching, and projections from local data.
+          Gmail is not contacted; versioned results make retries idempotent.
         </p>
         <button
           type="button"
@@ -204,9 +199,7 @@ export function SettingsPage() {
           disabled={reprocess.isPending}
           onClick={() => {
             if (
-              window.confirm(
-                "Reprocess all stored email with the current classifier?",
-              )
+              window.confirm("Reprocess all stored email with the current classifier?")
             ) {
               reprocess.mutate();
             }
@@ -222,14 +215,10 @@ export function SettingsPage() {
       <section className="panel space-y-3 p-4" data-testid="ghost-thresholds">
         <h3 className="font-medium">Ghost thresholds</h3>
         <p className="text-sm text-ink-700">
-          Inference only — the UI says &quot;possibly ghosted&quot;. Timer pauses
-          while a future interview or OA deadline exists; resets on meaningful
-          activity. Defaults: stale {t?.staleAfterDays ?? 45}d / ghost{" "}
-          {t?.ghostAfterDays ?? 90}d
-          {settings.data?.algorithmVersion
-            ? ` (${settings.data.algorithmVersion})`
-            : ""}
-          .
+          Inference only — the UI says &quot;possibly ghosted&quot;. Timer pauses while a
+          future interview or OA deadline exists; resets on meaningful activity. Defaults:
+          stale {t?.staleAfterDays ?? 45}d / ghost {t?.ghostAfterDays ?? 90}d
+          {settings.data?.algorithmVersion ? ` (${settings.data.algorithmVersion})` : ""}.
         </p>
         <div className="flex flex-wrap gap-3">
           <label className="text-sm">
@@ -307,8 +296,7 @@ export function SettingsPage() {
       <section className="panel space-y-2 p-4">
         <h3 className="font-medium">Gmail</h3>
         <p className="text-sm text-ink-700">
-          Connect via{" "}
-          <code className="font-mono text-xs">GET /api/v1/gmail/connect</code>{" "}
+          Connect via <code className="font-mono text-xs">GET /api/v1/gmail/connect</code>{" "}
           when OAuth env is configured. Mock provider:{" "}
           <code className="font-mono text-xs">EMAIL_PROVIDER=mock</code>.
         </p>
@@ -318,8 +306,8 @@ export function SettingsPage() {
         <h3 className="font-medium">Analytics sites</h3>
         <p className="text-sm text-ink-700">
           Cookie-free ingest at{" "}
-          <code className="font-mono text-xs">POST /api/v1/analytics/events</code>
-          . Modes: full (optional geo), no_geo, off. Raw IPs are never stored.
+          <code className="font-mono text-xs">POST /api/v1/analytics/events</code>. Modes:
+          full (optional geo), no_geo, off. Raw IPs are never stored.
         </p>
         <ul className="space-y-2 text-sm">
           {(analyticsSites.data?.sites ?? []).map((s) => (
@@ -351,9 +339,7 @@ export function SettingsPage() {
               className="input mt-1 max-w-[8rem]"
               data-testid="analytics-mode"
               value={siteMode}
-              onChange={(e) =>
-                setSiteMode(e.target.value as "full" | "no_geo" | "off")
-              }
+              onChange={(e) => setSiteMode(e.target.value as "full" | "no_geo" | "off")}
             >
               <option value="full">full</option>
               <option value="no_geo">no_geo</option>

@@ -13,10 +13,7 @@ import { recomputeApplication } from "./application-recompute-service.js";
  * Reprocesses locally stored content only; Gmail is never called. AGENTS.md
  * §11.5. Changed classifications supersede their old event with a new append.
  */
-export async function runEmailReprocess(
-  db: Database,
-  rawInput: EmailReprocessJobV1,
-) {
+export async function runEmailReprocess(db: Database, rawInput: EmailReprocessJobV1) {
   const input = EmailReprocessJobV1Schema.parse(rawInput);
   if (
     input.targetClassifierVersion &&
@@ -27,8 +24,7 @@ export async function runEmailReprocess(
 
   const messageIds = await repos.emailsRepo.listEmailMessageIds(db, {
     messageIds: input.scope === "message_ids" ? input.messageIds : undefined,
-    afterDate:
-      input.scope === "date_range" ? new Date(input.afterDate) : undefined,
+    afterDate: input.scope === "date_range" ? new Date(input.afterDate) : undefined,
     beforeDate:
       input.scope === "date_range" && input.beforeDate
         ? new Date(input.beforeDate)
@@ -39,18 +35,27 @@ export async function runEmailReprocess(
   let rematched = 0;
   let eventsReplaced = 0;
   for (const messageId of messageIds) {
-    const normalized =
-      await repos.normalizedEmailsRepo.getLatestNormalized(db, messageId);
+    const normalized = await repos.normalizedEmailsRepo.getLatestNormalized(
+      db,
+      messageId,
+    );
     if (!normalized) await runNormalizeMessage(db, messageId);
 
-    await classifyAndStoreMessage(db, messageId);
+    const classifiedOut = await classifyAndStoreMessage(db, messageId);
     classified += 1;
-    const latest =
-      await repos.classificationRepo.getLatestClassification(db, messageId);
+    const latest = await repos.classificationRepo.getEffectiveClassification(
+      db,
+      messageId,
+    );
     if (!latest) continue;
+    // Prefer the just-written row id when this pass inserted; otherwise the
+    // effective overlay still points at the authoritative machine row.
+    const classificationResultId = classifiedOut.classificationId || latest.id;
 
-    const activeEvents =
-      await repos.applicationsRepo.listActiveEventsByMessageId(db, messageId);
+    const activeEvents = await repos.applicationsRepo.listActiveEventsByMessageId(
+      db,
+      messageId,
+    );
     if (activeEvents.length === 0) {
       await matchAndStoreMessage(db, messageId);
       rematched += 1;
@@ -58,29 +63,24 @@ export async function runEmailReprocess(
     }
 
     for (const event of activeEvents) {
-      if (event.classificationResultId === latest.id) continue;
+      if (event.classificationResultId === classificationResultId) continue;
       // No event rewrite is needed when the externally visible outcome did not
       // change; the latest classification still remains auditable.
       if (event.eventType === latest.eventType) continue;
-      const replacement =
-        await repos.applicationsRepo.appendApplicationEvent(db, {
-          applicationId: event.applicationId,
-          eventType: latest.eventType,
-          occurredAt: event.occurredAt,
-          source: "email",
-          messageId,
-          classificationResultId: latest.id,
-          payload: {
-            reprocessedFromEventId: event.id,
-            extraction: latest.extraction,
-            evidence: latest.evidence,
-          },
-        });
-      await repos.applicationsRepo.markEventSuperseded(
-        db,
-        event.id,
-        replacement.id,
-      );
+      const replacement = await repos.applicationsRepo.appendApplicationEvent(db, {
+        applicationId: event.applicationId,
+        eventType: latest.eventType,
+        occurredAt: event.occurredAt,
+        source: "email",
+        messageId,
+        classificationResultId,
+        payload: {
+          reprocessedFromEventId: event.id,
+          extraction: latest.extraction,
+          evidence: latest.evidence,
+        },
+      });
+      await repos.applicationsRepo.markEventSuperseded(db, event.id, replacement.id);
       await recomputeApplication(db, event.applicationId);
       eventsReplaced += 1;
     }

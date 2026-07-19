@@ -32,12 +32,7 @@ export async function normalizeAndStoreFromRaw(
     headers: raw.headers,
     subject: raw.subject,
   });
-  if (
-    !raw.rawMime?.length &&
-    !raw.textPlain &&
-    !raw.html &&
-    !normalized.textFull
-  ) {
+  if (!raw.rawMime?.length && !raw.textPlain && !raw.html && !normalized.textFull) {
     const fallback = await normalizeEmail({
       textPlain: [raw.subject, raw.snippet].filter(Boolean).join("\n\n"),
       headers: raw.headers,
@@ -57,8 +52,7 @@ export async function runNormalizeMessage(
   const msg = await emailsRepo.getEmailMessageById(db, messageId);
   if (!msg) throw new Error("message_not_found");
 
-  const headers =
-    (msg.headersSubset as Record<string, string> | null) ?? undefined;
+  const headers = (msg.headersSubset as Record<string, string> | null) ?? undefined;
 
   const normalized = await normalizeEmail({
     rawMime: opts.rawMime,
@@ -77,22 +71,21 @@ async function persist(
   messageId: string,
   normalized: NormalizedEmailV1,
 ): Promise<NormalizeResult> {
-  const { inserted } =
-    await normalizedEmailsRepo.insertNormalizedEmailIdempotent(db, {
-      messageId,
-      textPlain: normalized.textPlain,
-      textFull: normalized.textFull,
-      sanitizedHtml: normalized.sanitizedHtml,
-      detectedLanguage: normalized.detectedLanguage,
-      links: normalized.links,
-      calendarEvent: normalized.calendarEvent,
-      normalizerVersion: normalized.normalizerVersion,
-      attachments: normalized.attachmentMeta.map((a) => ({
-        filename: a.filename,
-        mimeType: a.mimeType,
-        sizeBytes: a.sizeBytes,
-      })),
-    });
+  const { inserted } = await normalizedEmailsRepo.insertNormalizedEmailIdempotent(db, {
+    messageId,
+    textPlain: normalized.textPlain,
+    textFull: normalized.textFull,
+    sanitizedHtml: normalized.sanitizedHtml,
+    detectedLanguage: normalized.detectedLanguage,
+    links: normalized.links,
+    calendarEvent: normalized.calendarEvent,
+    normalizerVersion: normalized.normalizerVersion,
+    attachments: normalized.attachmentMeta.map((a) => ({
+      filename: a.filename,
+      mimeType: a.mimeType,
+      sizeBytes: a.sizeBytes,
+    })),
+  });
 
   return {
     messageId,

@@ -7,9 +7,7 @@ export function AuthPage({ mode }: { mode: "setup" | "login" }) {
   const [password, setPassword] = useState("");
   const mutation = useMutation({
     mutationFn: () =>
-      mode === "setup"
-        ? api.setup(email, password)
-        : api.login(email, password),
+      mode === "setup" ? api.setup(email, password) : api.login(email, password),
     onSuccess: () => {
       window.location.assign("/");
     },
@@ -52,9 +50,7 @@ export function AuthPage({ mode }: { mode: "setup" | "login" }) {
             <input
               className="mt-1 w-full rounded border border-ink-900/20 px-3 py-2"
               type="password"
-              autoComplete={
-                mode === "setup" ? "new-password" : "current-password"
-              }
+              autoComplete={mode === "setup" ? "new-password" : "current-password"}
               minLength={12}
               required
               value={password}

@@ -7,31 +7,25 @@ import {
 
 describe("applyCorrections INV-7", () => {
   it("user correction overlays machine state", () => {
-    const out = applyCorrections(
-      { currentState: "rejected", actionRequired: false },
-      [
-        {
-          field: "currentState",
-          userValue: "interviewing",
-          locked: true,
-        },
-      ],
-    );
+    const out = applyCorrections({ currentState: "rejected", actionRequired: false }, [
+      {
+        field: "currentState",
+        userValue: "interviewing",
+        locked: true,
+      },
+    ]);
     expect(out.currentState).toBe("interviewing");
   });
 
   it("reverted corrections are ignored", () => {
-    const out = applyCorrections(
-      { currentState: "rejected", actionRequired: false },
-      [
-        {
-          field: "currentState",
-          userValue: "offer",
-          locked: false,
-          revertedAt: new Date(),
-        },
-      ],
-    );
+    const out = applyCorrections({ currentState: "rejected", actionRequired: false }, [
+      {
+        field: "currentState",
+        userValue: "offer",
+        locked: false,
+        revertedAt: new Date(),
+      },
+    ]);
     expect(out.currentState).toBe("rejected");
   });
 
@@ -75,10 +69,8 @@ describe("applyCorrections INV-7", () => {
     expect(active).toHaveLength(1);
     expect(active[0]!.userValue).toBe("offer");
     expect(
-      applyCorrections(
-        { currentState: "rejected", actionRequired: false },
-        timeline,
-      ).currentState,
+      applyCorrections({ currentState: "rejected", actionRequired: false }, timeline)
+        .currentState,
     ).toBe("offer");
   });
 });

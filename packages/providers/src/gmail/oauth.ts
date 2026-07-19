@@ -92,8 +92,7 @@ export async function exchangeAuthorizationCode(
   }
   return {
     accessToken: String(json.access_token),
-    refreshToken:
-      json.refresh_token != null ? String(json.refresh_token) : undefined,
+    refreshToken: json.refresh_token != null ? String(json.refresh_token) : undefined,
     expiresIn: Number(json.expires_in ?? 3600),
     scope: json.scope != null ? String(json.scope) : undefined,
     tokenType: json.token_type != null ? String(json.token_type) : undefined,
@@ -126,8 +125,7 @@ export async function refreshAccessToken(
   }
   return {
     accessToken: String(json.access_token),
-    refreshToken:
-      json.refresh_token != null ? String(json.refresh_token) : refreshToken,
+    refreshToken: json.refresh_token != null ? String(json.refresh_token) : refreshToken,
     expiresIn: Number(json.expires_in ?? 3600),
     scope: json.scope != null ? String(json.scope) : undefined,
   };

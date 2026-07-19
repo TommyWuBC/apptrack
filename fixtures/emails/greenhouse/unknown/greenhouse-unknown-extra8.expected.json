@@ -9,8 +9,5 @@
     "confidence": 0.9
   },
   "minConfidence": 0.2,
-  "tags": [
-    "synthetic",
-    "ats_template"
-  ]
+  "tags": ["synthetic", "ats_template"]
 }

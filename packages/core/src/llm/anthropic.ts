@@ -11,16 +11,11 @@ import type {
 
 const DEFAULT_MODEL = "claude-3-5-haiku-latest";
 
-export function createAnthropicClient(
-  opts: CreateLlmClientOptions,
-): LlmClient {
+export function createAnthropicClient(opts: CreateLlmClientOptions): LlmClient {
   const apiKey = opts.apiKey ?? "";
   const modelId = opts.modelId ?? DEFAULT_MODEL;
   const fetchImpl = opts.fetchImpl ?? fetch;
-  const baseUrl = (opts.baseUrl ?? "https://api.anthropic.com").replace(
-    /\/$/,
-    "",
-  );
+  const baseUrl = (opts.baseUrl ?? "https://api.anthropic.com").replace(/\/$/, "");
 
   return {
     providerId: "anthropic",

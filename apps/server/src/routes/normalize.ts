@@ -28,6 +28,15 @@ export async function registerNormalizeRoutes(app: FastifyInstance) {
     }
     try {
       const result = await runNormalizeMessage(app.db, messageId);
+      if (app.jobs && req.isInternalJob) {
+        await app.jobs.send(
+          JobName.EMAIL_CLASSIFY,
+          { messageId },
+          {
+            singletonKey: `classify:${messageId}`,
+          },
+        );
+      }
       return {
         messageId: result.messageId,
         inserted: result.inserted,
