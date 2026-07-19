@@ -9,7 +9,7 @@ import type {
   TimelineResponse,
 } from "./types.js";
 
-const companies: CompanyRow[] = [
+let companies: CompanyRow[] = [
   {
     id: "co-initech",
     canonicalName: "Initech",
@@ -200,6 +200,59 @@ const evidence: Record<string, EvidenceResponse> = {
   },
 };
 
+let reviewItems = [
+  {
+    id: "rev-1",
+    kind: "ambiguous_match",
+    refId: "msg-demo-amb",
+    status: "open",
+    resolution: {
+      companyId: "co-initech",
+      match: {
+        decision: "review",
+        score: 0.6,
+        reason: "Two SWE roles at Initech",
+        candidates: [
+          { applicationId: "app-1", score: 0.6 },
+          { applicationId: "app-4", score: 0.55 },
+        ],
+      },
+    },
+  },
+  {
+    id: "rev-2",
+    kind: "entity_merge_suggestion",
+    refId: "co-pied",
+    status: "open",
+    resolution: {
+      suggestedCompanyId: "co-initech",
+      suggestedCanonicalName: "Initech",
+      similarity: 0.87,
+      candidateName: "Initechh",
+    },
+  },
+];
+
+const correctionsStore: Array<{
+  id: string;
+  field: string;
+  machineValue: unknown;
+  userValue: unknown;
+  locked: boolean;
+  revertedAt: string | null;
+  createdAt: string;
+}> = [
+  {
+    id: "corr-demo-1",
+    field: "currentState",
+    machineValue: "interviewing",
+    userValue: "final_round",
+    locked: true,
+    revertedAt: null,
+    createdAt: "2026-06-11T12:00:00.000Z",
+  },
+];
+
 function rate(
   numerator: number,
   denominator: number,
@@ -269,6 +322,16 @@ export const demoStore = {
     if (p === "/api/v1/stats") {
       return stats;
     }
+    if (p === "/api/v1/review") {
+      return { items: reviewItems };
+    }
+    const corrMatch = p.match(/^\/api\/v1\/applications\/([^/]+)\/corrections$/);
+    if (corrMatch) {
+      return {
+        applicationId: corrMatch[1],
+        corrections: correctionsStore.filter((c) => !c.revertedAt || true),
+      };
+    }
     const appMatch = p.match(/^\/api\/v1\/applications\/([^/]+)$/);
     if (appMatch) {
       const id = appMatch[1]!;
@@ -281,7 +344,13 @@ export const demoStore = {
     if (tlMatch) {
       const id = tlMatch[1]!;
       const tl = timelines[id];
-      if (tl) return tl;
+      if (tl) {
+        return {
+          ...tl,
+          currentState: "final_round", // demo lock overlays interviewing
+          corrections: correctionsStore,
+        };
+      }
       // Minimal timeline for apps without a rich fixture
       const application = applications.find((a) => a.id === id);
       if (!application) throw new Error("API 404: application_not_found");
@@ -311,5 +380,72 @@ export const demoStore = {
       return e;
     }
     throw new Error(`Demo fixture missing for ${path}`);
+  },
+
+  mutate(method: string, path: string, body?: unknown): unknown {
+    const p = pathOnly(path);
+    if (method === "POST" && p === "/api/v1/review/rev-1/resolve") {
+      reviewItems = reviewItems.filter((r) => r.id !== "rev-1");
+      return { reviewId: "rev-1", status: "resolved", detail: body };
+    }
+    if (method === "POST" && /^\/api\/v1\/review\/[^/]+\/resolve$/.test(p)) {
+      const id = p.split("/")[4]!;
+      reviewItems = reviewItems.filter((r) => r.id !== id);
+      return { reviewId: id, status: "resolved", detail: body };
+    }
+    if (method === "PATCH" && /^\/api\/v1\/applications\/[^/]+$/.test(p)) {
+      const id = p.split("/")[4]!;
+      const fields =
+        (body as { fields?: Array<{ field: string; userValue: unknown; locked?: boolean }> })
+          ?.fields ?? [];
+      for (const f of fields) {
+        correctionsStore.push({
+          id: `corr-${correctionsStore.length + 1}`,
+          field: f.field,
+          machineValue: null,
+          userValue: f.userValue,
+          locked: f.locked ?? false,
+          revertedAt: null,
+          createdAt: new Date().toISOString(),
+        });
+        const app = applications.find((a) => a.id === id);
+        if (app && f.field === "currentState" && typeof f.userValue === "string") {
+          app.currentState = f.userValue;
+        }
+      }
+      return {
+        correctionIds: correctionsStore.slice(-fields.length).map((c) => c.id),
+        recomputed: { applicationId: id, state: applications.find((a) => a.id === id)?.currentState },
+      };
+    }
+    if (method === "POST" && /^\/api\/v1\/corrections\/[^/]+\/undo$/.test(p)) {
+      const id = p.split("/")[4]!;
+      const c = correctionsStore.find((x) => x.id === id);
+      if (c) c.revertedAt = new Date().toISOString();
+      return { correction: c, alreadyReverted: false };
+    }
+    if (method === "POST" && p === "/api/v1/companies/merge") {
+      const b = body as { survivorCompanyId: string; sourceCompanyId: string };
+      companies = companies.filter((c) => c.id !== b.sourceCompanyId);
+      return b;
+    }
+    if (method === "POST" && /\/merge$/.test(p)) {
+      return { survivorId: p.split("/")[4], sourceIds: (body as { sourceIds: string[] }).sourceIds, movedEventIds: [] };
+    }
+    if (method === "POST" && /\/split$/.test(p)) {
+      return {
+        sourceApplicationId: p.split("/")[4],
+        newApplicationId: "app-split",
+        moved: (body as { eventIds: string[] }).eventIds,
+      };
+    }
+    if (method === "POST" && /\/reattach$/.test(p)) {
+      return {
+        priorEventId: p.split("/")[6],
+        newEventId: "ev-new",
+        toApplicationId: (body as { toApplicationId: string }).toApplicationId,
+      };
+    }
+    throw new Error(`Demo mutate missing for ${method} ${path}`);
   },
 };

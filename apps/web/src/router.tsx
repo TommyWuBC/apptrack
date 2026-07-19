@@ -12,6 +12,7 @@ import { ApplicationDetailPage } from "./routes/ApplicationDetailPage.js";
 import { CompaniesPage } from "./routes/CompaniesPage.js";
 import { StatsPage } from "./routes/StatsPage.js";
 import { SettingsPage } from "./routes/SettingsPage.js";
+import { ReviewPage } from "./routes/ReviewPage.js";
 
 function RootLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -62,10 +63,17 @@ const settingsRoute = createRoute({
   component: SettingsPage,
 });
 
+const reviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/review",
+  component: ReviewPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   applicationsRoute,
   applicationDetailRoute,
+  reviewRoute,
   companiesRoute,
   statsRoute,
   settingsRoute,

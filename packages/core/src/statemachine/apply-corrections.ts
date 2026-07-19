@@ -1,13 +1,15 @@
 /**
  * Field-level corrections overlay. AGENTS.md §18.2 / INV-7
- * M9 ships a stub: machine projection in, corrections list in, overlay out.
- * Full lock/precedence UX lands in M11.
+ * Precedence: user-locked > user-corrected > machine.
  */
 export type UserCorrection = {
+  id?: string;
   field: string;
+  machineValue?: unknown;
   userValue: unknown;
   locked: boolean;
   revertedAt?: Date | null;
+  createdAt?: Date;
 };
 
 export type ProjectionFields = {
@@ -17,8 +19,28 @@ export type ProjectionFields = {
 };
 
 /**
- * Overlay active (non-reverted) user corrections onto machine projection.
- * Locked/corrected fields win over automation (INV-7).
+ * Active = not reverted. For each field, the latest (by createdAt) wins.
+ * Undo sets revertedAt on one row; earlier corrections remain eligible.
+ */
+export function activeCorrections(
+  corrections: UserCorrection[],
+): UserCorrection[] {
+  const alive = corrections.filter((c) => !c.revertedAt);
+  const byField = new Map<string, UserCorrection>();
+  const sorted = [...alive].sort((a, b) => {
+    const ta = a.createdAt?.getTime?.() ?? 0;
+    const tb = b.createdAt?.getTime?.() ?? 0;
+    return ta - tb;
+  });
+  for (const c of sorted) {
+    byField.set(c.field, c);
+  }
+  return [...byField.values()];
+}
+
+/**
+ * Overlay active user corrections onto machine projection.
+ * Locked and corrected fields always win (INV-7).
  * // AGENTS.md §18.2
  */
 export function applyCorrections(
@@ -26,11 +48,21 @@ export function applyCorrections(
   corrections: UserCorrection[],
 ): ProjectionFields {
   const out: ProjectionFields = { ...machine };
-  for (const c of corrections) {
-    if (c.revertedAt) continue;
-    if (c.field in out || c.locked) {
-      out[c.field] = c.userValue;
-    }
+  for (const c of activeCorrections(corrections)) {
+    out[c.field] = c.userValue;
   }
   return out;
+}
+
+/**
+ * True when a field is locked by an active correction — automation must not
+ * write it (INV-7).
+ */
+export function isFieldLocked(
+  corrections: UserCorrection[],
+  field: string,
+): boolean {
+  return activeCorrections(corrections).some(
+    (c) => c.field === field && c.locked,
+  );
 }
