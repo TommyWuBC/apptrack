@@ -18,6 +18,7 @@ const PUBLIC_ROUTES = new Set([
   "GET /api/v1/normalize/version",
   "GET /api/v1/match/version",
   "GET /api/v1/ghost/version",
+  "GET /api/v1/correlation/version",
   "GET /api/v1/settings/classifier",
   "POST /api/v1/auth/setup",
   "POST /api/v1/auth/login",
@@ -25,6 +26,7 @@ const PUBLIC_ROUTES = new Set([
   "GET /api/v1/gmail/callback",
   "POST /api/v1/analytics/events",
   "OPTIONS /api/v1/analytics/events",
+  "GET /r/:token/resume.pdf",
 ]);
 
 const INTERNAL_JOB_ROUTES = new Set([
@@ -32,6 +34,7 @@ const INTERNAL_JOB_ROUTES = new Set([
   "POST /api/v1/ghost/evaluate",
   "POST /api/v1/analytics/aggregate",
   "POST /api/v1/analytics/retention",
+  "POST /api/v1/correlation/score",
   "POST /api/v1/backfill",
   "POST /api/v1/normalize/:messageId",
   "POST /api/v1/classify/:messageId",

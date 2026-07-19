@@ -2,7 +2,7 @@
  * Analytics sites / events / sessions repos. AGENTS.md §10.6 / §20 / M14
  * INV-8: never persist IP addresses.
  */
-import { and, desc, eq, isNull, lt, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 import type { Database } from "../client.js";
 import { uuidv7 } from "../ids.js";
@@ -280,6 +280,67 @@ export async function listSessionsForSite(
     .from(analyticsSessions)
     .where(eq(analyticsSessions.siteId, siteId))
     .limit(opts.limit ?? 100);
+}
+
+export async function getSessionById(db: Database, sessionId: string) {
+  const [row] = await db
+    .select()
+    .from(analyticsSessions)
+    .where(eq(analyticsSessions.id, sessionId))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function listSessionsByIds(db: Database, sessionIds: string[]) {
+  if (sessionIds.length === 0) return [];
+  return db
+    .select()
+    .from(analyticsSessions)
+    .where(inArray(analyticsSessions.id, sessionIds));
+}
+
+export async function listRecentSessions(
+  db: Database,
+  opts: { after?: Date; limit?: number } = {},
+) {
+  const rows = await db
+    .select()
+    .from(analyticsSessions)
+    .orderBy(desc(analyticsSessions.startedAt))
+    .limit(opts.limit ?? 200);
+  if (!opts.after) return rows;
+  return rows.filter((row) => row.startedAt >= opts.after!);
+}
+
+export async function listEventsForSession(db: Database, sessionId: string) {
+  return db
+    .select()
+    .from(analyticsEvents)
+    .where(eq(analyticsEvents.sessionId, sessionId));
+}
+
+export async function countVisitorSessionsOnUtcDay(
+  db: Database,
+  siteId: string,
+  visitorHash: string,
+  day: Date,
+) {
+  const start = new Date(
+    Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()),
+  );
+  const end = new Date(start.getTime() + 86_400_000);
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(analyticsSessions)
+    .where(
+      and(
+        eq(analyticsSessions.siteId, siteId),
+        eq(analyticsSessions.visitorHash, visitorHash),
+        sql`${analyticsSessions.startedAt} >= ${start}`,
+        sql`${analyticsSessions.startedAt} < ${end}`,
+      ),
+    );
+  return row?.count ?? 0;
 }
 
 export async function summarizeSite(db: Database, siteId: string) {

@@ -4,6 +4,7 @@ import { api } from "../api/client.js";
 import { TimelineView } from "../components/TimelineView.js";
 import { CorrectionsPanel } from "../components/CorrectionsPanel.js";
 import { ApplicationActions } from "../components/ApplicationActions.js";
+import { CorrelationPanel } from "../components/CorrelationPanel.js";
 
 function ghostBadgeClass(status: string): string {
   if (status === "possibly_ghosted") return "badge badge-ghosted";
@@ -109,6 +110,8 @@ export function ApplicationDetailPage() {
       {timeline.data ? (
         <ApplicationActions applicationId={id} events={timeline.data.events} />
       ) : null}
+
+      <CorrelationPanel applicationId={id} />
 
       {timeline.data ? <TimelineView timeline={timeline.data} /> : null}
     </div>

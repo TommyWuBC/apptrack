@@ -272,5 +272,52 @@ export const api = {
       "/api/v1/analytics/sites",
       body,
     ),
+  correlationVersion: () =>
+    apiGet<{ algorithmVersion: string; enabled: boolean }>(
+      "/api/v1/correlation/version",
+    ),
+  correlations: (applicationId: string) =>
+    apiGet<{
+      enabled: boolean;
+      algorithmVersion?: string;
+      predictions: Array<{
+        id: string;
+        score: number;
+        confidenceBand: string;
+        deterministic: boolean;
+        explanation: string;
+        userFeedback: string | null;
+        features: Array<{
+          featureName: string;
+          contribution: number;
+          weight: number;
+        }>;
+      }>;
+    }>(`/api/v1/correlations?applicationId=${encodeURIComponent(applicationId)}`),
+  correlationFeedback: (id: string, feedback: "confirmed" | "rejected") =>
+    apiSend<unknown>("POST", `/api/v1/correlations/${id}/feedback`, { feedback }),
+  mintLink: (applicationId: string) =>
+    apiSend<{
+      link: {
+        applicationId: string;
+        token: string;
+        portfolioUrl: string;
+        resumeUrl: string;
+      };
+    }>("POST", "/api/v1/links", { applicationId, enableResumeLink: true }),
+  revokeLink: (applicationId: string) =>
+    apiSend<{ revoked: boolean }>(
+      "DELETE",
+      `/api/v1/links/${encodeURIComponent(applicationId)}`,
+    ),
+  resumeMeta: () =>
+    apiGet<{
+      resume: {
+        id: string;
+        filename: string;
+        contentType: string;
+        sizeBytes: number;
+      } | null;
+    }>("/api/v1/resume"),
   isDemo: demoEnabled,
 };

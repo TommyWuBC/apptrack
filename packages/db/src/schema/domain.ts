@@ -17,6 +17,7 @@ import {
   mutableTimestamps,
   timestamps,
   users,
+  bytea,
 } from "./identity-email.js";
 
 // ── §10.4 Domain entities ────────────────────────────────────────────────
@@ -208,4 +209,22 @@ export const userSettings = pgTable(
     ...mutableTimestamps,
   },
   (t) => [uniqueIndex("user_settings_user_uidx").on(t.userId)],
+);
+
+/**
+ * Optional single résumé per owner for tracked /r/:token/resume.pdf. §20.5
+ */
+export const userResumes = pgTable(
+  "user_resumes",
+  {
+    id: idColumn,
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    filename: text("filename").notNull(),
+    contentType: text("content_type").notNull().default("application/pdf"),
+    bytes: bytea("bytes").notNull(),
+    ...mutableTimestamps,
+  },
+  (t) => [uniqueIndex("user_resumes_user_uidx").on(t.userId)],
 );

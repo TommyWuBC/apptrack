@@ -1,6 +1,6 @@
 # Analytics ingestion & browser SDK
 
-Last verified against code: 2026-07-19 (M15).
+Last verified against code: 2026-07-19 (M16).
 
 ## Privacy (INV-8)
 
@@ -74,6 +74,12 @@ SPA: Settings → Analytics sites.
 ## Example site
 
 `examples/website-astro/` — minimal Astro portfolio + Playwright harness (`pnpm e2e:sdk`).
+
+## Correlation (M16)
+
+See `docs/correlation-model.md`. After aggregate, when `CORRELATION_ENABLED=true`,
+the worker runs `correlation.score`. Unique links: `POST /api/v1/links`; tracked
+résumé: `GET /r/:token/resume.pdf`.
 
 ## Load script
 

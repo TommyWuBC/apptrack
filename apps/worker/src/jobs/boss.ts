@@ -2,6 +2,7 @@ import { PgBoss, type Job } from "pg-boss";
 import {
   ApplicationJobV1Schema,
   CompanyJobV1Schema,
+  CorrelationScoreJobV1Schema,
   EmailBackfillJobV1Schema,
   EmailReprocessJobV1Schema,
   EmailSyncJobV1Schema,
@@ -105,6 +106,10 @@ async function registerHandlers(boss: PgBoss): Promise<void> {
   await boss.work(JobName.EMAIL_REPROCESS, async (jobs) => {
     const data = EmailReprocessJobV1Schema.parse(first(jobs));
     return callInternalApi("POST", "/api/v1/reprocess/execute", data);
+  });
+  await boss.work(JobName.CORRELATION_SCORE, async (jobs) => {
+    const data = CorrelationScoreJobV1Schema.parse(first(jobs));
+    return callInternalApi("POST", "/api/v1/correlation/score", data);
   });
 }
 

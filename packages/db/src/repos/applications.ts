@@ -63,6 +63,28 @@ export async function getApplicationById(db: Database, id: string) {
   return row ?? null;
 }
 
+export async function getApplicationByUniqueLinkToken(db: Database, token: string) {
+  const [row] = await db
+    .select()
+    .from(applications)
+    .where(eq(applications.uniqueLinkToken, token))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function setApplicationUniqueLinkToken(
+  db: Database,
+  applicationId: string,
+  token: string | null,
+) {
+  const [row] = await db
+    .update(applications)
+    .set({ uniqueLinkToken: token })
+    .where(eq(applications.id, applicationId))
+    .returning();
+  return row ?? null;
+}
+
 export async function listApplicationsForUser(db: Database, userId: string) {
   return db.select().from(applications).where(eq(applications.userId, userId));
 }
@@ -196,6 +218,7 @@ export async function listApplicationsWithCompany(db: Database, userId: string) 
       ghostStatus: applications.ghostStatus,
       actionRequired: applications.actionRequired,
       stateVersion: applications.stateVersion,
+      uniqueLinkToken: applications.uniqueLinkToken,
       createdAt: applications.createdAt,
       updatedAt: applications.updatedAt,
     })

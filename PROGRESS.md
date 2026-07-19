@@ -19,15 +19,20 @@ Short technical status. **Not** user-facing — see `DEVLOG.md` for tutorials.
 | M13 | Optional LLM extraction | ✅ | |
 | M14 | Analytics ingestion | ✅ | incremental session merge fixed |
 | M15 | Analytics SDK + example | ✅ | `/sdk.js`, Astro example, e2e |
-| M16–M20 | Rest | ❌ | **Next: M16 Correlation** |
+| M16 | Correlation scoring | ✅ | `corr-v1`, unique links, tracked résumé |
+| M17–M20 | Rest | ❌ | **Next: M17 Security hardening** |
 
 **Stabilization:** ✅ auth/jobs/analytics/review/CI fixes on PR #9; ingest still inline (not full transactional job stages — documented).
 
-**Remaining after M15:** M16–M20 = **5 milestones**.
+**Remaining after M16:** M17–M20 = **4 milestones**.
 
 ---
 
 ## Session log
+
+### 2026-07-19 (M16)
+- `corr-v1` scoring + features + explanations; banned-phrase tests; `CORRELATION_ENABLED`.
+- Unique links + tracked résumé (`user_resumes`); feedback API; worker job; SPA panel; docs.
 
 ### 2026-07-19 (stabilization)
 - Auth sessions/CSRF; pg-boss; analytics session/retention; review/reprocess; ATS templates; CLI/seed/migrate:down; CI format + audit overrides; ownership/fail-closed/session-order fixes.
