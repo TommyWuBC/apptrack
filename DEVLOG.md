@@ -1193,8 +1193,8 @@ None material in this pass. Demo fixtures use non-UUID application ids — mint/
 
 ### Tests
 - Core: deterministic unique-link, medium cap, ambiguity divisor, banned phrases, below-threshold null.
-- Server: version public, token mint shape, flag parsing, resume route fail-closed without DB.
-- Commands: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm eval && pnpm boundaries` (recorded after green).
+- Server: version public, token mint shape (8 chars), flag parsing, resume route fail-closed without DB.
+- Commands run (green): `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test`, `pnpm eval` (F1≈0.972), `pnpm boundaries`.
 
 ### Security & privacy review
 - INV-8: no IP at rest; resume download uses token-based visitor hash only.
