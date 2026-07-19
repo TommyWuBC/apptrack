@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { api } from "../api/client.js";
 import { TimelineView } from "../components/TimelineView.js";
+import { CorrectionsPanel } from "../components/CorrectionsPanel.js";
 
 export function ApplicationDetailPage() {
   const { id } = useParams({ from: "/applications/$id" });
@@ -30,24 +31,25 @@ export function ApplicationDetailPage() {
   const company = detail.data!.company;
 
   return (
-    <div data-testid="application-detail">
-      <p className="mb-2">
-        <Link to="/applications" className="text-sm">
-          ← Applications
-        </Link>
-      </p>
-      <h2 className="font-display text-2xl font-semibold">
-        {company?.canonicalName ?? app.companyId}
-      </h2>
-      <p className="mb-6 font-mono text-sm text-ink-600">
-        {app.currentState}
-        {app.actionRequired ? " · action required" : ""}
-      </p>
+    <div data-testid="application-detail" className="space-y-8">
+      <div>
+        <p className="mb-2">
+          <Link to="/applications" className="text-sm">
+            ← Applications
+          </Link>
+        </p>
+        <h2 className="font-display text-2xl font-semibold">
+          {company?.canonicalName ?? app.companyId}
+        </h2>
+        <p className="font-mono text-sm text-ink-600">
+          {timeline.data?.currentState ?? app.currentState}
+          {app.actionRequired ? " · action required" : ""}
+        </p>
+      </div>
+
+      <CorrectionsPanel applicationId={id} />
+
       {timeline.data ? <TimelineView timeline={timeline.data} /> : null}
-      <p className="mt-6 text-xs text-ink-600">
-        Corrections / merge / reattach UI lands in M11. Correlation panel when
-        enabled is M16.
-      </p>
     </div>
   );
 }

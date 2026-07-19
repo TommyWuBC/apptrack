@@ -83,6 +83,8 @@ export {
   orderEvents,
   compareReducerEvents,
   applyCorrections,
+  activeCorrections,
+  isFieldLocked,
   MEANINGFUL,
   TERMINAL,
 } from "./statemachine/index.js";

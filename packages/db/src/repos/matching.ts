@@ -282,11 +282,31 @@ export async function findOpenAmbiguousForCompany(
   db: Database,
   companyId: string,
 ) {
-  // Open ambiguous_match items whose resolution metadata references companyId,
-  // or whose refId is a message later filtered by the service.
   const open = await listOpenReviewItems(db, { kind: "ambiguous_match" });
   return open.filter((item) => {
     const res = item.resolution as { companyId?: string } | null;
     return res?.companyId === companyId;
   });
+}
+
+export async function getReviewItemById(db: Database, id: string) {
+  const [row] = await db
+    .select()
+    .from(reviewQueueItems)
+    .where(eq(reviewQueueItems.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function dismissReviewItem(
+  db: Database,
+  id: string,
+  resolution: unknown,
+) {
+  const [row] = await db
+    .update(reviewQueueItems)
+    .set({ status: "dismissed", resolution })
+    .where(eq(reviewQueueItems.id, id))
+    .returning();
+  return row ?? null;
 }

@@ -23,10 +23,17 @@ export type {
 
 function demoEnabled(): boolean {
   if (import.meta.env.VITE_DEMO === "1") return true;
-  if (typeof window !== "undefined") {
-    return new URLSearchParams(window.location.search).get("demo") === "1";
+  if (typeof window === "undefined") return false;
+  const q = new URLSearchParams(window.location.search).get("demo");
+  if (q === "1") {
+    sessionStorage.setItem("apptrack_demo", "1");
+    return true;
   }
-  return false;
+  if (q === "0") {
+    sessionStorage.removeItem("apptrack_demo");
+    return false;
+  }
+  return sessionStorage.getItem("apptrack_demo") === "1";
 }
 
 async function apiGet<T>(path: string): Promise<T> {
@@ -40,6 +47,45 @@ async function apiGet<T>(path: string): Promise<T> {
   }
   return res.json() as Promise<T>;
 }
+
+async function apiSend<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+): Promise<T> {
+  if (demoEnabled()) {
+    return demoStore.mutate(method, path, body) as T;
+  }
+  const res = await fetch(path, {
+    method,
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API ${res.status}: ${text}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export type ReviewItem = {
+  id: string;
+  kind: string;
+  refId: string;
+  status: string;
+  resolution: unknown;
+};
+
+export type CorrectionRow = {
+  id: string;
+  field: string;
+  machineValue: unknown;
+  userValue: unknown;
+  locked: boolean;
+  revertedAt: string | null;
+  createdAt: string;
+};
 
 export const api = {
   me: () =>
@@ -67,5 +113,45 @@ export const api = {
   companies: () => apiGet<{ companies: CompanyRow[] }>("/api/v1/companies"),
   evidence: (messageId: string) =>
     apiGet<EvidenceResponse>(`/api/v1/emails/${messageId}/evidence`),
+  review: (kind?: string) =>
+    apiGet<{ items: ReviewItem[] }>(
+      kind
+        ? `/api/v1/review?kind=${encodeURIComponent(kind)}`
+        : "/api/v1/review",
+    ),
+  resolveReview: (id: string, body: unknown) =>
+    apiSend<unknown>("POST", `/api/v1/review/${id}/resolve`, body),
+  patchApplication: (
+    id: string,
+    body: {
+      fields: Array<{ field: string; userValue: unknown; locked?: boolean }>;
+      expectedVersion?: string;
+    },
+  ) => apiSend<unknown>("PATCH", `/api/v1/applications/${id}`, body),
+  undoCorrection: (id: string) =>
+    apiSend<unknown>("POST", `/api/v1/corrections/${id}/undo`, {}),
+  mergeApplications: (survivorId: string, sourceIds: string[]) =>
+    apiSend<unknown>("POST", `/api/v1/applications/${survivorId}/merge`, {
+      sourceIds,
+    }),
+  splitApplication: (id: string, eventIds: string[]) =>
+    apiSend<unknown>("POST", `/api/v1/applications/${id}/split`, {
+      eventIds,
+    }),
+  reattachEvent: (applicationId: string, eventId: string, toApplicationId: string) =>
+    apiSend<unknown>(
+      "POST",
+      `/api/v1/applications/${applicationId}/events/${eventId}/reattach`,
+      { toApplicationId },
+    ),
+  mergeCompanies: (survivorCompanyId: string, sourceCompanyId: string) =>
+    apiSend<unknown>("POST", "/api/v1/companies/merge", {
+      survivorCompanyId,
+      sourceCompanyId,
+    }),
+  corrections: (applicationId: string) =>
+    apiGet<{ applicationId: string; corrections: CorrectionRow[] }>(
+      `/api/v1/applications/${applicationId}/corrections`,
+    ),
   isDemo: demoEnabled,
 };

@@ -22,10 +22,21 @@ test.describe("M10 dashboard demo smoke", () => {
       page.getByText("sample too small for a percentage").first(),
     ).toBeVisible();
 
+    await page.getByRole("link", { name: "Review" }).click();
+    await expect(page.getByTestId("review-page")).toBeVisible();
+    await expect(page.getByTestId("review-item").first()).toBeVisible();
+
     await page.getByRole("link", { name: "Companies" }).click();
     await expect(page.getByTestId("companies-page")).toBeVisible();
+    await expect(page.getByTestId("company-merge")).toBeVisible();
 
     await page.getByRole("link", { name: "Settings" }).click();
     await expect(page.getByTestId("settings-page")).toBeVisible();
+  });
+
+  test("corrections panel on application detail", async ({ page }) => {
+    await page.goto("/applications/app-1?demo=1");
+    await expect(page.getByTestId("corrections-panel")).toBeVisible();
+    await expect(page.getByText("Save correction")).toBeVisible();
   });
 });
