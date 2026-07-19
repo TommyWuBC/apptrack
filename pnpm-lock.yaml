@@ -100,6 +100,9 @@ importers:
       fastify:
         specifier: ^5.2.1
         version: 5.10.0
+      maxmind:
+        specifier: ^5.0.6
+        version: 5.0.6
       pg-boss:
         specifier: ^12.26.1
         version: 12.26.1
@@ -3095,6 +3098,10 @@ packages:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
 
+  maxmind@5.0.6:
+    resolution: {integrity: sha512-5bvd/u+kIaTqaGM+xkXjatzQw1dQfSmlLggr2W1EKMyMxSgx2woZyusLpNpZ4DdPmL+1bbJWeo4LXsi6bC0Iew==}
+    engines: {node: '>=12', npm: '>=6'}
+
   mdast-util-definitions@6.0.0:
     resolution: {integrity: sha512-scTllyX6pnYNZH/AIp/0ePz6s4cZtARxImwoPJ7kS42n+MnVsI4XbnG6d4ibehRIldYMWM2LD7ImQblVhUejVQ==}
 
@@ -3261,6 +3268,10 @@ packages:
 
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
+
+  mmdb-lib@3.0.2:
+    resolution: {integrity: sha512-7e87vk0DdWT647wjcfEtWeMtjm+zVGqNohN/aeIymbUfjHQ2T4Sx5kM+1irVDBSloNC3CkGKxswdMoo8yhqTDg==}
+    engines: {node: '>=10', npm: '>=6'}
 
   mrmime@2.0.1:
     resolution: {integrity: sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ==}
@@ -3956,6 +3967,10 @@ packages:
 
   tiny-inflate@1.0.3:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
+
+  tiny-lru@13.0.0:
+    resolution: {integrity: sha512-xDHxKKS1FdF0Tv2P+QT7IeSEg74K/8cEDzbv3Tv6UyHHUgBOjOiQiBp818MGj66dhurQus/IBcoAbwIKtSGc6Q==}
+    engines: {node: '>=14'}
 
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
@@ -7057,6 +7072,11 @@ snapshots:
 
   math-intrinsics@1.1.0: {}
 
+  maxmind@5.0.6:
+    dependencies:
+      mmdb-lib: 3.0.2
+      tiny-lru: 13.0.0
+
   mdast-util-definitions@6.0.0:
     dependencies:
       '@types/mdast': 4.0.4
@@ -7402,6 +7422,8 @@ snapshots:
       brace-expansion: 1.1.16
 
   minimist@1.2.8: {}
+
+  mmdb-lib@3.0.2: {}
 
   mrmime@2.0.1: {}
 
@@ -8150,6 +8172,8 @@ snapshots:
       real-require: 1.0.0
 
   tiny-inflate@1.0.3: {}
+
+  tiny-lru@13.0.0: {}
 
   tinybench@2.9.0: {}
 

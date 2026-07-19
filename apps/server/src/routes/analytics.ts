@@ -59,6 +59,7 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
         origin: req.headers.origin,
         headers: req.headers as Record<string, string | string[] | undefined>,
         bodyBytes,
+        geoLookup: app.geoLookup,
       });
       const origin = req.headers.origin;
       if (origin) {

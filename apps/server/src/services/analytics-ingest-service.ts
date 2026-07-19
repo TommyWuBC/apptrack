@@ -6,6 +6,7 @@ import {
   ANALYTICS_SESSION_IDLE_MS,
   computeVisitorHash,
   dailyVisitorSalt,
+  partitionIncrementalEvents,
   parseCoarseUa,
   referrerHostFromProps,
   sessionizeEvents,
@@ -189,8 +190,31 @@ export async function aggregateAnalyticsSessions(
   for (const [, group] of groups) {
     const siteId = group[0]!.siteId!;
     const visitorHash = group[0]!.visitorHash!;
+    const latest = await repos.analyticsRepo.findLatestSessionForVisitor(
+      db,
+      siteId,
+      visitorHash,
+    );
+    const latestActivity = latest
+      ? await repos.analyticsRepo.getSessionLastActivity(db, latest.id)
+      : null;
+    const incremental = partitionIncrementalEvents(
+      group,
+      latestActivity,
+      idleMs,
+    );
+    if (latest && incremental.append.length > 0) {
+      const ids = incremental.append.map((event) => event.id);
+      await repos.analyticsRepo.reopenAndAttachEventsToSession(
+        db,
+        latest.id,
+        ids,
+      );
+      eventsLinked += ids.length;
+    }
+
     const sessions = sessionizeEvents(
-      group.map((g) => ({
+      incremental.remaining.map((g) => ({
         ...g,
         occurredAt: g.occurredAt,
         path: g.path,
@@ -198,13 +222,15 @@ export async function aggregateAnalyticsSessions(
       idleMs,
     );
 
-    for (const s of sessions) {
+    for (const [index, s] of sessions.entries()) {
       const first = s.events[0]!;
       const session = await repos.analyticsRepo.createSession(db, {
         siteId,
         visitorHash,
         startedAt: s.startedAt,
-        endedAt: s.endedAt,
+        // Only sessions followed by a >30m gap are closed immediately.
+        // The last session remains open for future aggregate runs.
+        endedAt: index < sessions.length - 1 ? s.endedAt : null,
         entryPath: s.entryPath,
         referrerHost: first.referrerHost,
         utm: utmFromProps((first.props as Record<string, unknown>) ?? undefined),
@@ -234,7 +260,22 @@ export async function runAnalyticsRetention(
   const days = opts.retentionDays ?? ANALYTICS_RETENTION_DAYS_DEFAULT;
   const now = opts.now ?? new Date();
   const cutoff = new Date(now.getTime() - days * 86_400_000);
-  return repos.analyticsRepo.purgeAnalyticsOlderThan(db, cutoff);
+  const rawDays = Number.parseInt(
+    process.env.RAW_MIME_RETENTION_DAYS ?? "30",
+    10,
+  );
+  const rawCutoff = new Date(
+    now.getTime() -
+      (Number.isFinite(rawDays) && rawDays > 0 ? rawDays : 30) * 86_400_000,
+  );
+  const notificationCutoff = new Date(now.getTime() - 90 * 86_400_000);
+  const [analytics, rawMime, notifications, sessions] = await Promise.all([
+    repos.analyticsRepo.purgeAnalyticsOlderThan(db, cutoff),
+    repos.emailsRepo.clearExpiredRawMime(db, rawCutoff),
+    repos.notificationsRepo.deleteOldReadNotifications(db, notificationCutoff),
+    repos.sessionsRepo.deleteExpiredSessions(db, now),
+  ]);
+  return { analytics, rawMime, notifications, authSessions: sessions };
 }
 
 export { MAX_BODY_BYTES, hashSource };

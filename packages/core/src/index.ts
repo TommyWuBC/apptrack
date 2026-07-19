@@ -126,6 +126,7 @@ export {
   computeVisitorHash,
   parseCoarseUa,
   sessionizeEvents,
+  partitionIncrementalEvents,
   referrerHostFromProps,
   utmFromProps,
   ANALYTICS_SESSION_IDLE_MS,

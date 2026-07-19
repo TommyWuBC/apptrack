@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNotNull, lt, sql } from "drizzle-orm";
 import type { Database } from "../client.js";
 import { uuidv7 } from "../ids.js";
 import { emailMessages, emailThreads } from "../schema/index.js";
@@ -15,6 +15,20 @@ export type InsertMessageInput = {
   snippet?: string;
   headersSubset?: Record<string, unknown>;
 };
+
+export async function clearExpiredRawMime(db: Database, cutoff: Date) {
+  const rows = await db
+    .update(emailMessages)
+    .set({ rawEncrypted: null, hasRaw: false })
+    .where(
+      and(
+        isNotNull(emailMessages.rawEncrypted),
+        lt(emailMessages.createdAt, cutoff),
+      ),
+    )
+    .returning({ id: emailMessages.id });
+  return rows.length;
+}
 
 /**
  * Idempotent insert (INV-2): unique(account_id, provider_message_id).
