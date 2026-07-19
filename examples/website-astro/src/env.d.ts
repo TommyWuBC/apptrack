@@ -1,7 +1,10 @@
 /// <reference types="astro/client" />
 
 interface ApptrackTracker {
-  track: (type: string, props?: Record<string, string | number | boolean | undefined>) => void;
+  track: (
+    type: string,
+    props?: Record<string, string | number | boolean | undefined>,
+  ) => void;
   flush: () => void;
   destroy: () => void;
 }

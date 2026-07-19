@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * SDK contract e2e against the local harness (serves sdk.js + demo HTML).
+ * SDK contract e2e against the real Astro example and a tracker harness.
  * Requires: pnpm --filter @apptrack/analytics-sdk build
  */
 export default defineConfig({
@@ -16,10 +16,19 @@ export default defineConfig({
     trace: "on-first-retry",
     ...devices["Desktop Chrome"],
   },
-  webServer: {
-    command: "node e2e/harness.mjs",
-    url: "http://127.0.0.1:4321/sdk.js",
-    reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
-  },
+  webServer: [
+    {
+      command: "E2E_PORT=3001 node e2e/harness.mjs",
+      url: "http://127.0.0.1:3001/sdk.js",
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+    {
+      command:
+        "TRACKER_PROXY_ORIGIN=http://127.0.0.1:3001 PUBLIC_SITE_KEY=pk_e2e_demo_site_key pnpm dev",
+      url: "http://127.0.0.1:4321",
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+  ],
 });
