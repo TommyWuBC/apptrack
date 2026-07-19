@@ -2,18 +2,28 @@ import { describe, expect, it } from "vitest";
 import { getTableColumns, getTableName } from "drizzle-orm";
 import {
   analyticsSessions,
+  analyticsEvents,
+  analyticsSites,
   oauthCredentials,
   applicationEvents,
 } from "./schema/index.js";
 import { uuidv7 } from "./ids.js";
 
+function assertNoIpColumns(cols: string[]) {
+  const lower = cols.map((c) => c.toLowerCase());
+  expect(lower).not.toContain("ip");
+  expect(cols).not.toContain("ipAddress");
+  expect(cols).not.toContain("ip_address");
+  expect(lower).not.toContain("rawip");
+}
+
 describe("schema invariants", () => {
-  it("INV-8: analytics_sessions has no IP column", () => {
-    const cols = Object.keys(getTableColumns(analyticsSessions));
-    expect(cols.map((c) => c.toLowerCase())).not.toContain("ip");
-    expect(cols).not.toContain("ipAddress");
-    expect(cols).not.toContain("ip_address");
+  it("INV-8: analytics tables have no IP columns", () => {
+    assertNoIpColumns(Object.keys(getTableColumns(analyticsSessions)));
+    assertNoIpColumns(Object.keys(getTableColumns(analyticsEvents)));
+    assertNoIpColumns(Object.keys(getTableColumns(analyticsSites)));
     expect(getTableName(analyticsSessions)).toBe("analytics_sessions");
+    expect(getTableName(analyticsEvents)).toBe("analytics_events");
   });
 
   it("INV-1: oauth_credentials has only encrypted token columns", () => {
@@ -43,5 +53,12 @@ describe("schema invariants", () => {
     expect(a).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
+  });
+
+  it("analytics_events carry sessionization context columns", () => {
+    const cols = Object.keys(getTableColumns(analyticsEvents));
+    expect(cols).toContain("siteId");
+    expect(cols).toContain("visitorHash");
+    expect(cols).toContain("sessionizedAt");
   });
 });

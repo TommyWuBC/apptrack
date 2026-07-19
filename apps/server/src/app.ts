@@ -13,6 +13,7 @@ import { registerApplicationRoutes } from "./routes/applications.js";
 import { registerDashboardRoutes } from "./routes/dashboard.js";
 import { registerCorrectionsRoutes } from "./routes/corrections.js";
 import { registerGhostRoutes } from "./routes/ghost.js";
+import { registerAnalyticsRoutes } from "./routes/analytics.js";
 
 export type AppDb = Database | null;
 
@@ -93,6 +94,7 @@ export async function buildApp(
   await registerDashboardRoutes(app);
   await registerCorrectionsRoutes(app);
   await registerGhostRoutes(app);
+  await registerAnalyticsRoutes(app);
 
   app.get("/api/v1/core-ping", async () => coreHealth());
   app.get("/api/v1/db-ping", async () => dbHealth(db ?? undefined));

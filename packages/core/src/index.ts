@@ -121,3 +121,14 @@ export type {
   GhostEvaluateInput,
   ResolveThresholdsInput,
 } from "./ghosting/index.js";
+export {
+  dailyVisitorSalt,
+  computeVisitorHash,
+  parseCoarseUa,
+  sessionizeEvents,
+  referrerHostFromProps,
+  utmFromProps,
+  ANALYTICS_SESSION_IDLE_MS,
+  ANALYTICS_RETENTION_DAYS_DEFAULT,
+} from "./analytics/index.js";
+export type { CoarseUa, GeoResult } from "./analytics/index.js";

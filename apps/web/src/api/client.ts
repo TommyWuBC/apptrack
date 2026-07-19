@@ -224,5 +224,24 @@ export const api = {
       egressDisclosure: string;
       classifierVersion: string;
     }>("PATCH", "/api/v1/settings/classifier", { settings }),
+  analyticsSites: () =>
+    apiGet<{
+      sites: Array<{
+        id: string;
+        siteKey: string;
+        originAllowlist: string[];
+        mode: string;
+      }>;
+      userId: string | null;
+    }>("/api/v1/analytics/sites"),
+  createAnalyticsSite: (body: {
+    originAllowlist: string[];
+    mode: "full" | "no_geo" | "off";
+  }) =>
+    apiSend<{ site: { id: string; siteKey: string; mode: string } }>(
+      "POST",
+      "/api/v1/analytics/sites",
+      body,
+    ),
   isDemo: demoEnabled,
 };
