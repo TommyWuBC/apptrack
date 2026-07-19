@@ -181,6 +181,7 @@ export async function aggregateAnalyticsSessions(
 
   let sessionsCreated = 0;
   let eventsLinked = 0;
+  const createdSessionIds: string[] = [];
 
   for (const [, group] of groups) {
     const siteId = group[0]!.siteId!;
@@ -198,6 +199,7 @@ export async function aggregateAnalyticsSessions(
       const ids = incremental.append.map((event) => event.id);
       await repos.analyticsRepo.reopenAndAttachEventsToSession(db, latest.id, ids);
       eventsLinked += ids.length;
+      createdSessionIds.push(latest.id);
     }
 
     const sessions = sessionizeEvents(
@@ -228,6 +230,7 @@ export async function aggregateAnalyticsSessions(
         geoCity: first.geoCity,
       });
       sessionsCreated += 1;
+      createdSessionIds.push(session.id);
       const ids = s.events.map((e) => e.id);
       await repos.analyticsRepo.attachEventsToSession(db, session.id, ids);
       eventsLinked += ids.length;
@@ -237,7 +240,13 @@ export async function aggregateAnalyticsSessions(
   const idleBefore = new Date(now.getTime() - idleMs);
   const closed = await repos.analyticsRepo.closeIdleSessions(db, idleBefore);
 
-  return { sessionsCreated, eventsLinked, sessionsClosed: closed, scanned: rows.length };
+  return {
+    sessionsCreated,
+    eventsLinked,
+    sessionsClosed: closed,
+    scanned: rows.length,
+    sessionIds: [...new Set(createdSessionIds)],
+  };
 }
 
 export async function runAnalyticsRetention(

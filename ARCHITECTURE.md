@@ -88,3 +88,11 @@ auth sessions.
 
 The example Astro site is exercised directly by Playwright while a small
 tracker harness serves the real SDK bundle and records API calls.
+
+## Correlation (`corr-v1`)
+
+Off by default (`CORRELATION_ENABLED`). After sessionization, `correlation.score`
+pairs applications with anonymous sessions using transparent rules. Probabilistic
+confidence is capped at **medium**; **high** requires a unique `?src=` / tracked
+résumé token. Explanations are plain language with banned identification phrases.
+See `docs/correlation-model.md`.

@@ -127,3 +127,19 @@ export {
   ANALYTICS_RETENTION_DAYS_DEFAULT,
 } from "./analytics/index.js";
 export type { CoarseUa, GeoResult } from "./analytics/index.js";
+export {
+  scoreCorrelation,
+  CORRELATION_VERSION,
+  CORRELATION_BAND_NONE_MAX,
+  CORRELATION_BAND_LOW_MAX,
+  BANNED_CORRELATION_PHRASES,
+  ALLOWED_CORRELATION_PHRASES,
+  containsBannedCorrelationPhrase,
+} from "./correlation/index.js";
+export type {
+  ScoreCorrelationInput,
+  CorrelationApplicationInput,
+  CorrelationSessionInput,
+  CorrelationSessionEvent,
+  CorrelationCompanyLocation,
+} from "./correlation/index.js";

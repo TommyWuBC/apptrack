@@ -15,6 +15,7 @@ import {
   MAX_BODY_BYTES,
   runAnalyticsRetention,
 } from "../services/analytics-ingest-service.js";
+import { correlationEnabled } from "../services/correlation-score-service.js";
 
 function clientIp(req: FastifyRequest): string {
   const xf = req.headers["x-forwarded-for"];
@@ -258,6 +259,19 @@ export async function registerAnalyticsRoutes(app: FastifyInstance) {
       return reply.code(202).send({ queued: true, jobId });
     }
     const out = await aggregateAnalyticsSessions(app.db);
+    if (
+      correlationEnabled() &&
+      app.jobs &&
+      out.sessionIds.length > 0
+    ) {
+      await app.jobs.send(
+        JobName.CORRELATION_SCORE,
+        { sessionIds: out.sessionIds },
+        {
+          singletonKey: `correlation.score:sessions:${out.sessionIds.slice(0, 3).join(",")}:${Math.floor(Date.now() / 60_000)}`,
+        },
+      );
+    }
     return out;
   });
 

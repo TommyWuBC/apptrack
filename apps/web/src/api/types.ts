@@ -13,6 +13,7 @@ export type ApplicationRow = {
   ghostStatus: string;
   actionRequired: boolean;
   stateVersion: string | null;
+  uniqueLinkToken?: string | null;
   updatedAt?: string;
 };
 

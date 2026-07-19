@@ -309,6 +309,12 @@ export function SettingsPage() {
           <code className="font-mono text-xs">POST /api/v1/analytics/events</code>. Modes:
           full (optional geo), no_geo, off. Raw IPs are never stored.
         </p>
+        <p className="text-sm text-ink-700">
+          Correlation scoring (`corr-v1`) is off by default. Enable with{" "}
+          <code className="font-mono text-xs">CORRELATION_ENABLED=true</code> after at
+          least one analytics site exists. Unique links and tracked résumé downloads are
+          managed on each application detail page.
+        </p>
         <ul className="space-y-2 text-sm">
           {(analyticsSites.data?.sites ?? []).map((s) => (
             <li key={s.id} className="border-b border-ink-900/10 pb-2">

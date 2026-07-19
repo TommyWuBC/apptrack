@@ -11,4 +11,6 @@ export * as correctionsRepo from "./corrections.js";
 export * as settingsRepo from "./settings.js";
 export * as notificationsRepo from "./notifications.js";
 export * as analyticsRepo from "./analytics.js";
+export * as correlationRepo from "./correlation.js";
+export * as resumesRepo from "./resumes.js";
 export * as exportRepo from "./export.js";

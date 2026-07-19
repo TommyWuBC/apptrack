@@ -13,6 +13,7 @@ export const JobName = {
   RETENTION_CLEANUP: "retention.cleanup",
   OAUTH_REFRESH_SWEEP: "oauth.refresh-sweep",
   EMAIL_REPROCESS: "email.reprocess",
+  CORRELATION_SCORE: "correlation.score",
 } as const;
 
 export type JobName = (typeof JobName)[keyof typeof JobName];
@@ -71,3 +72,11 @@ export type ApplicationJobV1 = z.infer<typeof ApplicationJobV1Schema>;
 export type CompanyJobV1 = z.infer<typeof CompanyJobV1Schema>;
 export type ScheduledJobV1 = z.infer<typeof ScheduledJobV1Schema>;
 export type EmailReprocessJobV1 = z.infer<typeof EmailReprocessJobV1Schema>;
+
+export const CorrelationScoreJobV1Schema = z.object({
+  sessionIds: z.array(z.string().uuid()).max(500).optional(),
+  applicationId: z.string().uuid().optional(),
+  algorithmVersion: z.string().optional(),
+});
+
+export type CorrelationScoreJobV1 = z.infer<typeof CorrelationScoreJobV1Schema>;

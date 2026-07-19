@@ -30,7 +30,7 @@ let companies: CompanyRow[] = [
   },
 ];
 
-const applications: ApplicationRow[] = [
+let applications: ApplicationRow[] = [
   {
     id: "app-1",
     userId: "user-demo",
@@ -442,6 +442,38 @@ export const demoStore = {
     if (p === "/api/v1/notifications") {
       return { notifications: demoNotifications, userId: "user-demo" };
     }
+    if (p === "/api/v1/correlation/version") {
+      return { algorithmVersion: "corr-v1", enabled: true };
+    }
+    if (p === "/api/v1/resume") {
+      return { resume: null };
+    }
+    if (p.startsWith("/api/v1/correlations")) {
+      const applicationId =
+        new URL(path, "http://demo.local").searchParams.get("applicationId") ??
+        "app-1";
+      return {
+        enabled: true,
+        algorithmVersion: "corr-v1",
+        predictions: [
+          {
+            id: "corr-pred-1",
+            applicationId,
+            sessionId: "sess-demo-1",
+            score: 0.62,
+            confidenceBand: "medium",
+            deterministic: false,
+            explanation:
+              "Anonymous visit from the Seattle area 2 days after a pipeline event. Possibly related to this application (confidence: medium).",
+            userFeedback: null,
+            features: [
+              { featureName: "geo_city_match", contribution: 0.25, weight: 0.25 },
+              { featureName: "event_timing", contribution: 0.25, weight: 0.25 },
+            ],
+          },
+        ],
+      };
+    }
     const corrMatch = p.match(/^\/api\/v1\/applications\/([^/]+)\/corrections$/);
     if (corrMatch) {
       return {
@@ -612,6 +644,45 @@ export const demoStore = {
       };
       demoAnalyticsSites = [...demoAnalyticsSites, site];
       return { site };
+    }
+    if (method === "POST" && p === "/api/v1/links") {
+      const applicationId =
+        (body as { applicationId?: string })?.applicationId ?? "app-1";
+      const token = "DemoTok1";
+      const app = applications.find((a) => a.id === applicationId);
+      if (app) app.uniqueLinkToken = token;
+      return {
+        link: {
+          applicationId,
+          token,
+          portfolioUrl: `http://localhost:4321/?src=${token}`,
+          resumeUrl: `http://localhost:3000/r/${token}/resume.pdf`,
+        },
+        enableResumeLink: true,
+      };
+    }
+    if (method === "DELETE" && /^\/api\/v1\/links\/[^/]+$/.test(p)) {
+      const applicationId = p.split("/")[4]!;
+      const app = applications.find((a) => a.id === applicationId);
+      if (app) app.uniqueLinkToken = null;
+      return { applicationId, revoked: true };
+    }
+    if (method === "POST" && /^\/api\/v1\/correlations\/[^/]+\/feedback$/.test(p)) {
+      return {
+        prediction: {
+          id: p.split("/")[4],
+          userFeedback: (body as { feedback?: string })?.feedback ?? null,
+        },
+      };
+    }
+    if (method === "POST" && p === "/api/v1/correlation/score") {
+      return {
+        enabled: true,
+        scored: 0,
+        inserted: 0,
+        skipped: 0,
+        algorithmVersion: "corr-v1",
+      };
     }
     if (method === "POST" && p === "/api/v1/ghost/evaluate") {
       return {

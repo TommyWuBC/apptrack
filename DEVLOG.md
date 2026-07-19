@@ -1154,3 +1154,65 @@ An audit after M15 found gaps that blocked claiming M1–M15 “done”: missing
 
 ### Follow-up
 Finish green CI on PR #9; ADR for transactional job handoff; M16 correlation.
+
+## 2026-07-19 — cursor — M16 Correlation scoring (`corr-v1`)
+
+**Meta:** branch `cursor/m16-correlation-scoring-6a25` · milestone M16 · status completed
+
+### Problem being solved
+After analytics sessions exist, the user needs a privacy-safe way to see whether anonymous portfolio visits might relate to a job application — with unique-link deterministic attribution when they opt in — without ever claiming to identify a recruiter.
+
+### Background concepts
+**Rules-based correlation.** A transparent weighted sum of features (timing, coarse geo, referrer, résumé engagement) produces a score. Probabilistic confidence is capped at “medium”; only a unique tracking token can yield “high.”
+
+**Unique links.** An 8-character token on `?src=` (or a tracker-served résumé URL) is a strong, opt-in signal. Hitting `/r/<token>/resume.pdf` logs a `resume_download` with that token and serves the uploaded PDF.
+
+**Banned phrasing.** UI and stored explanations must not say “recruiter viewed,” “visited by &lt;Company&gt;,” “definitely,” or “confirmed” (except the user’s feedback enum). Correlation is inference, never identification.
+
+### Design decision
+Implement ADR-008/012 intent in code: feature-flagged `CORRELATION_ENABLED` (default off), pure scorer in `packages/core`, persistence via existing `correlation_*` tables, new `user_resumes` for tracked PDFs. Aggregate enqueues `correlation.score` when enabled. Reversible scoring weights; hard-to-reverse is only the “medium cap unless deterministic” product constraint.
+
+### Implementation
+- `packages/core/src/correlation/` — `scoreCorrelation`, language guards, `corr-v1` version.
+- Shared zod: `CorrelationResultV1`, feedback, mint-link; job `correlation.score`.
+- DB: correlation repos; `user_resumes` migration `0004`; application token helpers; analytics session/event helpers.
+- Server: score service, links/resume routes, public tracked résumé, feedback, version endpoint.
+- Worker: `CORRELATION_SCORE` → internal API.
+- Web: `CorrelationPanel` on application detail; settings blurb; demo stubs.
+- Docs: `docs/correlation-model.md`; analytics + ARCHITECTURE updates.
+
+### Runtime flow
+1. SDK/site sends events; aggregate sessionizes and returns `sessionIds`.
+2. If `CORRELATION_ENABLED`, enqueue `correlation.score` with those ids.
+3. Scorer loads apps + sessions + events; deterministic token hit → high; else probabilistic features → low/medium or skip.
+4. Idempotent insert into `correlation_predictions` + features; SPA lists them with feedback buttons.
+5. User may mint/revoke unique links; résumé download hits public `/r/:token/resume.pdf`.
+
+### Bugs & failed approaches
+None material in this pass. Demo fixtures use non-UUID application ids — mint/feedback go through the demo store, not server zod.
+
+### Tests
+- Core: deterministic unique-link, medium cap, ambiguity divisor, banned phrases, below-threshold null.
+- Server: version public, token mint shape, flag parsing, resume route fail-closed without DB.
+- Commands: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm eval && pnpm boundaries` (recorded after green).
+
+### Security & privacy review
+- INV-8: no IP at rest; resume download uses token-based visitor hash only.
+- INV-6: no outbound fetch of email/analytics URLs.
+- Explanations guarded against banned identification copy.
+- `CORRELATION_ENABLED` default off.
+
+### Performance notes
+Scores recent sessions (limit 200) × applications; fine at NFR-1 envelope. Feature inserts batch per prediction.
+
+### Interview prep
+**Q: Why cap probabilistic correlation at medium?**  
+A: Without a unique link, signals (geo, timing, résumé) are weak and ambiguous across multiple active applications. Claiming “high” or naming a recruiter would overstate certainty and violate the privacy product contract. Unique tokens are deterministic attribution the user opted into.
+
+**Follow-up:** How does the ambiguity divisor work?  
+A: If k active applications share the matched metro, score /= √k so multi-metro pipelines don’t all light up from one visit.
+
+**What I’d improve:** Persist fired feature “detail” strings for richer UI without re-deriving copy; optional per-application correlation mute.
+
+### Follow-up
+M17 security hardening; optional ADR-008/012 markdown stubs if packaging wants them explicit; load-test correlation job under dense session batches.

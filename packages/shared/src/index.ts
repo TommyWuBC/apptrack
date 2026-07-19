@@ -46,6 +46,11 @@ export {
   AuthMeV1Schema,
   ApplicationPatchV1Schema,
   ReviewResolutionV1Schema,
+  CorrelationFeatureV1Schema,
+  CorrelationConfidenceBandSchema,
+  CorrelationResultV1Schema,
+  CorrelationFeedbackV1Schema,
+  MintLinkV1Schema,
 } from "./schemas.js";
 export type {
   ExtractionV1,
@@ -71,6 +76,11 @@ export type {
   AuthMeV1,
   ApplicationPatchV1,
   ReviewResolutionV1,
+  CorrelationFeatureV1,
+  CorrelationConfidenceBand,
+  CorrelationResultV1,
+  CorrelationFeedbackV1,
+  MintLinkV1,
 } from "./schemas.js";
 export { FixtureExpectedV1Schema, GoldenBaselineV1Schema } from "./fixtures.js";
 export type { FixtureExpectedV1, GoldenBaselineV1 } from "./fixtures.js";
@@ -83,6 +93,7 @@ export {
   CompanyJobV1Schema,
   ScheduledJobV1Schema,
   EmailReprocessJobV1Schema,
+  CorrelationScoreJobV1Schema,
 } from "./jobs.js";
 export type {
   JobName as JobNameT,
@@ -93,4 +104,5 @@ export type {
   CompanyJobV1,
   ScheduledJobV1,
   EmailReprocessJobV1,
+  CorrelationScoreJobV1,
 } from "./jobs.js";

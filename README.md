@@ -6,7 +6,7 @@ Self-hostable, privacy-conscious job application tracker. Analyzes your own emai
 
 ## Status
 
-**M1–M15 implemented**, plus a stabilization pass (auth/sessions/CSRF, pg-boss jobs, analytics session fixes, review/reprocess completion, CI/deps). **Next: M16 Correlation.** See `AGENTS.md`, `HANDOFF.md`, and `PROGRESS.md`.
+**M1–M16 implemented**, plus a stabilization pass (auth/sessions/CSRF, pg-boss jobs, analytics session fixes, review/reprocess completion, CI/deps). **Next: M17 Security hardening.** See `AGENTS.md`, `HANDOFF.md`, and `PROGRESS.md`.
 
 ## Quickstart
 

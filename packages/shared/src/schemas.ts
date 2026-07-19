@@ -356,3 +356,52 @@ export const AnalyticsSiteUpdateV1Schema = z.object({
 });
 
 export type AnalyticsSiteUpdateV1 = z.infer<typeof AnalyticsSiteUpdateV1Schema>;
+
+/** Fired correlation feature row. AGENTS.md §21.1 */
+export const CorrelationFeatureV1Schema = z.object({
+  featureName: z.string().min(1).max(80),
+  featureValue: z.record(z.unknown()).default({}),
+  weight: z.number(),
+  contribution: z.number(),
+});
+
+export type CorrelationFeatureV1 = z.infer<typeof CorrelationFeatureV1Schema>;
+
+export const CorrelationConfidenceBandSchema = z.enum([
+  "none",
+  "low",
+  "medium",
+  "high",
+]);
+
+export type CorrelationConfidenceBand = z.infer<
+  typeof CorrelationConfidenceBandSchema
+>;
+
+/** Pure scorer output before persistence. AGENTS.md §21 */
+export const CorrelationResultV1Schema = z.object({
+  applicationId: z.string().uuid(),
+  sessionId: z.string().uuid(),
+  score: z.number().min(0).max(1),
+  confidenceBand: CorrelationConfidenceBandSchema,
+  deterministic: z.boolean(),
+  algorithmVersion: z.string(),
+  explanation: z.string().min(1).max(2000),
+  features: z.array(CorrelationFeatureV1Schema),
+});
+
+export type CorrelationResultV1 = z.infer<typeof CorrelationResultV1Schema>;
+
+export const CorrelationFeedbackV1Schema = z.object({
+  feedback: z.enum(["confirmed", "rejected"]),
+});
+
+export type CorrelationFeedbackV1 = z.infer<typeof CorrelationFeedbackV1Schema>;
+
+export const MintLinkV1Schema = z.object({
+  applicationId: z.string().uuid(),
+  /** When true, also expose the tracked resume URL for this token. */
+  enableResumeLink: z.boolean().default(true),
+});
+
+export type MintLinkV1 = z.infer<typeof MintLinkV1Schema>;
