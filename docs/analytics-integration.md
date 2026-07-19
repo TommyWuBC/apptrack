@@ -1,6 +1,6 @@
-# Analytics ingestion
+# Analytics ingestion & browser SDK
 
-Last verified against code: 2026-07-19 (M14).
+Last verified against code: 2026-07-19 (M15).
 
 ## Privacy (INV-8)
 
@@ -8,6 +8,37 @@ Last verified against code: 2026-07-19 (M14).
 - No `ip` column exists on `analytics_sites`, `analytics_sessions`, or `analytics_events` (schema tests enforce this).
 - `visitor_hash = sha256(daily_salt || site_key || ip || ua_family)` — salt rotates daily (UTC).
 - Site modes: `full` | `no_geo` | `off`.
+
+## Browser SDK (`GET /sdk.js`)
+
+Embed on any first-party site (see `examples/website-astro/`):
+
+```html
+<script
+  defer
+  src="https://YOUR_TRACKER/sdk.js"
+  data-site-key="pk_..."
+  data-mode="full"
+></script>
+```
+
+| Attribute | Purpose |
+|-----------|---------|
+| `data-site-key` | Required public site key |
+| `data-mode` | Optional client override; `off` disables capture |
+| `data-endpoint` | Optional full ingest URL (default: same host as script → `/api/v1/analytics/events`) |
+
+Behavior:
+
+- Zero runtime dependencies; **gzip size gated &lt; 2 KB** in CI (`packages/analytics-sdk` build)
+- Cookie-free; no `localStorage`
+- Auto `page_view` on load; hooks `history.pushState` / `replaceState` / `popstate` for SPAs
+- Reads `?src=` into `srcToken` on subsequent events
+- Exposes `window.apptrack.track(type, props)` and `.flush()`
+- Transport: `navigator.sendBeacon`, falling back to `fetch({ keepalive: true })`
+- Batches ≤10 events (server hard cap 25) and soft-guards ~8 KB payloads
+
+Build: `pnpm --filter @apptrack/analytics-sdk build` → `dist/sdk.js`.
 
 ## Ingest
 
@@ -40,11 +71,13 @@ Groups unsessionized events by `(siteId, visitorHash)` into **30-minute** idle w
 
 SPA: Settings → Analytics sites.
 
+## Example site
+
+`examples/website-astro/` — minimal Astro portfolio + Playwright harness (`pnpm e2e:sdk`).
+
 ## Load script
 
 ```bash
 # Against a running server with a real site key:
 pnpm exec tsx scripts/analytics-load.ts --url http://localhost:3000 --site-key pk_...
 ```
-
-SDK browser embed is **M15**.

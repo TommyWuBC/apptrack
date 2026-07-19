@@ -1,0 +1,23 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+<Layout title="Projects — Alex Rivera">
+  <main data-testid="projects-page">
+    <h1>Projects</h1>
+    <p>Selected work (synthetic).</p>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li>
+        <button type="button" data-testid="project-view" data-project="pipeline-viz">
+          Pipeline visualizer
+        </button>
+      </li>
+    </ul>
+  </main>
+  <script>
+    document.querySelector("[data-testid=project-view]")?.addEventListener("click", (e) => {
+      const el = e.currentTarget as HTMLElement;
+      window.apptrack?.track("project_view", { project: el.dataset.project ?? "unknown" });
+    });
+  </script>
+</Layout>
