@@ -1,0 +1,50 @@
+# Analytics ingestion
+
+Last verified against code: 2026-07-19 (M14).
+
+## Privacy (INV-8)
+
+- Raw visitor IPs are used **in memory** only to compute `visitor_hash` and optional geo, then discarded.
+- No `ip` column exists on `analytics_sites`, `analytics_sessions`, or `analytics_events` (schema tests enforce this).
+- `visitor_hash = sha256(daily_salt || site_key || ip || ua_family)` — salt rotates daily (UTC).
+- Site modes: `full` | `no_geo` | `off`.
+
+## Ingest
+
+`POST /api/v1/analytics/events` (public)
+
+- Body: `{ siteKey, events: [...] }` — max **25** events, **8 KB** payload
+- Zod allowlists for `eventType` and `props` keys
+- CORS restricted to the site's `origin_allowlist` (empty allowlist = any origin in dev)
+- In-memory rate limits per site key and per hashed source IP
+- Handler inserts events (with visitor/geo context) and returns `202` — sessionization is deferred
+
+## Sessionization
+
+`POST /api/v1/analytics/aggregate` (or worker poll every 5m)
+
+Groups unsessionized events by `(siteId, visitorHash)` into **30-minute** idle windows, writes `analytics_sessions`, links events.
+
+## Retention
+
+`POST /api/v1/analytics/retention` — deletes events/sessions older than ~13 months (D-5, configurable).
+
+## Sites settings
+
+| Method | Path |
+|--------|------|
+| GET/POST | `/api/v1/analytics/sites` |
+| PATCH/DELETE | `/api/v1/analytics/sites/:id` |
+| GET | `/api/v1/analytics/sessions?siteId=` |
+| GET | `/api/v1/analytics/summary?siteId=` |
+
+SPA: Settings → Analytics sites.
+
+## Load script
+
+```bash
+# Against a running server with a real site key:
+pnpm exec tsx scripts/analytics-load.ts --url http://localhost:3000 --site-key pk_...
+```
+
+SDK browser embed is **M15**.

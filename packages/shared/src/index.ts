@@ -6,6 +6,8 @@ export {
   ReviewKind,
   ApplicationEventType,
   GhostStatus,
+  AnalyticsSiteMode,
+  AnalyticsEventType,
 } from "./enums.js";
 export type {
   EventType as EventTypeT,
@@ -15,6 +17,8 @@ export type {
   ReviewKind as ReviewKindT,
   ApplicationEventType as ApplicationEventTypeT,
   GhostStatus as GhostStatusT,
+  AnalyticsSiteMode as AnalyticsSiteModeT,
+  AnalyticsEventType as AnalyticsEventTypeT,
 } from "./enums.js";
 export { ErrorCode, AppError } from "./errors.js";
 export {
@@ -33,6 +37,11 @@ export {
   GhostEvaluateResultV1Schema,
   LlmExtractionV1Schema,
   ClassifierSettingsV1Schema,
+  ANALYTICS_PROP_KEYS,
+  AnalyticsEventV1Schema,
+  AnalyticsIngestBatchV1Schema,
+  AnalyticsSiteCreateV1Schema,
+  AnalyticsSiteUpdateV1Schema,
 } from "./schemas.js";
 export type {
   ExtractionV1,
@@ -50,6 +59,10 @@ export type {
   GhostEvaluateResultV1,
   LlmExtractionV1,
   ClassifierSettingsV1,
+  AnalyticsEventV1,
+  AnalyticsIngestBatchV1,
+  AnalyticsSiteCreateV1,
+  AnalyticsSiteUpdateV1,
 } from "./schemas.js";
 export {
   FixtureExpectedV1Schema,

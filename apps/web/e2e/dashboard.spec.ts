@@ -35,6 +35,7 @@ test.describe("M10 dashboard demo smoke", () => {
     await expect(page.getByTestId("ghost-thresholds")).toBeVisible();
     await expect(page.getByTestId("classifier-settings")).toBeVisible();
     await expect(page.getByTestId("egress-disclosure")).toBeVisible();
+    await expect(page.getByTestId("analytics-sites")).toBeVisible();
   });
 
   test("corrections panel on application detail", async ({ page }) => {
