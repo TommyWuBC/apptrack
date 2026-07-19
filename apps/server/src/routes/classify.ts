@@ -7,11 +7,7 @@ import {
   ErrorCode,
   JobName,
 } from "@apptrack/shared";
-import {
-  CLASSIFIER_VERSION,
-  PROMPT_VERSION,
-  RULES_VERSION,
-} from "@apptrack/core";
+import { CLASSIFIER_VERSION, PROMPT_VERSION, RULES_VERSION } from "@apptrack/core";
 import { repos } from "@apptrack/db";
 import { classifyAndStoreMessage } from "../services/email-classify-service.js";
 import { resolveClassifierConfig } from "../services/classifier-config.js";
@@ -43,6 +39,13 @@ export async function registerClassifyRoutes(app: FastifyInstance) {
       const out = await classifyAndStoreMessage(app.db, messageId, {
         userId: req.userId,
       });
+      if (app.jobs && req.isInternalJob) {
+        await app.jobs.send(
+          JobName.APPLICATION_MATCH,
+          { messageId },
+          { singletonKey: `application.match:${messageId}` },
+        );
+      }
       return {
         messageId: out.messageId,
         inserted: out.inserted,

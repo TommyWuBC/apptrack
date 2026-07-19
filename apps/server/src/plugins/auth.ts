@@ -11,6 +11,12 @@ const PUBLIC_ROUTES = new Set([
   "GET /readyz",
   "GET /sdk.js",
   "GET /api/v1/hello",
+  "GET /api/v1/core-ping",
+  "GET /api/v1/db-ping",
+  "GET /api/v1/applications/reducer-version",
+  "GET /api/v1/classify/version",
+  "GET /api/v1/normalize/version",
+  "GET /api/v1/match/version",
   "POST /api/v1/auth/setup",
   "POST /api/v1/auth/login",
   "GET /api/v1/auth/status",
@@ -50,10 +56,7 @@ function isInternalRequest(req: FastifyRequest, config: AuthConfig): boolean {
   const route = `${req.method} ${pathTemplate(req)}`;
   if (!INTERNAL_JOB_ROUTES.has(route)) return false;
   const token = req.headers["x-apptrack-internal"];
-  return (
-    typeof token === "string" &&
-    constantEqual(token, config.internalJobSecret)
-  );
+  return typeof token === "string" && constantEqual(token, config.internalJobSecret);
 }
 
 /** DB-backed sessions + double-submit CSRF. AGENTS.md §6.2 T3/T5. */
@@ -64,15 +67,21 @@ export async function registerAuthPlugin(
   await app.register(cookie);
 
   app.addHook("preHandler", async (req, reply) => {
-    // Preserve route-level 503 behavior when the database is unavailable.
-    if (!app.db) return;
-
     const route = `${req.method} ${pathTemplate(req)}`;
     if (PUBLIC_ROUTES.has(route)) return;
     if (isInternalRequest(req, config)) {
       req.isInternalJob = true;
-      return;
     }
+
+    // Authentication must fail closed when its backing store is unavailable.
+    // Public liveness/setup routes remain reachable above.
+    if (!app.db) {
+      return reply.code(503).send({
+        error: { code: ErrorCode.INTERNAL, message: "database unavailable" },
+      });
+    }
+
+    if (req.isInternalJob) return;
 
     const rawToken = req.cookies[config.cookieName];
     if (!rawToken) {

@@ -13,9 +13,7 @@ export async function registerHealthRoutes(
     const boss = isBossReady();
     const ready = db && boss;
     if (!ready) {
-      return reply
-        .code(503)
-        .send({ status: "not_ready", db, boss });
+      return reply.code(503).send({ status: "not_ready", db, boss });
     }
     return { status: "ready", db: true, boss: true };
   });

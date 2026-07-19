@@ -56,7 +56,7 @@ async function main() {
       const application = await repos.applicationsRepo.createApplication(db, {
         userId: user.id,
         companyId: company.id,
-        currentState: state,
+        currentState: "applied",
         appliedAt: occurredAt,
         source: "synthetic_demo",
       });
@@ -64,6 +64,13 @@ async function main() {
         applicationId: application.id,
         eventType: ApplicationEventType.created_manually,
         occurredAt,
+        source: "user",
+        payload: { synthetic: true },
+      });
+      await repos.applicationsRepo.appendApplicationEvent(db, {
+        applicationId: application.id,
+        eventType: ApplicationEventType.manual_override,
+        occurredAt: new Date(occurredAt.getTime() + 60_000),
         source: "user",
         payload: {
           state,

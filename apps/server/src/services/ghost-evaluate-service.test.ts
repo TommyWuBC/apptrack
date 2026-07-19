@@ -2,11 +2,7 @@
  * Ghost service contract tests (pure + API shape). Full DB coverage needs Postgres.
  */
 import { describe, expect, it } from "vitest";
-import {
-  evaluateGhost,
-  GHOST_VERSION,
-  DEFAULT_GHOST_THRESHOLDS,
-} from "@apptrack/core";
+import { evaluateGhost, GHOST_VERSION, DEFAULT_GHOST_THRESHOLDS } from "@apptrack/core";
 import { ApplicationState, GhostStatus } from "@apptrack/shared";
 
 describe("ghost-evaluate-service contracts", () => {

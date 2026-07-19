@@ -5,8 +5,7 @@
 import { callInternalApi } from "../internal-api.js";
 
 const intervalMs =
-  Number.parseInt(process.env.ANALYTICS_AGGREGATE_INTERVAL_MS ?? "", 10) ||
-  5 * 60 * 1000;
+  Number.parseInt(process.env.ANALYTICS_AGGREGATE_INTERVAL_MS ?? "", 10) || 5 * 60 * 1000;
 
 export async function triggerAnalyticsAggregate(): Promise<unknown> {
   return callInternalApi("POST", "/api/v1/analytics/aggregate", {});
@@ -14,9 +13,7 @@ export async function triggerAnalyticsAggregate(): Promise<unknown> {
 
 export async function startAnalyticsAggregatePolling(): Promise<void> {
   if (process.env.ANALYTICS_AGGREGATE_DISABLED === "1") {
-    console.info(
-      "[analytics.aggregate] disabled via ANALYTICS_AGGREGATE_DISABLED=1",
-    );
+    console.info("[analytics.aggregate] disabled via ANALYTICS_AGGREGATE_DISABLED=1");
     return;
   }
   const tick = async () => {

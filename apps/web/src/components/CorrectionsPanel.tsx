@@ -22,9 +22,7 @@ export function CorrectionsPanel({
     queryFn: () => api.corrections(applicationId),
   });
   const [state, setState] = useState(initialState ?? "unknown");
-  const [actionRequired, setActionRequired] = useState(
-    initialActionRequired ?? false,
-  );
+  const [actionRequired, setActionRequired] = useState(initialActionRequired ?? false);
   const [lock, setLock] = useState(true);
 
   useEffect(() => {
@@ -73,8 +71,7 @@ export function CorrectionsPanel({
       <div>
         <h3 className="font-medium">Corrections</h3>
         <p className="text-xs text-ink-600">
-          Locked fields survive reprocess (INV-7). Undo restores the prior
-          correction.
+          Locked fields survive reprocess (INV-7). Undo restores the prior correction.
         </p>
       </div>
 

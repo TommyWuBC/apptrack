@@ -22,9 +22,7 @@ export type ProjectionFields = {
  * Active = not reverted. For each field, the latest (by createdAt) wins.
  * Undo sets revertedAt on one row; earlier corrections remain eligible.
  */
-export function activeCorrections(
-  corrections: UserCorrection[],
-): UserCorrection[] {
+export function activeCorrections(corrections: UserCorrection[]): UserCorrection[] {
   const alive = corrections.filter((c) => !c.revertedAt);
   const byField = new Map<string, UserCorrection>();
   const sorted = [...alive].sort((a, b) => {
@@ -58,11 +56,6 @@ export function applyCorrections(
  * True when a field is locked by an active correction — automation must not
  * write it (INV-7).
  */
-export function isFieldLocked(
-  corrections: UserCorrection[],
-  field: string,
-): boolean {
-  return activeCorrections(corrections).some(
-    (c) => c.field === field && c.locked,
-  );
+export function isFieldLocked(corrections: UserCorrection[], field: string): boolean {
+  return activeCorrections(corrections).some((c) => c.field === field && c.locked);
 }

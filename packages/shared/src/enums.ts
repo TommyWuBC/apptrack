@@ -41,8 +41,7 @@ export const ApplicationState = {
   unknown: "unknown",
 } as const;
 
-export type ApplicationState =
-  (typeof ApplicationState)[keyof typeof ApplicationState];
+export type ApplicationState = (typeof ApplicationState)[keyof typeof ApplicationState];
 
 export const ClassifierMode = {
   deterministic: "deterministic",
@@ -51,8 +50,7 @@ export const ClassifierMode = {
   hybrid: "hybrid",
 } as const;
 
-export type ClassifierMode =
-  (typeof ClassifierMode)[keyof typeof ClassifierMode];
+export type ClassifierMode = (typeof ClassifierMode)[keyof typeof ClassifierMode];
 
 /** Application match decisions. AGENTS.md §15.2 */
 export const MatchDecision = {
@@ -62,8 +60,7 @@ export const MatchDecision = {
   new_application: "new_application",
 } as const;
 
-export type MatchDecision =
-  (typeof MatchDecision)[keyof typeof MatchDecision];
+export type MatchDecision = (typeof MatchDecision)[keyof typeof MatchDecision];
 
 /** Review queue item kinds. AGENTS.md §10.5 / §18.3 */
 export const ReviewKind = {

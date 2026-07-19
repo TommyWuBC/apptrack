@@ -26,9 +26,7 @@ const MAX_BODY_BYTES = 8 * 1024;
 
 function secretForSalt(): string {
   return (
-    process.env.APP_ENCRYPTION_KEY ||
-    process.env.SESSION_SECRET ||
-    "dev-analytics-salt"
+    process.env.APP_ENCRYPTION_KEY || process.env.SESSION_SECRET || "dev-analytics-salt"
   );
 }
 
@@ -36,10 +34,7 @@ function hashSource(ip: string): string {
   return createHash("sha256").update(`rl|${ip}`).digest("hex").slice(0, 16);
 }
 
-export function originAllowed(
-  origin: string | undefined,
-  allowlist: string[],
-): boolean {
+export function originAllowed(origin: string | undefined, allowlist: string[]): boolean {
   if (!origin) return allowlist.length === 0;
   if (allowlist.length === 0) return true; // open until configured (dev)
   try {
@@ -198,18 +193,10 @@ export async function aggregateAnalyticsSessions(
     const latestActivity = latest
       ? await repos.analyticsRepo.getSessionLastActivity(db, latest.id)
       : null;
-    const incremental = partitionIncrementalEvents(
-      group,
-      latestActivity,
-      idleMs,
-    );
+    const incremental = partitionIncrementalEvents(group, latestActivity, idleMs);
     if (latest && incremental.append.length > 0) {
       const ids = incremental.append.map((event) => event.id);
-      await repos.analyticsRepo.reopenAndAttachEventsToSession(
-        db,
-        latest.id,
-        ids,
-      );
+      await repos.analyticsRepo.reopenAndAttachEventsToSession(db, latest.id, ids);
       eventsLinked += ids.length;
     }
 
@@ -260,13 +247,9 @@ export async function runAnalyticsRetention(
   const days = opts.retentionDays ?? ANALYTICS_RETENTION_DAYS_DEFAULT;
   const now = opts.now ?? new Date();
   const cutoff = new Date(now.getTime() - days * 86_400_000);
-  const rawDays = Number.parseInt(
-    process.env.RAW_MIME_RETENTION_DAYS ?? "30",
-    10,
-  );
+  const rawDays = Number.parseInt(process.env.RAW_MIME_RETENTION_DAYS ?? "30", 10);
   const rawCutoff = new Date(
-    now.getTime() -
-      (Number.isFinite(rawDays) && rawDays > 0 ? rawDays : 30) * 86_400_000,
+    now.getTime() - (Number.isFinite(rawDays) && rawDays > 0 ? rawDays : 30) * 86_400_000,
   );
   const notificationCutoff = new Date(now.getTime() - 90 * 86_400_000);
   const [analytics, rawMime, notifications, sessions] = await Promise.all([

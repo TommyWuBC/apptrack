@@ -67,12 +67,8 @@ function buildSeedAliasRecords(): AliasRecord[] {
  * Resolve a company candidate to an exact alias hit, fuzzy suggestion, or new.
  * // AGENTS.md §14.4
  */
-export function resolveCompany(
-  input: ResolveCompanyInput,
-): ResolveCompanyResult {
-  const nameNorm = input.companyName
-    ? normalizeCompanyName(input.companyName)
-    : "";
+export function resolveCompany(input: ResolveCompanyInput): ResolveCompanyResult {
+  const nameNorm = input.companyName ? normalizeCompanyName(input.companyName) : "";
   const domainNorm = input.domain?.toLowerCase().replace(/^www\./, "") ?? "";
 
   const pool = [
@@ -89,9 +85,7 @@ export function resolveCompany(
     if (domainHit) {
       return {
         kind: "exact",
-        companyId: domainHit.companyId.startsWith("seed:")
-          ? null
-          : domainHit.companyId,
+        companyId: domainHit.companyId.startsWith("seed:") ? null : domainHit.companyId,
         canonicalName: domainHit.canonicalName,
         matchedAlias: domainHit.alias,
         source: domainHit.companyId.startsWith("seed:") ? "seed" : "db",
@@ -101,16 +95,12 @@ export function resolveCompany(
 
   if (nameNorm) {
     const nameHit = pool.find(
-      (a) =>
-        a.aliasType === "name" &&
-        normalizeCompanyName(a.alias) === nameNorm,
+      (a) => a.aliasType === "name" && normalizeCompanyName(a.alias) === nameNorm,
     );
     if (nameHit) {
       return {
         kind: "exact",
-        companyId: nameHit.companyId.startsWith("seed:")
-          ? null
-          : nameHit.companyId,
+        companyId: nameHit.companyId.startsWith("seed:") ? null : nameHit.companyId,
         canonicalName: nameHit.canonicalName,
         matchedAlias: nameHit.alias,
         source: nameHit.companyId.startsWith("seed:") ? "seed" : "db",
@@ -130,9 +120,7 @@ export function resolveCompany(
     if (best && best.sim >= FUZZY_MERGE_THRESHOLD) {
       return {
         kind: "fuzzy_suggest",
-        companyId: best.rec.companyId.startsWith("seed:")
-          ? null
-          : best.rec.companyId,
+        companyId: best.rec.companyId.startsWith("seed:") ? null : best.rec.companyId,
         canonicalName: best.rec.canonicalName,
         similarity: best.sim,
         candidateName: input.companyName!,

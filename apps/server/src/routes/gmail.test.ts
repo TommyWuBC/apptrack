@@ -72,14 +72,12 @@ describeDb("gmail oauth service (integration)", () => {
     db = createDb(dbUrl!);
     const userId = await ensureOwnerUser(db);
 
-    nock("https://oauth2.googleapis.com")
-      .post("/token")
-      .reply(200, {
-        access_token: "ya29.SECRET_ACCESS",
-        refresh_token: "1//SECRET_REFRESH",
-        expires_in: 3600,
-        scope: "https://www.googleapis.com/auth/gmail.readonly",
-      });
+    nock("https://oauth2.googleapis.com").post("/token").reply(200, {
+      access_token: "ya29.SECRET_ACCESS",
+      refresh_token: "1//SECRET_REFRESH",
+      expires_in: 3600,
+      scope: "https://www.googleapis.com/auth/gmail.readonly",
+    });
     nock("https://www.googleapis.com")
       .get("/oauth2/v3/userinfo")
       .reply(200, { email: "applicant@initech.example" });
@@ -136,13 +134,11 @@ describeDb("gmail oauth service (integration)", () => {
     db = createDb(dbUrl!);
     const userId = await ensureOwnerUser(db);
 
-    nock("https://oauth2.googleapis.com")
-      .post("/token")
-      .reply(200, {
-        access_token: "ya29.a",
-        refresh_token: "1//r",
-        expires_in: 3600,
-      });
+    nock("https://oauth2.googleapis.com").post("/token").reply(200, {
+      access_token: "ya29.a",
+      refresh_token: "1//r",
+      expires_in: 3600,
+    });
     nock("https://www.googleapis.com")
       .get("/oauth2/v3/userinfo")
       .reply(200, { email: "reauth@initech.example" });
@@ -168,13 +164,11 @@ describeDb("gmail oauth service (integration)", () => {
     db = createDb(dbUrl!);
     const userId = await ensureOwnerUser(db);
 
-    nock("https://oauth2.googleapis.com")
-      .post("/token")
-      .reply(200, {
-        access_token: "ya29.old",
-        refresh_token: "1//r",
-        expires_in: 3600,
-      });
+    nock("https://oauth2.googleapis.com").post("/token").reply(200, {
+      access_token: "ya29.old",
+      refresh_token: "1//r",
+      expires_in: 3600,
+    });
     nock("https://www.googleapis.com")
       .get("/oauth2/v3/userinfo")
       .reply(200, { email: "rotate@initech.example" });
@@ -185,12 +179,10 @@ describeDb("gmail oauth service (integration)", () => {
       state,
     });
 
-    nock("https://oauth2.googleapis.com")
-      .post("/token")
-      .reply(200, {
-        access_token: "ya29.rotated",
-        expires_in: 1800,
-      });
+    nock("https://oauth2.googleapis.com").post("/token").reply(200, {
+      access_token: "ya29.rotated",
+      expires_in: 1800,
+    });
 
     const result = await refreshGmailAccount(db, config, account.id);
     expect(result.accessTokenExpiresAt.getTime()).toBeGreaterThan(Date.now());
@@ -210,20 +202,15 @@ describeDb("gmail oauth service (integration)", () => {
     db = createDb(dbUrl!);
     const userId = await ensureOwnerUser(db);
 
-    nock("https://oauth2.googleapis.com")
-      .post("/token")
-      .reply(200, {
-        access_token: "ya29.x",
-        refresh_token: "1//del",
-        expires_in: 3600,
-      });
+    nock("https://oauth2.googleapis.com").post("/token").reply(200, {
+      access_token: "ya29.x",
+      refresh_token: "1//del",
+      expires_in: 3600,
+    });
     nock("https://www.googleapis.com")
       .get("/oauth2/v3/userinfo")
       .reply(200, { email: "bye@initech.example" });
-    nock("https://oauth2.googleapis.com")
-      .post("/revoke")
-      .query(true)
-      .reply(200, {});
+    nock("https://oauth2.googleapis.com").post("/revoke").query(true).reply(200, {});
 
     const { state } = beginGmailConnect(config, userId);
     const account = await completeGmailCallback(db, config, {
@@ -231,7 +218,7 @@ describeDb("gmail oauth service (integration)", () => {
       state,
     });
 
-    await disconnectGmailAccount(db, config, account.id);
+    await disconnectGmailAccount(db, config, account.id, userId);
     const creds = await repos.oauthCredentialsRepo.getOauthCredentialsByAccountId(
       db,
       account.id,

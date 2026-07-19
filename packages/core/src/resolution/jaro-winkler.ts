@@ -8,10 +8,7 @@ export function jaroWinkler(a: string, b: string): number {
 
   const s1 = a.toLowerCase();
   const s2 = b.toLowerCase();
-  const matchDistance = Math.max(
-    0,
-    Math.floor(Math.max(s1.length, s2.length) / 2) - 1,
-  );
+  const matchDistance = Math.max(0, Math.floor(Math.max(s1.length, s2.length) / 2) - 1);
 
   const s1Matches = new Array<boolean>(s1.length).fill(false);
   const s2Matches = new Array<boolean>(s2.length).fill(false);

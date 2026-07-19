@@ -26,11 +26,7 @@ export function rateStat(
     smallSample,
     numerator,
     denominator,
-    rate: smallSample
-      ? null
-      : denominator === 0
-        ? null
-        : numerator / denominator,
+    rate: smallSample ? null : denominator === 0 ? null : numerator / denominator,
     label,
   };
 }
@@ -79,14 +75,8 @@ export type StatsPayload = {
   smallSampleThreshold: number;
 };
 
-export async function computeStats(
-  db: Database,
-  userId: string,
-): Promise<StatsPayload> {
-  const apps = await repos.applicationsRepo.listApplicationsWithCompany(
-    db,
-    userId,
-  );
+export async function computeStats(db: Database, userId: string): Promise<StatsPayload> {
+  const apps = await repos.applicationsRepo.listApplicationsWithCompany(db, userId);
   const byState: Record<string, number> = {};
   for (const a of apps) {
     byState[a.currentState] = (byState[a.currentState] ?? 0) + 1;
@@ -146,8 +136,7 @@ export async function computeStats(
 
     if (a.appliedAt && a.lastEventAt && a.lastEventAt > a.appliedAt) {
       const days =
-        (a.lastEventAt.getTime() - a.appliedAt.getTime()) /
-        (24 * 60 * 60 * 1000);
+        (a.lastEventAt.getTime() - a.appliedAt.getTime()) / (24 * 60 * 60 * 1000);
       if (days >= 0 && days < 365) firstResponseDays.push(days);
     }
   }

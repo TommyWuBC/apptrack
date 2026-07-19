@@ -18,28 +18,22 @@ export function StatsPage() {
     <div data-testid="stats-page">
       <h2 className="mb-1 font-display text-xl font-semibold">Stats</h2>
       <p className="mb-6 text-sm text-ink-600">
-        Rates on n &lt; {s.smallSampleThreshold} show as n/N — never a bold
-        percentage (small-sample guard).
+        Rates on n &lt; {s.smallSampleThreshold} show as n/N — never a bold percentage
+        (small-sample guard).
       </p>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
         <div className="panel p-4">
           <p className="text-xs uppercase text-ink-600">Applications</p>
-          <p className="font-display text-3xl font-semibold">
-            {s.totals.applications}
-          </p>
+          <p className="font-display text-3xl font-semibold">{s.totals.applications}</p>
         </div>
         <div className="panel p-4">
           <p className="text-xs uppercase text-ink-600">Action required</p>
-          <p className="font-display text-3xl font-semibold">
-            {s.totals.actionRequired}
-          </p>
+          <p className="font-display text-3xl font-semibold">{s.totals.actionRequired}</p>
         </div>
         <div className="panel p-4">
           <p className="text-xs uppercase text-ink-600">This week</p>
-          <p className="font-display text-3xl font-semibold">
-            {s.applicationsThisWeek}
-          </p>
+          <p className="font-display text-3xl font-semibold">{s.applicationsThisWeek}</p>
         </div>
       </div>
 

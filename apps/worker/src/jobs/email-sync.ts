@@ -6,14 +6,10 @@
 import { callInternalApi } from "../internal-api.js";
 
 const intervalMs =
-  Number.parseInt(process.env.SYNC_POLL_INTERVAL_MS ?? "", 10) ||
-  10 * 60 * 1000;
+  Number.parseInt(process.env.SYNC_POLL_INTERVAL_MS ?? "", 10) || 10 * 60 * 1000;
 
 function baseUrl(): string {
-  return (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
+  return (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 }
 
 export async function triggerSyncRun(accountId?: string): Promise<unknown> {

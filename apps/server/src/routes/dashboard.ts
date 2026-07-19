@@ -61,14 +61,12 @@ export async function registerDashboardRoutes(app: FastifyInstance) {
         error: { code: ErrorCode.NOT_FOUND, message: "message_not_found" },
       });
     }
-    const norm = await repos.normalizedEmailsRepo.getLatestNormalized(
+    const norm = await repos.normalizedEmailsRepo.getLatestNormalized(app.db, id);
+    const classification = await repos.classificationRepo.getEffectiveClassification(
       app.db,
       id,
     );
-    const classification =
-      await repos.classificationRepo.getLatestClassification(app.db, id);
-    const candidates =
-      await repos.matchingRepo.listMatchCandidatesForMessage(app.db, id);
+    const candidates = await repos.matchingRepo.listMatchCandidatesForMessage(app.db, id);
 
     return {
       messageId: id,

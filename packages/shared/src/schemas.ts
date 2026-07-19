@@ -5,7 +5,11 @@ const eventTypeValues = Object.values(EventType) as [string, ...string[]];
 
 /** First-run owner setup and login contracts. AGENTS.md §22. */
 export const AuthCredentialsV1Schema = z.object({
-  email: z.string().email().max(320).transform((value) => value.toLowerCase()),
+  email: z
+    .string()
+    .email()
+    .max(320)
+    .transform((value) => value.toLowerCase()),
   password: z.string().min(12).max(1024),
 });
 
@@ -60,11 +64,7 @@ export const ReviewResolutionV1Schema = z.discriminatedUnion("kind", [
     locked: z.boolean().optional(),
   }),
   z.object({
-    kind: z.enum([
-      "uncertain_classification",
-      "unmatched_email",
-      "ghost_confirm",
-    ]),
+    kind: z.enum(["uncertain_classification", "unmatched_email", "ghost_confirm"]),
     action: z.enum(["dismiss", "confirm"]),
   }),
 ]);
@@ -81,10 +81,7 @@ export const ExtractionV1Schema = z.object({
     .nullable()
     .optional(),
   location: z.string().nullable().optional(),
-  workArrangement: z
-    .enum(["remote", "hybrid", "onsite"])
-    .nullable()
-    .optional(),
+  workArrangement: z.enum(["remote", "hybrid", "onsite"]).nullable().optional(),
   applicationDate: z.string().nullable().optional(),
   eventDate: z.string().nullable().optional(),
   stage: z.string().nullable().optional(),
@@ -128,9 +125,7 @@ export const ClassificationResultV1Schema = z.object({
   layerTrace: z.array(z.record(z.unknown())).optional(),
 });
 
-export type ClassificationResultV1 = z.infer<
-  typeof ClassificationResultV1Schema
->;
+export type ClassificationResultV1 = z.infer<typeof ClassificationResultV1Schema>;
 
 /**
  * Structured LLM extraction allowlist. AGENTS.md §13.5 / INV-5
@@ -149,10 +144,7 @@ export const LlmExtractionV1Schema = z.object({
     .nullable()
     .optional(),
   location: z.string().max(200).nullable().optional(),
-  workArrangement: z
-    .enum(["remote", "hybrid", "onsite"])
-    .nullable()
-    .optional(),
+  workArrangement: z.enum(["remote", "hybrid", "onsite"]).nullable().optional(),
   assessmentProvider: z.string().max(100).nullable().optional(),
   assessmentDeadline: z.string().max(64).nullable().optional(),
   interviewDatetime: z.string().max(64).nullable().optional(),
@@ -167,9 +159,7 @@ export const LlmExtractionV1Schema = z.object({
 export type LlmExtractionV1 = z.infer<typeof LlmExtractionV1Schema>;
 
 export const ClassifierSettingsV1Schema = z.object({
-  mode: z
-    .enum(["deterministic", "local", "api", "hybrid"])
-    .default("deterministic"),
+  mode: z.enum(["deterministic", "local", "api", "hybrid"]).default("deterministic"),
   provider: z.enum(["anthropic", "openai", "ollama"]).nullable().optional(),
   modelId: z.string().max(120).nullable().optional(),
 });
@@ -201,12 +191,7 @@ export type MatchCandidateScore = z.infer<typeof MatchCandidateScoreSchema>;
  */
 export const MatchResultV1Schema = z.object({
   matcherVersion: z.string(),
-  decision: z.enum([
-    "auto_attached",
-    "review",
-    "rejected",
-    "new_application",
-  ]),
+  decision: z.enum(["auto_attached", "review", "rejected", "new_application"]),
   selectedApplicationId: z.string().nullable(),
   score: z.number().min(0).max(1),
   margin: z.number().min(0).max(1),

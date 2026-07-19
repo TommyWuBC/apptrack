@@ -51,16 +51,11 @@ function isFinalRoundHint(payload: Record<string, unknown> | undefined): boolean
   const stage = String(payload.stage ?? "").toLowerCase();
   const format = String(payload.interviewFormat ?? "").toLowerCase();
   return (
-    stage.includes("final") ||
-    format.includes("final") ||
-    payload.finalRound === true
+    stage.includes("final") || format.includes("final") || payload.finalRound === true
   );
 }
 
-function hasFutureScheduled(
-  events: ReducerEventV1[],
-  now: Date,
-): boolean {
+function hasFutureScheduled(events: ReducerEventV1[], now: Date): boolean {
   for (const e of events) {
     const p = e.payload ?? {};
     for (const key of ["interviewDatetime", "assessmentDeadline", "deadline"]) {

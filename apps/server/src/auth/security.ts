@@ -1,9 +1,4 @@
-import {
-  createHash,
-  createHmac,
-  randomBytes,
-  timingSafeEqual,
-} from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import argon2 from "argon2";
 
 export async function hashPassword(password: string): Promise<string> {
@@ -15,10 +10,7 @@ export async function hashPassword(password: string): Promise<string> {
   });
 }
 
-export async function verifyPassword(
-  hash: string,
-  password: string,
-): Promise<boolean> {
+export async function verifyPassword(hash: string, password: string): Promise<boolean> {
   try {
     return await argon2.verify(hash, password);
   } catch {
@@ -34,20 +26,13 @@ export function hashSessionToken(token: string): string {
   return createHash("sha256").update(token, "utf8").digest("hex");
 }
 
-function csrfSignature(
-  sessionHash: string,
-  nonce: string,
-  secret: string,
-): string {
+function csrfSignature(sessionHash: string, nonce: string, secret: string): string {
   return createHmac("sha256", secret)
     .update(`${sessionHash}:${nonce}`, "utf8")
     .digest("base64url");
 }
 
-export function generateCsrfToken(
-  sessionHash: string,
-  secret: string,
-): string {
+export function generateCsrfToken(sessionHash: string, secret: string): string {
   const nonce = randomBytes(24).toString("base64url");
   return `${nonce}.${csrfSignature(sessionHash, nonce, secret)}`;
 }

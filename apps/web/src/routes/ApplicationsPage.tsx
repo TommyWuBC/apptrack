@@ -99,8 +99,7 @@ export function ApplicationsPage() {
               <tr
                 key={a.id}
                 className={
-                  a.ghostStatus === "stale" ||
-                  a.ghostStatus === "possibly_ghosted"
+                  a.ghostStatus === "stale" || a.ghostStatus === "possibly_ghosted"
                     ? "row-ghost-uncertain"
                     : undefined
                 }
@@ -130,9 +129,7 @@ export function ApplicationsPage() {
                 </td>
                 <td className="font-mono text-xs">{a.source ?? "—"}</td>
                 <td className="font-mono text-xs">
-                  {a.lastEventAt
-                    ? new Date(a.lastEventAt).toLocaleDateString()
-                    : "—"}
+                  {a.lastEventAt ? new Date(a.lastEventAt).toLocaleDateString() : "—"}
                 </td>
                 <td>
                   <Link

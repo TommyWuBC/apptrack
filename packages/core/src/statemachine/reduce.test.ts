@@ -345,31 +345,25 @@ describe("reduce — ordering & property", () => {
 
 describe("applyCorrections stub (INV-7)", () => {
   it("user correction overlays machine state", () => {
-    const out = applyCorrections(
-      { currentState: "rejected", actionRequired: false },
-      [
-        {
-          field: "currentState",
-          userValue: "interviewing",
-          locked: true,
-        },
-      ],
-    );
+    const out = applyCorrections({ currentState: "rejected", actionRequired: false }, [
+      {
+        field: "currentState",
+        userValue: "interviewing",
+        locked: true,
+      },
+    ]);
     expect(out.currentState).toBe("interviewing");
   });
 
   it("reverted corrections are ignored", () => {
-    const out = applyCorrections(
-      { currentState: "rejected", actionRequired: false },
-      [
-        {
-          field: "currentState",
-          userValue: "offer",
-          locked: false,
-          revertedAt: new Date(),
-        },
-      ],
-    );
+    const out = applyCorrections({ currentState: "rejected", actionRequired: false }, [
+      {
+        field: "currentState",
+        userValue: "offer",
+        locked: false,
+        revertedAt: new Date(),
+      },
+    ]);
     expect(out.currentState).toBe("rejected");
   });
 });

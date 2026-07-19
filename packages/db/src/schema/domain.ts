@@ -114,9 +114,7 @@ export const applicationEvents = pgTable(
       .references(() => applications.id, { onDelete: "cascade" }),
     eventType: text("event_type").notNull(),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
-    ingestedAt: timestamp("ingested_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    ingestedAt: timestamp("ingested_at", { withTimezone: true }).notNull().defaultNow(),
     source: text("source").notNull(),
     messageId: uuid("message_id").references(() => emailMessages.id),
     classificationResultId: uuid("classification_result_id").references(
@@ -126,29 +124,21 @@ export const applicationEvents = pgTable(
     supersededBy: uuid("superseded_by"),
     ...timestamps,
   },
-  (t) => [
-    index("application_events_app_occurred_idx").on(
-      t.applicationId,
-      t.occurredAt,
-    ),
-  ],
+  (t) => [index("application_events_app_occurred_idx").on(t.applicationId, t.occurredAt)],
 );
 
-export const applicationMatchCandidates = pgTable(
-  "application_match_candidates",
-  {
-    id: idColumn,
-    messageId: uuid("message_id")
-      .notNull()
-      .references(() => emailMessages.id, { onDelete: "cascade" }),
-    applicationId: uuid("application_id").references(() => applications.id),
-    score: real("score").notNull(),
-    signals: jsonb("signals").notNull().default({}),
-    decision: text("decision").notNull(),
-    matcherVersion: text("matcher_version").notNull(),
-    ...timestamps,
-  },
-);
+export const applicationMatchCandidates = pgTable("application_match_candidates", {
+  id: idColumn,
+  messageId: uuid("message_id")
+    .notNull()
+    .references(() => emailMessages.id, { onDelete: "cascade" }),
+  applicationId: uuid("application_id").references(() => applications.id),
+  score: real("score").notNull(),
+  signals: jsonb("signals").notNull().default({}),
+  decision: text("decision").notNull(),
+  matcherVersion: text("matcher_version").notNull(),
+  ...timestamps,
+});
 
 // ── §10.5 Human-in-the-loop ──────────────────────────────────────────────
 

@@ -9,9 +9,7 @@ const fixturesRoot = join(
   "../../../../fixtures",
 );
 
-registerProviderContractTests("mock", () =>
-  createMockEmailProvider(fixturesRoot),
-);
+registerProviderContractTests("mock", () => createMockEmailProvider(fixturesRoot));
 
 describe("MockEmailProvider extras", () => {
   it("loads fixtures and reports tombstone candidates on simulateDeletion", async () => {

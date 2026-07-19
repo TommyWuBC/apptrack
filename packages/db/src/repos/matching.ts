@@ -14,10 +14,7 @@ import {
   roles,
 } from "../schema/index.js";
 
-export async function findCompanyByCanonicalName(
-  db: Database,
-  canonicalName: string,
-) {
+export async function findCompanyByCanonicalName(db: Database, canonicalName: string) {
   const [row] = await db
     .select()
     .from(companies)
@@ -135,9 +132,7 @@ export async function listApplicationsAtCompany(
     })
     .from(applications)
     .leftJoin(roles, eq(roles.id, applications.roleId))
-    .where(
-      and(eq(applications.userId, userId), eq(applications.companyId, companyId)),
-    );
+    .where(and(eq(applications.userId, userId), eq(applications.companyId, companyId)));
   return rows;
 }
 
@@ -168,8 +163,7 @@ export async function listRecruiterEmailsForApplication(
     const e = p?.recruiterEmail;
     if (typeof e === "string" && e.includes("@")) emails.add(e.toLowerCase());
     const from = p?.fromAddress;
-    if (typeof from === "string" && from.includes("@"))
-      emails.add(from.toLowerCase());
+    if (typeof from === "string" && from.includes("@")) emails.add(from.toLowerCase());
   }
   return [...emails];
 }
@@ -218,10 +212,7 @@ export async function insertMatchCandidate(
   return row!;
 }
 
-export async function listMatchCandidatesForMessage(
-  db: Database,
-  messageId: string,
-) {
+export async function listMatchCandidatesForMessage(db: Database, messageId: string) {
   return db
     .select()
     .from(applicationMatchCandidates)
@@ -265,11 +256,7 @@ export async function listOpenReviewItems(
   });
 }
 
-export async function resolveReviewItem(
-  db: Database,
-  id: string,
-  resolution: unknown,
-) {
+export async function resolveReviewItem(db: Database, id: string, resolution: unknown) {
   const [row] = await db
     .update(reviewQueueItems)
     .set({ status: "resolved", resolution })
@@ -278,10 +265,7 @@ export async function resolveReviewItem(
   return row ?? null;
 }
 
-export async function findOpenAmbiguousForCompany(
-  db: Database,
-  companyId: string,
-) {
+export async function findOpenAmbiguousForCompany(db: Database, companyId: string) {
   const open = await listOpenReviewItems(db, { kind: "ambiguous_match" });
   return open.filter((item) => {
     const res = item.resolution as { companyId?: string } | null;
@@ -298,11 +282,7 @@ export async function getReviewItemById(db: Database, id: string) {
   return row ?? null;
 }
 
-export async function dismissReviewItem(
-  db: Database,
-  id: string,
-  resolution: unknown,
-) {
+export async function dismissReviewItem(db: Database, id: string, resolution: unknown) {
   const [row] = await db
     .update(reviewQueueItems)
     .set({ status: "dismissed", resolution })

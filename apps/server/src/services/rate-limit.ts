@@ -19,10 +19,7 @@ export class TokenBucketLimiter {
       updatedAt: now,
     };
     const elapsed = Math.max(0, now - b.updatedAt);
-    b.tokens = Math.min(
-      this.capacity,
-      b.tokens + elapsed * this.refillPerMs,
-    );
+    b.tokens = Math.min(this.capacity, b.tokens + elapsed * this.refillPerMs);
     b.updatedAt = now;
     if (b.tokens < 1) {
       this.buckets.set(key, b);

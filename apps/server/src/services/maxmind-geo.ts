@@ -4,9 +4,7 @@ import type { GeoLookup } from "./geo-lookup.js";
 export async function openGeoLite2Lookup(
   databasePath: string,
 ): Promise<{ lookup: GeoLookup; close: () => void }> {
-  const reader: Reader<CityResponse> = await maxmind.open<CityResponse>(
-    databasePath,
-  );
+  const reader: Reader<CityResponse> = await maxmind.open<CityResponse>(databasePath);
   return {
     lookup: (ip) => {
       const hit = reader.get(ip);

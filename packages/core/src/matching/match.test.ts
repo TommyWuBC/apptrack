@@ -2,16 +2,10 @@ import { describe, expect, it } from "vitest";
 import fc from "fast-check";
 import { EventType } from "@apptrack/shared";
 import { matchApplication } from "./match.js";
-import {
-  AUTO_ATTACH_MARGIN,
-  AUTO_ATTACH_THRESHOLD,
-  REVIEW_FLOOR,
-} from "./weights.js";
+import { AUTO_ATTACH_MARGIN, AUTO_ATTACH_THRESHOLD, REVIEW_FLOOR } from "./weights.js";
 import type { MatchCandidateContext, MatchEmailContext } from "./signals.js";
 
-function email(
-  overrides: Partial<MatchEmailContext> = {},
-): MatchEmailContext {
+function email(overrides: Partial<MatchEmailContext> = {}): MatchEmailContext {
   return {
     eventType: EventType.oa_invitation,
     occurredAt: new Date("2026-06-15T12:00:00Z"),
@@ -86,8 +80,7 @@ describe("matchApplication thresholds (§15.2)", () => {
     expect(result.score).toBeGreaterThanOrEqual(REVIEW_FLOOR);
     // Both similar → small margin or mid-band score
     expect(
-      result.score < AUTO_ATTACH_THRESHOLD ||
-        result.margin < AUTO_ATTACH_MARGIN,
+      result.score < AUTO_ATTACH_THRESHOLD || result.margin < AUTO_ATTACH_MARGIN,
     ).toBe(true);
   });
 
@@ -161,9 +154,7 @@ describe("matchApplication thresholds (§15.2)", () => {
     });
     expect(result.decision).toBe("auto_attached");
     expect(result.selectedApplicationId).toBe("prior");
-    const req = result.candidates[0]!.signals.find(
-      (s) => s.name === "requisitionOrUrl",
-    );
+    const req = result.candidates[0]!.signals.find((s) => s.name === "requisitionOrUrl");
     expect(req?.fired).toBe(true);
   });
 
@@ -200,9 +191,7 @@ describe("matchApplication thresholds (§15.2)", () => {
     });
     for (const c of result.candidates) {
       expect(c.signals.length).toBeGreaterThanOrEqual(8);
-      expect(c.signals.every((s) => typeof s.contribution === "number")).toBe(
-        true,
-      );
+      expect(c.signals.every((s) => typeof s.contribution === "number")).toBe(true);
     }
     expect(result.matcherVersion).toBe("match-v1");
   });

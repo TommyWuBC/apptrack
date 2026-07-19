@@ -15,11 +15,7 @@ import {
   type MatchEmailContext,
 } from "./signals.js";
 import { MATCHER_VERSION } from "./version.js";
-import {
-  AUTO_ATTACH_MARGIN,
-  AUTO_ATTACH_THRESHOLD,
-  REVIEW_FLOOR,
-} from "./weights.js";
+import { AUTO_ATTACH_MARGIN, AUTO_ATTACH_THRESHOLD, REVIEW_FLOOR } from "./weights.js";
 
 export type MatchInput = {
   email: MatchEmailContext;
@@ -66,10 +62,7 @@ export function matchApplication(input: MatchInput): MatchResultV1 {
       decision = MatchDecision.review;
       reason = `Top score ${topScore.toFixed(2)} below review floor ${REVIEW_FLOOR}`;
     }
-  } else if (
-    topScore >= AUTO_ATTACH_THRESHOLD &&
-    margin >= AUTO_ATTACH_MARGIN
-  ) {
+  } else if (topScore >= AUTO_ATTACH_THRESHOLD && margin >= AUTO_ATTACH_MARGIN) {
     decision = MatchDecision.auto_attached;
     selectedApplicationId = top.applicationId;
     reason = `Score ${topScore.toFixed(2)} with margin ${margin.toFixed(2)} — auto-attach`;
@@ -95,9 +88,4 @@ export function matchApplication(input: MatchInput): MatchResultV1 {
   return MatchResultV1Schema.parse(result);
 }
 
-export {
-  MATCHER_VERSION,
-  AUTO_ATTACH_THRESHOLD,
-  AUTO_ATTACH_MARGIN,
-  REVIEW_FLOOR,
-};
+export { MATCHER_VERSION, AUTO_ATTACH_THRESHOLD, AUTO_ATTACH_MARGIN, REVIEW_FLOOR };

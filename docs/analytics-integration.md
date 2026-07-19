@@ -22,10 +22,10 @@ Embed on any first-party site (see `examples/website-astro/`):
 ></script>
 ```
 
-| Attribute | Purpose |
-|-----------|---------|
-| `data-site-key` | Required public site key |
-| `data-mode` | Optional client override; `off` disables capture |
+| Attribute       | Purpose                                                                              |
+| --------------- | ------------------------------------------------------------------------------------ |
+| `data-site-key` | Required public site key                                                             |
+| `data-mode`     | Optional client override; `off` disables capture                                     |
 | `data-endpoint` | Optional full ingest URL (default: same host as script → `/api/v1/analytics/events`) |
 
 Behavior:
@@ -62,12 +62,12 @@ Groups unsessionized events by `(siteId, visitorHash)` into **30-minute** idle w
 
 ## Sites settings
 
-| Method | Path |
-|--------|------|
-| GET/POST | `/api/v1/analytics/sites` |
-| PATCH/DELETE | `/api/v1/analytics/sites/:id` |
-| GET | `/api/v1/analytics/sessions?siteId=` |
-| GET | `/api/v1/analytics/summary?siteId=` |
+| Method       | Path                                 |
+| ------------ | ------------------------------------ |
+| GET/POST     | `/api/v1/analytics/sites`            |
+| PATCH/DELETE | `/api/v1/analytics/sites/:id`        |
+| GET          | `/api/v1/analytics/sessions?siteId=` |
+| GET          | `/api/v1/analytics/summary?siteId=`  |
 
 SPA: Settings → Analytics sites.
 

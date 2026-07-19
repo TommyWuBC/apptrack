@@ -32,10 +32,7 @@ export type BackfillResult = SyncResult & {
   done: boolean;
 };
 
-async function loadMeta(
-  provider: EmailProvider,
-  ref: RawEmailRef,
-): Promise<RawEmail> {
+async function loadMeta(provider: EmailProvider, ref: RawEmailRef): Promise<RawEmail> {
   if (provider.fetchMetadata) return provider.fetchMetadata(ref);
   return provider.fetchMessage(ref);
 }
@@ -52,8 +49,7 @@ async function ingestRef(
   const decision = prefilterEmail({
     fromAddress: meta.fromAddress,
     listId: meta.headers["List-Id"] ?? meta.headers["list-id"],
-    listUnsubscribe:
-      meta.headers["List-Unsubscribe"] ?? meta.headers["list-unsubscribe"],
+    listUnsubscribe: meta.headers["List-Unsubscribe"] ?? meta.headers["list-unsubscribe"],
     subject: meta.subject,
   });
 
@@ -83,14 +79,14 @@ async function ingestRef(
   if (inserted) {
     counters.inserted += 1;
     normalizeQueued.push(row.id);
-    try {
-      await normalizeAndStoreFromRaw(db, row.id, full);
-      await classifyAndStoreMessage(db, row.id);
-      await matchAndStoreMessage(db, row.id);
-    } catch {
-      // Normalize/classify/match failure must not roll back ingest; re-run via API
-    }
   }
+
+  // Process conflict-existing rows too. If a prior attempt inserted the message
+  // and then failed, pg-boss retries against the unchanged Gmail cursor and
+  // resumes the idempotent pipeline instead of silently losing the email.
+  await normalizeAndStoreFromRaw(db, row.id, full);
+  await classifyAndStoreMessage(db, row.id);
+  await matchAndStoreMessage(db, row.id);
 }
 
 /**
@@ -131,14 +127,7 @@ export async function runEmailSync(
   try {
     for await (const batch of provider.listChanges(cursor, { maxPages: 10 })) {
       for (const ref of batch.added) {
-        await ingestRef(
-          db,
-          accountId,
-          provider,
-          ref,
-          counters,
-          normalizeQueued,
-        );
+        await ingestRef(db, accountId, provider, ref, counters, normalizeQueued);
       }
       for (const delId of batch.deleted) {
         await emailsRepo.tombstoneProviderDeletion(db, accountId, delId);
@@ -154,14 +143,7 @@ export async function runEmailSync(
       );
       for await (const batch of provider.listHistorical({ afterDate: since })) {
         for (const ref of batch) {
-          await ingestRef(
-            db,
-            accountId,
-            provider,
-            ref,
-            counters,
-            normalizeQueued,
-          );
+          await ingestRef(db, accountId, provider, ref, counters, normalizeQueued);
         }
       }
       if (provider.getMailboxCursor) {

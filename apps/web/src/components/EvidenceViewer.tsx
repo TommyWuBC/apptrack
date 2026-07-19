@@ -52,9 +52,7 @@ export function EvidenceViewer({
           </button>
         </div>
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        {!data && !error ? (
-          <p className="text-sm text-ink-600">Loading…</p>
-        ) : null}
+        {!data && !error ? <p className="text-sm text-ink-600">Loading…</p> : null}
         {data ? (
           <div className="space-y-4">
             <div>

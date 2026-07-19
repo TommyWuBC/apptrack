@@ -23,10 +23,7 @@ import {
 function defaultFixturesRoot(): string {
   if (process.env.FIXTURES_ROOT) return process.env.FIXTURES_ROOT;
   // apps/server/src/routes → repo/fixtures
-  return join(
-    dirname(fileURLToPath(import.meta.url)),
-    "../../../../fixtures",
-  );
+  return join(dirname(fileURLToPath(import.meta.url)), "../../../../fixtures");
 }
 
 /** Resolve provider for an account: mock when EMAIL_PROVIDER=mock, else Gmail. */
@@ -56,11 +53,10 @@ export async function resolveEmailProvider(
     const expires = creds.accessTokenExpiresAt?.getTime() ?? 0;
     if (expires < Date.now() + 120_000) {
       await refreshGmailAccount(app.db!, config, accountId);
-      const again =
-        await repos.oauthCredentialsRepo.getOauthCredentialsByAccountId(
-          app.db!,
-          accountId,
-        );
+      const again = await repos.oauthCredentialsRepo.getOauthCredentialsByAccountId(
+        app.db!,
+        accountId,
+      );
       if (!again?.encryptedAccessToken) throw new Error("credentials_missing");
       return decrypt(
         unpackEncrypted(again.encryptedAccessToken, again.keyId),
@@ -87,17 +83,13 @@ export async function registerSyncRoutes(
       });
     }
     const body = (req.body ?? {}) as { accountId?: string };
-    const userId =
-      req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
+    const userId = req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
     if (!userId) {
       return reply.code(404).send({
         error: { code: ErrorCode.SETUP_REQUIRED, message: "setup_required" },
       });
     }
-    const accounts = await repos.accountsRepo.listAccountsForUser(
-      app.db,
-      userId,
-    );
+    const accounts = await repos.accountsRepo.listAccountsForUser(app.db, userId);
     const account =
       (body.accountId
         ? accounts.find((a) => a.id === body.accountId)
@@ -140,17 +132,13 @@ export async function registerSyncRoutes(
       });
     }
     const q = req.query as { accountId?: string };
-    const userId =
-      req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
+    const userId = req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
     if (!userId) {
       return reply.code(404).send({
         error: { code: ErrorCode.SETUP_REQUIRED, message: "setup_required" },
       });
     }
-    const accounts = await repos.accountsRepo.listAccountsForUser(
-      app.db,
-      userId,
-    );
+    const accounts = await repos.accountsRepo.listAccountsForUser(app.db, userId);
     if (q.accountId) {
       const status = await getSyncStatus(app.db, q.accountId);
       return { status };
@@ -181,17 +169,13 @@ export async function registerSyncRoutes(
         },
       });
     }
-    const userId =
-      req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
+    const userId = req.userId ?? (await repos.usersRepo.getFirstUser(app.db))?.id;
     if (!userId) {
       return reply.code(404).send({
         error: { code: ErrorCode.SETUP_REQUIRED, message: "setup_required" },
       });
     }
-    const accounts = await repos.accountsRepo.listAccountsForUser(
-      app.db,
-      userId,
-    );
+    const accounts = await repos.accountsRepo.listAccountsForUser(app.db, userId);
     const account =
       (body.accountId
         ? accounts.find((a) => a.id === body.accountId)

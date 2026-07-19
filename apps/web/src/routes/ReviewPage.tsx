@@ -10,13 +10,8 @@ export function ReviewPage() {
   });
 
   const resolve = useMutation({
-    mutationFn: ({
-      id,
-      body,
-    }: {
-      id: string;
-      body: Record<string, unknown>;
-    }) => api.resolveReview(id, body),
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
+      api.resolveReview(id, body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["review"] });
       void qc.invalidateQueries({ queryKey: ["applications"] });
@@ -35,8 +30,7 @@ export function ReviewPage() {
       <div>
         <h2 className="mb-1 font-display text-xl font-semibold">Review</h2>
         <p className="text-sm text-ink-600">
-          Ambiguous matches, merge suggestions, and conflicts — never guess;
-          you decide.
+          Ambiguous matches, merge suggestions, and conflicts — never guess; you decide.
         </p>
       </div>
 
@@ -75,8 +69,7 @@ function ReviewCard({
       }
     | undefined;
   const candidates = match?.candidates ?? [];
-  const conflictState =
-    typeof res?.state === "string" ? res.state : "unknown";
+  const conflictState = typeof res?.state === "string" ? res.state : "unknown";
 
   return (
     <li className="panel p-4" data-testid="review-item">
@@ -105,8 +98,8 @@ function ReviewCard({
                   })
                 }
               >
-                Attach to {candidate.applicationId} (
-                {(candidate.score * 100).toFixed(0)}%)
+                Attach to {candidate.applicationId} ({(candidate.score * 100).toFixed(0)}
+                %)
               </button>
             ))}
             <button
@@ -126,9 +119,7 @@ function ReviewCard({
               type="button"
               className="btn-ghost text-xs"
               disabled={busy}
-              onClick={() =>
-                onResolve({ kind: "ambiguous_match", action: "dismiss" })
-              }
+              onClick={() => onResolve({ kind: "ambiguous_match", action: "dismiss" })}
             >
               Dismiss
             </button>
@@ -139,10 +130,7 @@ function ReviewCard({
               {candidates.map((candidate, index) => (
                 <span key={candidate.applicationId}>
                   {index > 0 ? " · " : null}
-                  <Link
-                    to="/applications/$id"
-                    params={{ id: candidate.applicationId }}
-                  >
+                  <Link to="/applications/$id" params={{ id: candidate.applicationId }}>
                     {candidate.applicationId}
                   </Link>
                 </span>
@@ -171,8 +159,7 @@ function ReviewCard({
                 onResolve({
                   kind: "entity_merge_suggestion",
                   action: "merge",
-                  survivorCompanyId:
-                    res?.suggestedCompanyId as string,
+                  survivorCompanyId: res?.suggestedCompanyId as string,
                   sourceCompanyId: item.refId,
                 })
               }
@@ -217,9 +204,7 @@ function ReviewCard({
             type="button"
             className="btn-ghost text-xs"
             disabled={busy}
-            onClick={() =>
-              onResolve({ kind: "state_conflict", action: "dismiss" })
-            }
+            onClick={() => onResolve({ kind: "state_conflict", action: "dismiss" })}
           >
             Dismiss
           </button>
@@ -244,9 +229,7 @@ function ReviewCard({
               type="button"
               className="btn-ghost text-xs"
               disabled={busy}
-              onClick={() =>
-                onResolve({ kind: "ghost_confirm", action: "dismiss" })
-              }
+              onClick={() => onResolve({ kind: "ghost_confirm", action: "dismiss" })}
             >
               Dismiss flag
             </button>
@@ -296,9 +279,7 @@ function ReviewCard({
           type="button"
           className="btn-ghost text-xs"
           disabled={busy}
-          onClick={() =>
-            onResolve({ kind: item.kind, action: "dismiss" })
-          }
+          onClick={() => onResolve({ kind: item.kind, action: "dismiss" })}
         >
           Dismiss
         </button>

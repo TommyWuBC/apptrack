@@ -193,8 +193,7 @@ export function createTracker(opts: TrackerOptions): Tracker {
     const path = getPath() + getSearch();
     if (path === lastPath) return;
     lastPath = path;
-    const title =
-      typeof document !== "undefined" ? document.title : undefined;
+    const title = typeof document !== "undefined" ? document.title : undefined;
     track("page_view", title ? { title } : undefined);
   }
 
@@ -261,8 +260,6 @@ export function readScriptConfig(script: HTMLScriptElement | null): {
   if (!siteKey) return null;
   const mode = script.getAttribute("data-mode") ?? "full";
   const endpointAttr = script.getAttribute("data-endpoint");
-  const endpoint =
-    endpointAttr ||
-    endpointFromScriptSrc(script.src || "/sdk.js");
+  const endpoint = endpointAttr || endpointFromScriptSrc(script.src || "/sdk.js");
   return { siteKey, mode, endpoint };
 }

@@ -35,8 +35,7 @@ export function ApplicationActions({
     onSuccess: refresh,
   });
   const reattach = useMutation({
-    mutationFn: () =>
-      api.reattachEvent(applicationId, eventIds[0]!, targetId),
+    mutationFn: () => api.reattachEvent(applicationId, eventIds[0]!, targetId),
     onSuccess: refresh,
   });
 
@@ -56,8 +55,7 @@ export function ApplicationActions({
       <div>
         <h3 className="font-medium">Merge, split, or reattach</h3>
         <p className="text-xs text-ink-600">
-          These operations append audit events; timeline history is never
-          deleted.
+          These operations append audit events; timeline history is never deleted.
         </p>
       </div>
       <label className="block text-sm">
@@ -70,8 +68,7 @@ export function ApplicationActions({
           <option value="">Choose an application…</option>
           {targets.map((application) => (
             <option key={application.id} value={application.id}>
-              {application.companyName} · {application.currentState} ·{" "}
-              {application.id}
+              {application.companyName} · {application.currentState} · {application.id}
             </option>
           ))}
         </select>
@@ -109,9 +106,7 @@ export function ApplicationActions({
         <button
           type="button"
           className="btn-ghost text-xs"
-          disabled={
-            !targetId || eventIds.length !== 1 || reattach.isPending
-          }
+          disabled={!targetId || eventIds.length !== 1 || reattach.isPending}
           onClick={() => reattach.mutate()}
         >
           Reattach selected event

@@ -107,20 +107,14 @@ export {
   MEANINGFUL,
   TERMINAL,
 } from "./statemachine/index.js";
-export type {
-  UserCorrection,
-  ProjectionFields,
-} from "./statemachine/index.js";
+export type { UserCorrection, ProjectionFields } from "./statemachine/index.js";
 export {
   evaluateGhost,
   resolveGhostThresholds,
   DEFAULT_GHOST_THRESHOLDS,
   GHOST_VERSION,
 } from "./ghosting/index.js";
-export type {
-  GhostEvaluateInput,
-  ResolveThresholdsInput,
-} from "./ghosting/index.js";
+export type { GhostEvaluateInput, ResolveThresholdsInput } from "./ghosting/index.js";
 export {
   dailyVisitorSalt,
   computeVisitorHash,

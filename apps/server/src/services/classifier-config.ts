@@ -7,11 +7,7 @@ import {
   ClassifierSettingsV1Schema,
   type ClassifierSettingsV1,
 } from "@apptrack/shared";
-import {
-  createLlmClient,
-  type LlmClient,
-  type LlmProviderId,
-} from "@apptrack/core";
+import { createLlmClient, type LlmClient, type LlmProviderId } from "@apptrack/core";
 
 export type ResolvedClassifierConfig = {
   mode: ClassifierSettingsV1["mode"];
@@ -63,10 +59,7 @@ export function resolveClassifierConfig(
   }
 
   let llm: LlmClient | null = null;
-  if (
-    parsed.mode !== ClassifierMode.deterministic &&
-    provider
-  ) {
+  if (parsed.mode !== ClassifierMode.deterministic && provider) {
     try {
       llm = createLlmClient({
         provider,
@@ -98,8 +91,6 @@ export function resolveClassifierConfig(
     provider,
     modelId: parsed.modelId ?? llm?.modelId ?? null,
     llm,
-    egressDisclosure:
-      EGRESS[egressKey] ??
-      EGRESS.deterministic!,
+    egressDisclosure: EGRESS[egressKey] ?? EGRESS.deterministic!,
   };
 }

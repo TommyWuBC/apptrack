@@ -8,20 +8,19 @@ import {
   type GhostThresholdsV1,
 } from "@apptrack/shared";
 
-export const DEFAULT_GHOST_THRESHOLDS: GhostThresholdsV1 =
-  GhostThresholdsV1Schema.parse({
-    staleAfterDays: 45,
-    ghostAfterDays: 90,
-    perStage: {
-      final_round: { staleAfterDays: 21, ghostAfterDays: 45 },
-      interviewing: { staleAfterDays: 30, ghostAfterDays: 60 },
-      recruiter_screen: { staleAfterDays: 30, ghostAfterDays: 60 },
-    },
-    perType: {
-      internship: { staleAfterDays: 30, ghostAfterDays: 60 },
-    },
-    perCompany: {},
-  });
+export const DEFAULT_GHOST_THRESHOLDS: GhostThresholdsV1 = GhostThresholdsV1Schema.parse({
+  staleAfterDays: 45,
+  ghostAfterDays: 90,
+  perStage: {
+    final_round: { staleAfterDays: 21, ghostAfterDays: 45 },
+    interviewing: { staleAfterDays: 30, ghostAfterDays: 60 },
+    recruiter_screen: { staleAfterDays: 30, ghostAfterDays: 60 },
+  },
+  perType: {
+    internship: { staleAfterDays: 30, ghostAfterDays: 60 },
+  },
+  perCompany: {},
+});
 
 export type ResolveThresholdsInput = {
   settings?: Partial<GhostThresholdsV1> | null;
@@ -58,9 +57,7 @@ export function resolveGhostThresholds(
   let ghostAfterDays = base.ghostAfterDays;
   let source = "default";
 
-  const stage = input.currentState
-    ? base.perStage[input.currentState]
-    : undefined;
+  const stage = input.currentState ? base.perStage[input.currentState] : undefined;
   if (stage) {
     staleAfterDays = stage.staleAfterDays;
     ghostAfterDays = stage.ghostAfterDays;
@@ -75,9 +72,7 @@ export function resolveGhostThresholds(
     source = `type:${typeKey}`;
   }
 
-  const companyOverride = input.companyId
-    ? base.perCompany[input.companyId]
-    : undefined;
+  const companyOverride = input.companyId ? base.perCompany[input.companyId] : undefined;
   if (companyOverride) {
     staleAfterDays = companyOverride.staleAfterDays;
     ghostAfterDays = companyOverride.ghostAfterDays;

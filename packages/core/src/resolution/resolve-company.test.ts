@@ -100,9 +100,7 @@ describe("resolveCompany", () => {
 
 describe("role normalization", () => {
   it("strips locations and req ids", () => {
-    expect(normalizeRoleTitle("SWE Intern (Remote) — Req R-99")).toContain(
-      "swe intern",
-    );
+    expect(normalizeRoleTitle("SWE Intern (Remote) — Req R-99")).toContain("swe intern");
     expect(normalizeRoleTitle("SWE Intern (Remote)")).not.toMatch(/remote/);
   });
 
@@ -115,8 +113,6 @@ describe("role normalization", () => {
     expect(
       roleTitleSimilarity("Software Engineering Intern", "SWE Intern"),
     ).toBeGreaterThan(0);
-    expect(
-      roleTitleSimilarity("Software Engineer", "Marketing Manager"),
-    ).toBe(0);
+    expect(roleTitleSimilarity("Software Engineer", "Marketing Manager")).toBe(0);
   });
 });

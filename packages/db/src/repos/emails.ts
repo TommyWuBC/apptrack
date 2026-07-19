@@ -21,10 +21,7 @@ export async function clearExpiredRawMime(db: Database, cutoff: Date) {
     .update(emailMessages)
     .set({ rawEncrypted: null, hasRaw: false })
     .where(
-      and(
-        isNotNull(emailMessages.rawEncrypted),
-        lt(emailMessages.createdAt, cutoff),
-      ),
+      and(isNotNull(emailMessages.rawEncrypted), lt(emailMessages.createdAt, cutoff)),
     )
     .returning({ id: emailMessages.id });
   return rows.length;
@@ -177,9 +174,7 @@ export async function tombstoneProviderDeletion(
 }
 
 export async function countMessages(db: Database): Promise<number> {
-  const [row] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(emailMessages);
+  const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(emailMessages);
   return row?.n ?? 0;
 }
 

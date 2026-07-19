@@ -102,14 +102,10 @@ export function detectAtsTemplate(input: {
   if (!platform) return null;
 
   for (const event of EVENT_MARKERS) {
-    if (
-      event.antiMarkers?.some((marker) => haystack.includes(marker))
-    ) {
+    if (event.antiMarkers?.some((marker) => haystack.includes(marker))) {
       continue;
     }
-    const marker = event.markers.find((candidate) =>
-      haystack.includes(candidate),
-    );
+    const marker = event.markers.find((candidate) => haystack.includes(candidate));
     if (marker) {
       return {
         platform: platform.platform,

@@ -27,16 +27,16 @@ Terminal-ish (`offer`, `rejected`, `withdrawn`) are **reopenable** — e.g. reje
 
 ## Notable transitions
 
-| Event | Effect |
-|-------|--------|
-| `application_confirmation` | → `confirmation_received` |
-| `oa_invitation` / `oa_reminder` | → `assessment_received` (+ action on invite) |
-| `interview_*` | → `interviewing` (or `final_round` if payload hints) |
-| `interview_cancelled` | pop to prior stage |
-| `waitlist_or_freeze` | → `on_hold` |
-| `rejection` / `offer` / `withdrawal_confirmation` | terminal-ish states |
-| `manual_override` | payload.state wins |
-| same-day reject + interview/offer | both kept; `flags.conflict` (F14) → review item |
+| Event                                             | Effect                                               |
+| ------------------------------------------------- | ---------------------------------------------------- |
+| `application_confirmation`                        | → `confirmation_received`                            |
+| `oa_invitation` / `oa_reminder`                   | → `assessment_received` (+ action on invite)         |
+| `interview_*`                                     | → `interviewing` (or `final_round` if payload hints) |
+| `interview_cancelled`                             | pop to prior stage                                   |
+| `waitlist_or_freeze`                              | → `on_hold`                                          |
+| `rejection` / `offer` / `withdrawal_confirmation` | terminal-ish states                                  |
+| `manual_override`                                 | payload.state wins                                   |
+| same-day reject + interview/offer                 | both kept; `flags.conflict` (F14) → review item      |
 
 ## Corrections overlay (stub)
 
@@ -44,13 +44,13 @@ Terminal-ish (`offer`, `rejected`, `withdrawn`) are **reopenable** — e.g. reje
 
 ## API
 
-| Method | Path |
-|--------|------|
-| GET | `/api/v1/applications/reducer-version` |
-| GET | `/api/v1/applications?userId=` |
-| GET | `/api/v1/applications/:id` |
-| GET | `/api/v1/applications/:id/timeline` |
-| POST | `/api/v1/applications/:id/recompute` |
+| Method | Path                                   |
+| ------ | -------------------------------------- |
+| GET    | `/api/v1/applications/reducer-version` |
+| GET    | `/api/v1/applications?userId=`         |
+| GET    | `/api/v1/applications/:id`             |
+| GET    | `/api/v1/applications/:id/timeline`    |
+| POST   | `/api/v1/applications/:id/recompute`   |
 
 Match attach/create calls `recomputeApplication` after appending events (replaces M8’s one-shot `stateForEvent`).
 

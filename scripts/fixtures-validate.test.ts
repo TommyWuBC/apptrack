@@ -66,9 +66,9 @@ describe("synthetic email fixtures (M3)", () => {
       const parsed = await simpleParser(buf);
       expect(parsed).toBeTruthy();
       // Subject may be encoded; parser should yield a string or undefined, never throw
-      expect(
-        parsed.subject === undefined || typeof parsed.subject === "string",
-      ).toBe(true);
+      expect(parsed.subject === undefined || typeof parsed.subject === "string").toBe(
+        true,
+      );
     }
   }, 120_000);
 });

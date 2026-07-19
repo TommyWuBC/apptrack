@@ -4,10 +4,7 @@
  */
 import type { ReducerEventV1 } from "@apptrack/shared";
 
-export function compareReducerEvents(
-  a: ReducerEventV1,
-  b: ReducerEventV1,
-): number {
+export function compareReducerEvents(a: ReducerEventV1, b: ReducerEventV1): number {
   const oc = a.occurredAt.getTime() - b.occurredAt.getTime();
   if (oc !== 0) return oc;
   const ic = a.ingestedAt.getTime() - b.ingestedAt.getTime();
@@ -16,9 +13,7 @@ export function compareReducerEvents(
 }
 
 export function orderEvents(events: ReducerEventV1[]): ReducerEventV1[] {
-  return [...events]
-    .filter((e) => !e.supersededBy)
-    .sort(compareReducerEvents);
+  return [...events].filter((e) => !e.supersededBy).sort(compareReducerEvents);
 }
 
 /** Calendar day key in UTC for same-day conflict detection. */

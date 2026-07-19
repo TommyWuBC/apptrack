@@ -24,13 +24,8 @@ import {
 import { repos, type Database } from "@apptrack/db";
 import { recomputeApplication } from "./application-recompute-service.js";
 
-const {
-  emailsRepo,
-  accountsRepo,
-  classificationRepo,
-  applicationsRepo,
-  matchingRepo,
-} = repos;
+const { emailsRepo, accountsRepo, classificationRepo, applicationsRepo, matchingRepo } =
+  repos;
 
 export type MatchStoredResult = {
   messageId: string;
@@ -52,8 +47,7 @@ async function ensureCompany(
   fuzzySuggest: boolean;
 }> {
   const domainRaw = domainOfAddress(fromAddress ?? undefined);
-  const domain =
-    domainRaw && !isAtsSenderDomain(domainRaw) ? domainRaw : null;
+  const domain = domainRaw && !isAtsSenderDomain(domainRaw) ? domainRaw : null;
 
   const aliases = await matchingRepo.listCompanyAliases(db);
   const resolved = resolveCompany({
@@ -117,11 +111,9 @@ async function ensureCompany(
         fuzzySuggest: false,
       };
     }
-    const company = await applicationsRepo.createCompany(
-      db,
-      resolved.canonicalName,
-      { primaryDomain: domain ?? undefined },
-    );
+    const company = await applicationsRepo.createCompany(db, resolved.canonicalName, {
+      primaryDomain: domain ?? undefined,
+    });
     await matchingRepo.addCompanyAlias(db, {
       companyId: company.id,
       alias: normalizeCompanyName(resolved.canonicalName),
@@ -155,11 +147,9 @@ async function ensureCompany(
       fuzzySuggest: false,
     };
   }
-  const company = await applicationsRepo.createCompany(
-    db,
-    resolved.canonicalName,
-    { primaryDomain: resolved.primaryDomain ?? undefined },
-  );
+  const company = await applicationsRepo.createCompany(db, resolved.canonicalName, {
+    primaryDomain: resolved.primaryDomain ?? undefined,
+  });
   await matchingRepo.addCompanyAlias(db, {
     companyId: company.id,
     alias: normalizeCompanyName(resolved.canonicalName),
@@ -187,11 +177,7 @@ async function buildCandidateContexts(
   companyId: string,
   threadMessageIds: string[],
 ): Promise<MatchCandidateContext[]> {
-  const apps = await matchingRepo.listApplicationsAtCompany(
-    db,
-    userId,
-    companyId,
-  );
+  const apps = await matchingRepo.listApplicationsAtCompany(db, userId, companyId);
   const threadAppIds = await matchingRepo.listApplicationIdsForThread(
     db,
     threadMessageIds,
@@ -201,10 +187,7 @@ async function buildCandidateContexts(
   for (const app of apps) {
     const [recruiterEmails, assessmentProviders] = await Promise.all([
       matchingRepo.listRecruiterEmailsForApplication(db, app.applicationId),
-      matchingRepo.listAssessmentProvidersForApplication(
-        db,
-        app.applicationId,
-      ),
+      matchingRepo.listAssessmentProvidersForApplication(db, app.applicationId),
     ]);
     const loc = app.location as { city?: string; raw?: string } | null;
     contexts.push({
@@ -330,10 +313,7 @@ export async function matchAndStoreMessage(
   const msg = await emailsRepo.getEmailMessageById(db, messageId);
   if (!msg) throw new Error("message_not_found");
 
-  const existingEvent = await applicationsRepo.findEventByMessageId(
-    db,
-    messageId,
-  );
+  const existingEvent = await applicationsRepo.findEventByMessageId(db, messageId);
   if (existingEvent) {
     return {
       messageId,
@@ -350,13 +330,13 @@ export async function matchAndStoreMessage(
     refId: messageId,
   });
   const openMatchReview = openExisting.find(
-    (r) =>
-      r.kind === ReviewKind.ambiguous_match ||
-      r.kind === ReviewKind.unmatched_email,
+    (r) => r.kind === ReviewKind.ambiguous_match || r.kind === ReviewKind.unmatched_email,
   );
 
-  const classification =
-    await classificationRepo.getLatestClassification(db, messageId);
+  const classification = await classificationRepo.getEffectiveClassification(
+    db,
+    messageId,
+  );
   if (!classification) {
     return {
       messageId,
@@ -374,10 +354,7 @@ export async function matchAndStoreMessage(
     classification.eventType === EventType.newsletter_ignore ||
     classification.eventType === EventType.unknown
   ) {
-    const prior = await matchingRepo.listMatchCandidatesForMessage(
-      db,
-      messageId,
-    );
+    const prior = await matchingRepo.listMatchCandidatesForMessage(db, messageId);
     if (prior.length === 0) {
       await matchingRepo.insertMatchCandidate(db, {
         messageId,

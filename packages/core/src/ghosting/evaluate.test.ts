@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ApplicationState, GhostStatus } from "@apptrack/shared";
 import { evaluateGhost } from "./evaluate.js";
-import {
-  DEFAULT_GHOST_THRESHOLDS,
-  resolveGhostThresholds,
-} from "./thresholds.js";
+import { DEFAULT_GHOST_THRESHOLDS, resolveGhostThresholds } from "./thresholds.js";
 import { GHOST_VERSION } from "./version.js";
 
 const NOW = new Date("2026-07-01T12:00:00.000Z");

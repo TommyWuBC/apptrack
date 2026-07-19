@@ -38,11 +38,7 @@ export async function getActiveSession(
   return row;
 }
 
-export async function touchSession(
-  db: Database,
-  tokenHash: string,
-  idleExpiresAt: Date,
-) {
+export async function touchSession(db: Database, tokenHash: string, idleExpiresAt: Date) {
   const [row] = await db
     .update(sessions)
     .set({ idleExpiresAt })
@@ -70,9 +66,7 @@ export async function deleteSessionsForUser(db: Database, userId: string) {
 export async function deleteExpiredSessions(db: Database, now = new Date()) {
   const rows = await db
     .delete(sessions)
-    .where(
-      or(lt(sessions.expiresAt, now), lt(sessions.idleExpiresAt, now)),
-    )
+    .where(or(lt(sessions.expiresAt, now), lt(sessions.idleExpiresAt, now)))
     .returning({ id: sessions.id });
   return rows.length;
 }
