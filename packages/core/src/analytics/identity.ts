@@ -119,6 +119,36 @@ export function sessionizeEvents<
   return sessions;
 }
 
+/**
+ * Split newly-arrived events between the latest persisted session and fresh
+ * inactivity windows. This makes repeated aggregate runs equivalent to one
+ * aggregate over the complete event stream.
+ */
+export function partitionIncrementalEvents<
+  T extends { occurredAt: Date; path?: string | null },
+>(
+  events: T[],
+  existingLastActivity: Date | null,
+  idleMs: number = ANALYTICS_SESSION_IDLE_MS,
+): { append: T[]; remaining: T[] } {
+  const ordered = [...events].sort(
+    (a, b) => a.occurredAt.getTime() - b.occurredAt.getTime(),
+  );
+  if (!existingLastActivity) return { append: [], remaining: ordered };
+
+  const append: T[] = [];
+  let last = existingLastActivity.getTime();
+  let index = 0;
+  while (index < ordered.length) {
+    const event = ordered[index]!;
+    if (event.occurredAt.getTime() - last > idleMs) break;
+    append.push(event);
+    last = Math.max(last, event.occurredAt.getTime());
+    index += 1;
+  }
+  return { append, remaining: ordered.slice(index) };
+}
+
 export function referrerHostFromProps(
   props: Record<string, unknown> | undefined,
   fallback?: string | null,

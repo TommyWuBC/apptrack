@@ -23,6 +23,8 @@ import { registerSdkRoutes } from "./routes/sdk.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerAuthPlugin } from "./plugins/auth.js";
 import { createJobQueue, type AppJobQueue } from "./jobs/queue.js";
+import { openGeoLite2Lookup } from "./services/maxmind-geo.js";
+import type { GeoLookup } from "./services/geo-lookup.js";
 
 export type AppDb = Database | null;
 
@@ -60,6 +62,7 @@ export async function buildApp(
   const url = opts.databaseUrl ?? process.env.DATABASE_URL;
   let db: AppDb = null;
   let jobs: AppJobQueue | null = null;
+  let closeGeo: (() => void) | null = null;
   if (url) {
     try {
       db = createDb(url);
@@ -68,6 +71,16 @@ export async function buildApp(
     } catch (err) {
       app.log.warn({ err }, "DATABASE_URL set but connection failed");
       db = null;
+    }
+  }
+
+  if (process.env.GEOLITE2_DB_PATH) {
+    try {
+      const geo = await openGeoLite2Lookup(process.env.GEOLITE2_DB_PATH);
+      app.decorate("geoLookup", geo.lookup);
+      closeGeo = geo.close;
+    } catch (err) {
+      app.log.warn({ err }, "GeoLite2 database unavailable; using CDN country only");
     }
   }
 
@@ -131,6 +144,7 @@ export async function buildApp(
   app.get("/api/v1/db-ping", async () => dbHealth(db ?? undefined));
 
   app.addHook("onClose", async () => {
+    closeGeo?.();
     if (jobs) await jobs.stop();
     if (db) await closeDb(db);
   });
@@ -142,5 +156,6 @@ declare module "fastify" {
   interface FastifyInstance {
     db?: Database;
     jobs?: AppJobQueue;
+    geoLookup?: GeoLookup;
   }
 }

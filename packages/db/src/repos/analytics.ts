@@ -2,7 +2,7 @@
  * Analytics sites / events / sessions repos. AGENTS.md §10.6 / §20 / M14
  * INV-8: never persist IP addresses.
  */
-import { and, eq, isNull, lt, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, lt, sql } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 import type { Database } from "../client.js";
 import { uuidv7 } from "../ids.js";
@@ -194,6 +194,38 @@ export async function createSession(
   return row!;
 }
 
+export async function findLatestSessionForVisitor(
+  db: Database,
+  siteId: string,
+  visitorHash: string,
+) {
+  const [row] = await db
+    .select()
+    .from(analyticsSessions)
+    .where(
+      and(
+        eq(analyticsSessions.siteId, siteId),
+        eq(analyticsSessions.visitorHash, visitorHash),
+      ),
+    )
+    .orderBy(desc(analyticsSessions.startedAt))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function getSessionLastActivity(
+  db: Database,
+  sessionId: string,
+): Promise<Date | null> {
+  const [row] = await db
+    .select({
+      lastActivity: sql<Date | null>`max(${analyticsEvents.occurredAt})`,
+    })
+    .from(analyticsEvents)
+    .where(eq(analyticsEvents.sessionId, sessionId));
+  return row?.lastActivity ? new Date(row.lastActivity) : null;
+}
+
 export async function attachEventsToSession(
   db: Database,
   sessionId: string,
@@ -209,6 +241,18 @@ export async function attachEventsToSession(
   }
 }
 
+export async function reopenAndAttachEventsToSession(
+  db: Database,
+  sessionId: string,
+  eventRowIds: string[],
+) {
+  await attachEventsToSession(db, sessionId, eventRowIds);
+  await db
+    .update(analyticsSessions)
+    .set({ endedAt: null })
+    .where(eq(analyticsSessions.id, sessionId));
+}
+
 export async function closeIdleSessions(
   db: Database,
   idleBefore: Date,
@@ -219,10 +263,12 @@ export async function closeIdleSessions(
     .where(isNull(analyticsSessions.endedAt));
   let n = 0;
   for (const s of open) {
-    if (s.startedAt.getTime() < idleBefore.getTime()) {
+    const lastActivity =
+      (await getSessionLastActivity(db, s.id)) ?? s.startedAt;
+    if (lastActivity.getTime() < idleBefore.getTime()) {
       await db
         .update(analyticsSessions)
-        .set({ endedAt: idleBefore })
+        .set({ endedAt: lastActivity })
         .where(eq(analyticsSessions.id, s.id));
       n += 1;
     }
