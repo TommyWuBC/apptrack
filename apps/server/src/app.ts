@@ -24,6 +24,9 @@ import { registerAuthRoutes } from "./routes/auth.js";
 import { registerReprocessRoutes } from "./routes/reprocess.js";
 import { registerCorrelationRoutes } from "./routes/correlation.js";
 import { registerAuthPlugin } from "./plugins/auth.js";
+import { registerSecurityHeadersPlugin } from "./plugins/security-headers.js";
+import { registerApiRateLimitPlugin } from "./plugins/rate-limit-hook.js";
+import { LOG_REDACT_PATHS } from "./plugins/logger-redact.js";
 import { createJobQueue, type AppJobQueue } from "./jobs/queue.js";
 import { openGeoLite2Lookup } from "./services/maxmind-geo.js";
 import type { GeoLookup } from "./services/geo-lookup.js";
@@ -46,16 +49,7 @@ export async function buildApp(
         : {
             level: process.env.LOG_LEVEL ?? "info",
             redact: {
-              paths: [
-                "req.headers.authorization",
-                "req.headers.cookie",
-                "*.password",
-                "*.refreshToken",
-                "*.accessToken",
-                "*.encrypted_refresh_token",
-                "*.encrypted_access_token",
-                "req.query.code",
-              ],
+              paths: [...LOG_REDACT_PATHS],
               remove: true,
             },
           },
@@ -99,6 +93,8 @@ export async function buildApp(
   }
 
   const authConfig = opts.authConfig ?? loadAuthConfig();
+  await registerSecurityHeadersPlugin(app);
+  await registerApiRateLimitPlugin(app);
   await registerAuthPlugin(app, authConfig);
   await registerHealthRoutes(
     app,

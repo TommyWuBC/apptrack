@@ -1,26 +1,27 @@
 # HANDOFF
 
 ## Current state
-**M16 Correlation scoring implemented on `cursor/m16-correlation-scoring-6a25`** (branched from stabilize). `corr-v1` pure scorer, predictions/features repos, unique links + tracked résumé, feedback API, worker job, SPA panel, docs.
+**v1.0.0 ready on `agent/cursor/m17-security-hardening`** (includes M17–M20). Open-source packaging, docs, acceptance checklist, migrate-on-start Docker entrypoint, packaging CI smoke. Product is usable in mock/demo mode without Google; owner dogfooding (§37.1) remains for live Gmail.
 
 ## Last action taken
-Landed M16: core scoring + banned-phrase tests; DB `user_resumes` migration; server routes/services; aggregate→`correlation.score` enqueue; web CorrelationPanel + demo stubs; `docs/correlation-model.md`. Verified green (`typecheck`/`lint`/`format:check`/`test`/`eval`/`boundaries`). PR #10 open.
+Completed M18–M20: MIT LICENSE + D-9 (keep apptrack), CONTRIBUTING/CoC/PRIVACY/CHANGELOG, ADRs 0005–0013, issue/PR templates, GHCR release workflow, README eval table, interview-prep + data-retention + v1-acceptance, server migrate entrypoint. Verified typecheck/lint/test/eval/boundaries/prod-audit/packaging.
 
 ## Next action
-**M17 — Security hardening** after M16 PR merges (base: stabilize → then stack).
+**Human:** commit + push this branch (commands provided in chat); open PR into your preferred base; tag `v1.0.0` after merge to trigger release.yml. Then optional owner dogfooding (§37.1) with real Gmail.
 
 ## Open blockers
-- Live Postgres still needed for full migration round-trip / OAuth integration tests.
-- Transactional pg-boss handoff for ingest (still inline normalize/classify/match) needs ADR if kept long-term.
+- Local `main` vs `origin/main` still duplicated histories — merge via PR, no force-push.
+- CSRF integration + full migrate round-trip need live Postgres (`DATABASE_URL`).
+- Windows `pnpm format:check` noisy on CRLF for untouched files.
 
 ## Gotchas
+- Compose: server runs `pnpm migrate` on start via `scripts/docker-entrypoint-server.sh`.
 - `CORRELATION_ENABLED=false` by default; enable only with analytics configured.
-- Probabilistic band hard-capped at medium; high requires unique link / tracked résumé token.
-- Explanations must not use banned identification phrases (`packages/core/src/correlation/language.ts`).
-- Tracked résumé needs `POST /api/v1/resume` upload first; public route is `GET /r/:token/resume.pdf`.
+- Tag must match CHANGELOG section (`v1.0.0` ↔ `## [1.0.0]`).
+- Rebuild workspace packages if `dist/` is stale before server tests.
 
 ## Do not
-- Persist raw IPs (INV-8).
-- Claim recruiter identification in UI copy.
-- Fetch URLs from email/analytics content (INV-6).
+- Force-push `main`.
 - Commit secrets / real emails / `.env`.
+- Push or create the git tag without the owner running the provided commands.
+- Claim recruiter identification in UI copy.

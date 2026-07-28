@@ -16,8 +16,9 @@ FROM node:22-bookworm-slim AS server
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app /app
+RUN chmod +x /app/scripts/docker-entrypoint-server.sh
 EXPOSE 3000
-CMD ["node", "apps/server/dist/index.js"]
+CMD ["/app/scripts/docker-entrypoint-server.sh"]
 
 FROM node:22-bookworm-slim AS worker
 WORKDIR /app

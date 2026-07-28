@@ -1216,3 +1216,137 @@ A: If k active applications share the matched metro, score /= √k so multi-metr
 
 ### Follow-up
 M17 security hardening; optional ADR-008/012 markdown stubs if packaging wants them explicit; load-test correlation job under dense session batches.
+
+## 2026-07-28 — cursor — M17 Security hardening
+
+**Meta:** branch `agent/cursor/m17-security-hardening` · milestone M17 · status completed
+
+### Problem being solved
+Features through M16 were functional, but the project still lacked a single threat-model document, app-wide security headers, a complete §24.8 security test suite, encrypted backup scripts, and a CI dependency-audit gate. Without those, self-hosters (and interviewers) cannot verify that T1–T14 mitigations are real rather than aspirational.
+
+### Background concepts
+**Content Security Policy (CSP).** HTTP response headers that tell browsers which scripts, frames, and origins are allowed. `frame-ancestors 'none'` blocks clickjacking by forbidding other sites from embedding the app in an iframe.
+
+**HSTS (Strict-Transport-Security).** Once a browser sees this header over HTTPS, it refuses future plain HTTP for that host — reducing SSL-stripping risk. We only send it in production or when `ENABLE_HSTS=true` (behind a TLS reverse proxy).
+
+**Double-submit CSRF.** The server sets a readable CSRF cookie and requires the same value in `X-CSRF-Token` on mutations. A cross-site form cannot read the cookie (SameSite=Lax) so it cannot forge the header.
+
+**age encryption.** A modern file-encryption tool (like a simpler GPG). `pg_dump` output is encrypted to a public recipient key; only the matching private identity can decrypt for restore.
+
+**Production-scoped audit.** `pnpm audit --prod` ignores vulnerabilities that only appear in eslint/dev tooling, so CI fails on runtime risk without blocking on unrelated linter deps.
+
+### Design decision
+1. Implement security headers as a small Fastify plugin (no `@fastify/helmet`) so the allowlist is auditable in-repo.
+2. Add a global in-memory API rate limit (~120/min per hashed IP) on top of existing login/analytics buckets — enough for NFR-1 single-node Compose.
+3. Gate CI audit on `--prod --audit-level=high` plus pnpm overrides for `find-my-way`, `fast-uri`, and `sharp`.
+4. Keep CSRF DB integration tests skippable without Postgres (unit + source-contract coverage always run).
+
+### Implementation
+- `apps/server/src/plugins/security-headers.ts`, `rate-limit-hook.ts`, `logger-redact.ts`; wired in `app.ts`.
+- Security suite + CSRF integration tests under `apps/server/src/security/`.
+- OpenAI adapter sends `store: false` (T8).
+- `scripts/backup.sh` / `restore.sh`; `docs/setup.md` backup section; `THREAT_MODEL.md`; `SECURITY.md`.
+- `.github/dependabot.yml`; CI prod audit; root `package.json` overrides.
+- Vitest exclude `dist/**` for core/db/providers; analytics-sdk/shared exclude tests from tsc emit; classifier hash test normalizes CRLF.
+
+### Runtime flow
+1. Every response gets CSP / nosniff / DENY frame (HSTS if enabled).
+2. Non-exempt requests consume a token from the global limiter; excess → 429.
+3. Auth plugin still enforces session + CSRF on mutations; analytics remains public+keyed.
+4. Operators run `backup.sh` → age-encrypted dump; `restore.sh` decrypts and `pg_restore`s.
+
+### Bugs & failed approaches
+- Stale `dist/**/*.test.js` caused vitest to run outdated snapshots alongside `src/` — fixed with vitest `exclude: ["dist/**"]` and cleaning old artifacts.
+- Full `pnpm audit` (incl. eslint) failed on brace-expansion; scoped to `--prod` after overrides so CI is honest about runtime deps.
+- Server tests initially failed because `@apptrack/core` `dist/` was stale after a fresh `pnpm install` — rebuild packages before relying on workspace imports.
+
+### Tests
+- New: headers, auth gate, CSRF contract, log-redaction scrub, global 429, EvidenceViewer sandbox, T14 schema, OpenAI `store: false`, CRLF-safe classifier hash.
+- Commands (green): `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm eval` (F1≈0.972), `pnpm boundaries`, `pnpm audit --prod --audit-level=high`.
+- Note: local Windows `pnpm format:check` still warns on many untouched CRLF files; M17 files were prettier-formatted.
+
+### Security & privacy review
+- T1–T14 each have automated and/or documented manual verification in `THREAT_MODEL.md`.
+- Log redact paths now cover email subject/body/addresses as well as tokens (T11).
+- INV-4/INV-6/INV-8 unchanged; backup docs warn dumps may contain plaintext email text.
+
+### Performance notes
+Header + rate-limit hooks are O(1) per request. Global limiter is per-process memory only (fine for single Compose node).
+
+### Interview prep
+**Q: Why not Helmet?**  
+A: Helmet bundles many defaults that agents and reviewers cannot see without reading node_modules. An explicit CSP string in-repo is easier to audit against the threat model and to teach in an interview.
+
+**Q: Why is probabilistic correlation capped at medium but security headers are mandatory?**  
+A: Headers are defense-in-depth with near-zero product ambiguity. Correlation claims can falsely identify people — so we under-claim. Security posture should over-defend.
+
+**Q: How do you prove OAuth tokens never leak in logs?**  
+A: Pino `redact.paths` includes token field names and is asserted in the security suite; INV-4 tests grep the gmail route surface for token-free response shapes.
+
+**What I’d improve:** Shared Redis/Postgres rate-limit bucket for multi-replica; wire CSRF integration into CI with testcontainers Postgres.
+
+### Follow-up
+M18 open-source packaging (LICENSE, CONTRIBUTING, CoC, release workflow, D-9 rename/license). Rehearse backup/restore on a disposable DB when Docker Postgres is available.
+
+## 2026-07-29 — cursor — M18–M20 / v1.0.0 open-source release prep
+
+**Meta:** branch `agent/cursor/m17-security-hardening` · milestones M18–M20 · status completed
+
+### Problem being solved
+M17 left the product feature-complete for self-host dogfooding, but it was not yet an open-source *release*: no LICENSE decision, contributor docs, release automation, or README that a stranger could follow to a working mock/demo instance. M18–M20 close that gap so `v1.0.0` is a usable V1 product under MIT.
+
+### Background concepts
+**Semantic versioning (semver).** `MAJOR.MINOR.PATCH` — breaking API/DB/config bumps major; features bump minor; fixes bump patch. Tagging `v1.0.0` is a promise that public contracts will only change additively without a major bump.
+
+**Contributor Covenant.** A standard code of conduct so newcomers know expected behavior and how to report abuse — required for serious open-source packaging.
+
+**GHCR (GitHub Container Registry).** `ghcr.io/<owner>/<repo>-server` images built on version tags so self-hosters can `docker pull` without building from source.
+
+**D-9 (name + license).** Blueprint deferred renaming and MIT vs AGPL. ADR-0013 records the decision: keep **apptrack**, license **MIT** (maximize contributor frictionlessness for a student/self-host project; AGPL SaaS-protection deferred).
+
+### Design decision
+1. Ship **MIT** + keep name **apptrack** (ADR-0013) rather than rename mid-release.
+2. Server Docker image **auto-migrates** on start so `docker compose up` matches the §37.2 fresh-machine story.
+3. Treat §37.1 real-Gmail items as **owner dogfooding** after release; §37.2 (mock + docs + security + packaging) is the automated V1 bar.
+4. Add `pnpm test:packaging` so CI fails if LICENSE/PRIVACY/release workflow disappear.
+
+### Implementation
+- Root: `LICENSE`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `PRIVACY.md`, rewritten `README.md`, version `1.0.0`.
+- Docs: `interview-preparation.md`, `data-retention.md`, `demo-storyboard.md`, `v1-acceptance.md`, ADRs 0005–0008, 0010–0013.
+- GitHub: issue/PR templates, `workflows/release.yml` (GHCR server+worker + GH release notes from CHANGELOG).
+- Ops: `scripts/docker-entrypoint-server.sh`; Dockerfile server CMD updated; packaging vitest + CI step.
+- AGENTS.md D-9 marked decided; ARCHITECTURE verified date + security/correlation notes.
+
+### Runtime flow (fresh self-host)
+1. Clone → copy `.env.example` → set secrets.
+2. `docker compose up -d --build` → Postgres healthy → server migrates → API listens.
+3. Worker uses `APP_BASE_URL=http://apptrack-server:3000` for internal jobs.
+4. Optional: `pnpm demo` locally with `EMAIL_PROVIDER=mock` for a full pipeline without Google.
+5. Tag `v1.0.0` → release workflow publishes images + GitHub Release.
+
+### Bugs & failed approaches
+None blocking. Real GIF capture still requires a human screen recording (`docs/demo-storyboard.md`); binary GIFs were not fabricated.
+
+### Tests
+- `pnpm test:packaging` — 23 checks (artifacts + version).
+- Full suite green: typecheck, lint, test, eval (F1≈0.972), boundaries, `pnpm audit --prod --audit-level=high`.
+
+### Security & privacy review
+- PRIVACY.md documents storage, LLM egress modes, analytics visitor hashing (INV-8).
+- SECURITY.md reporting path unchanged; threat model from M17 still authoritative.
+- No new network egress; release workflow uses `GITHUB_TOKEN` only.
+
+### Performance notes
+Migrate-on-start adds a few seconds to cold container boot; acceptable at NFR-1.
+
+### Interview prep
+**Q: Why MIT instead of AGPL?**  
+A: Target users are self-hosters and contributors (including recruiters reading the repo). MIT maximizes reuse and clarity; SaaS copyleft can be revisited if a hosted multi-tenant product appears (would need a new ADR).
+
+**Q: What makes this a 1.0 vs 0.x?**  
+A: End-to-end mock pipeline, versioned schemas, threat model with tests, contributor path without Google, and release automation. Live mailbox accuracy remains an owner measurement (§37.1), honestly scoped out of the automated gate.
+
+**What I’d improve:** Playwright e2e against Compose in CI; checked-in demo GIF once recorded; transactional pg-boss handoff ADR for sync stages.
+
+### Follow-up
+Owner: commit/push/PR; tag `v1.0.0` after merge; dogfood §37.1 on real Gmail; record demo GIF per storyboard.

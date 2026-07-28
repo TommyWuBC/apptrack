@@ -30,6 +30,8 @@ export function createOpenAiClient(opts: CreateLlmClientOptions): LlmClient {
         body: JSON.stringify({
           model: modelId,
           max_tokens: input.maxTokens ?? 1024,
+          // T8: opt out of provider retention where supported
+          store: false,
           response_format: { type: "json_object" },
           messages: [
             { role: "system", content: input.system },
