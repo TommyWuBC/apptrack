@@ -32,7 +32,7 @@ describe("sanitizeEmailHtml XSS", () => {
     expect(clean).not.toMatch(/onerror/i);
     expect(clean).not.toMatch(/javascript:/i);
     expect(clean).toMatch(/Hi/);
-    expect(clean).toMatchInlineSnapshot(`"<p>Hi</p><a rel="noopener noreferrer">x</a>"`);
+    expect(clean).toBe('<p>Hi</p><a rel="noopener noreferrer">x</a>');
   });
 });
 

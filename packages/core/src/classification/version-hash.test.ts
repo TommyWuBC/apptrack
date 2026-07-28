@@ -21,7 +21,9 @@ describe("classifier version hash", () => {
     for (const relative of LOGIC_FILES) {
       hash.update(relative);
       hash.update("\0");
-      hash.update(readFileSync(join(ROOT, relative)));
+      // Normalize EOL so Windows checkouts (CRLF) match the committed LF digest.
+      const body = readFileSync(join(ROOT, relative), "utf8").replace(/\r\n/g, "\n");
+      hash.update(body);
       hash.update("\0");
     }
     expect(hash.digest("hex")).toBe(CLASSIFIER_LOGIC_HASH);

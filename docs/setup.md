@@ -1,6 +1,6 @@
 # Setup
 
-Last verified against code: 2026-07-19 (stabilization / M15).
+Last verified against code: 2026-07-28 (M17).
 
 ## Prerequisites
 
@@ -50,6 +50,30 @@ pnpm migrate:down      # rolls back latest additive migration (not 0000)
 Integration tests: `DATABASE_URL=... pnpm --filter @apptrack/db test` (skipped if Postgres unreachable).
 
 OAuth tokens are encrypted with AES-256-GCM in `packages/core/crypto` before the dedicated `oauthCredentials` repo stores bytea only (INV-1).
+
+## Backups (encrypted)
+
+Install [age](https://github.com/FiloSottile/age) and `pg_dump` / `pg_restore`.
+
+```bash
+# Generate an age identity (keep age-key.txt offline)
+age-keygen -o age-key.txt
+# Public recipient is printed / in the file as "# public key: age1..."
+
+export DATABASE_URL=postgres://...
+export BACKUP_AGE_RECIPIENT=age1...   # public key
+./scripts/backup.sh ./backups
+
+# Restore (destructive)
+export BACKUP_AGE_IDENTITY=./age-key.txt
+./scripts/restore.sh ./backups/apptrack-YYYYMMDD….dump.age
+```
+
+Dumps include encrypted OAuth blobs but **plaintext email text** unless `EMAIL_BODY_ENCRYPTION=on`. Treat `.dump.age` files as sensitive.
+
+## Security headers
+
+Production (`NODE_ENV=production`) or `ENABLE_HSTS=true` sends `Strict-Transport-Security`. All responses include CSP (`frame-ancestors 'none'`), `X-Frame-Options: DENY`, and `nosniff`. See `THREAT_MODEL.md`.
 
 ## Local CI-ish check
 

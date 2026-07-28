@@ -6,6 +6,7 @@ import {
   analyticsSites,
   oauthCredentials,
   applicationEvents,
+  emailAttachments,
 } from "./schema/index.js";
 import { uuidv7 } from "./ids.js";
 
@@ -60,5 +61,22 @@ describe("schema invariants", () => {
     expect(cols).toContain("siteId");
     expect(cols).toContain("visitorHash");
     expect(cols).toContain("sessionizedAt");
+  });
+
+  it("T14: email_attachments store metadata only (no body/blob column)", () => {
+    const cols = Object.keys(getTableColumns(emailAttachments));
+    expect(cols).toEqual(
+      expect.arrayContaining([
+        "filename",
+        "mimeType",
+        "sizeBytes",
+        "sha256",
+        "messageId",
+      ]),
+    );
+    const forbidden = cols.filter(
+      (c) => /body|content|bytes|data|blob|raw/i.test(c) && c !== "sizeBytes",
+    );
+    expect(forbidden).toEqual([]);
   });
 });

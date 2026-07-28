@@ -1,6 +1,6 @@
 # Architecture
 
-Last verified against code: 2026-07-19 (`cursor/stabilize-m1-m15-6a25`).
+Last verified against code: 2026-07-29 (v1.0.0 / M20).
 
 apptrack is a TypeScript modular monolith. The Fastify server owns HTTP and
 orchestration, the worker owns pg-boss consumers and schedules, the React SPA
@@ -76,6 +76,8 @@ append new audit events and only update `superseded_by` on replaced events.
 - Email HTML is sanitized and rendered in a sandboxed iframe.
 - Analytics IPs are used in memory for daily hashes/local GeoLite2 lookup and
   never persisted (INV-8).
+- App-wide CSP / frame denial / optional HSTS; Pino redacts tokens and email
+  body fields (see `THREAT_MODEL.md`).
 - LLM egress is opt-in; deterministic classification remains complete.
 
 ## Analytics
