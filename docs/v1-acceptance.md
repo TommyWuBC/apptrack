@@ -8,26 +8,26 @@ provider + synthetic fixtures.
 
 ## §37.2 Open-source release (v1.0.0)
 
-| # | Criterion | Status | Evidence |
-|---|-----------|--------|----------|
-| 1 | Fresh machine: clone → `.env` → `docker compose up` demo path | ✅ documented | README + server migrate entrypoint; `EMAIL_PROVIDER=mock` |
-| 2 | Full pipeline with mock provider; no Google required | ✅ | `EMAIL_PROVIDER=mock`, fixtures, `pnpm demo` |
-| 3 | §33 docs exist; PRIVACY reflects code | ✅ | PRIVACY.md, THREAT_MODEL, setup, ADRs, interview-prep |
-| 4 | M17 security checklist; gitleaks + prod audit | ✅ | THREAT_MODEL T1–T14; CI gitleaks; `pnpm audit --prod --audit-level=high` |
-| 5 | Golden eval in README with caveats | ✅ | F1≈0.972 table + synthetic caveat |
-| 6 | License, CoC, CONTRIBUTING, templates, release automation | ✅ | MIT, workflows/release.yml → GHCR |
+| #   | Criterion                                                     | Status        | Evidence                                                                 |
+| --- | ------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------ |
+| 1   | Fresh machine: clone → `.env` → `docker compose up` demo path | ✅ documented | README + server migrate entrypoint; `EMAIL_PROVIDER=mock`                |
+| 2   | Full pipeline with mock provider; no Google required          | ✅            | `EMAIL_PROVIDER=mock`, fixtures, `pnpm demo`                             |
+| 3   | §33 docs exist; PRIVACY reflects code                         | ✅            | PRIVACY.md, THREAT_MODEL, setup, ADRs, interview-prep                    |
+| 4   | M17 security checklist; gitleaks + prod audit                 | ✅            | THREAT_MODEL T1–T14; CI gitleaks; `pnpm audit --prod --audit-level=high` |
+| 5   | Golden eval in README with caveats                            | ✅            | F1≈0.972 table + synthetic caveat                                        |
+| 6   | License, CoC, CONTRIBUTING, templates, release automation     | ✅            | MIT, workflows/release.yml → GHCR                                        |
 
 ## §37.1 Owner dogfooding (post-release)
 
-| # | Criterion | Status |
-|---|-----------|--------|
-| 1 | Real Gmail connect + 7-day sync | ⏳ owner |
-| 2 | ≥90% confirmation attach on real mail | ⏳ owner |
-| 3 | Timeline evidence usable | ✅ in mock/demo |
-| 4 | Correction survives reprocess (INV-7) | ✅ unit/adversarial tests; ⏳ owner on real data |
-| 5 | Ghost flag/dismiss/reverse | ✅ tests; ⏳ owner |
-| 6 | Export complete | ✅ CLI `apptrack export` |
-| 7 | No plaintext tokens in dump/logs | ✅ INV-1/4 + redact tests; ⏳ owner dump inspect |
+| #   | Criterion                             | Status                                           |
+| --- | ------------------------------------- | ------------------------------------------------ |
+| 1   | Real Gmail connect + 7-day sync       | ⏳ owner                                         |
+| 2   | ≥90% confirmation attach on real mail | ⏳ owner                                         |
+| 3   | Timeline evidence usable              | ✅ in mock/demo                                  |
+| 4   | Correction survives reprocess (INV-7) | ✅ unit/adversarial tests; ⏳ owner on real data |
+| 5   | Ghost flag/dismiss/reverse            | ✅ tests; ⏳ owner                               |
+| 6   | Export complete                       | ✅ CLI `apptrack export`                         |
+| 7   | No plaintext tokens in dump/logs      | ✅ INV-1/4 + redact tests; ⏳ owner dump inspect |
 
 ## Automated verification (agent run)
 

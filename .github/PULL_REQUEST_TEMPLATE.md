@@ -15,7 +15,7 @@
 - [ ] `pnpm typecheck && pnpm lint && pnpm test` pass locally
 - [ ] `pnpm boundaries` passes (no forbidden cross-package imports)
 - [ ] Tests added or updated for behavior changes (R-5)
-- [ ] **Invariants (INV-*)** reviewed — list any touched: <!-- e.g. INV-7 corrections -->
+- [ ] **Invariants (INV-\*)** reviewed — list any touched: <!-- e.g. INV-7 corrections -->
 - [ ] **No secrets** — no `.env`, tokens, real emails, or personal data (R-9, R-10)
 - [ ] **Docs** updated if user-facing behavior, config, or data flows changed
 - [ ] **Classification/matching:** `pnpm eval` run; baseline delta noted below if intentional

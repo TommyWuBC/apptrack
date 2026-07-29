@@ -143,7 +143,7 @@ UI phrases are enumerated and tested ("recruiter viewed", person names, "definit
 
 **Follow-up:** Why offer correlation at all?  
 It's off by default (`CORRELATION_ENABLED=false`). When enabled, it helps the owner notice
-*possible* timing patterns while staying honest about uncertainty.
+_possible_ timing patterns while staying honest about uncertainty.
 
 **What I'd improve:** Richer explanations from persisted feature rows without re-deriving
 copy at read time.
@@ -152,15 +152,15 @@ copy at read time.
 
 ## Quick reference — invariants to cite
 
-| ID | One-liner |
-| --- | --- |
+| ID    | One-liner                                                  |
+| ----- | ---------------------------------------------------------- |
 | INV-1 | No plaintext OAuth tokens or passwords persisted or logged |
-| INV-4 | Credentials never in API responses |
-| INV-5 | No raw LLM chain-of-thought stored |
-| INV-6 | Server never fetches URLs from email content |
-| INV-7 | User corrections/locks never overwritten by automation |
-| INV-8 | Raw IPs never written to disk |
-| INV-9 | `application_events` is append-only; state is derived |
+| INV-4 | Credentials never in API responses                         |
+| INV-5 | No raw LLM chain-of-thought stored                         |
+| INV-6 | Server never fetches URLs from email content               |
+| INV-7 | User corrections/locks never overwritten by automation     |
+| INV-8 | Raw IPs never written to disk                              |
+| INV-9 | `application_events` is append-only; state is derived      |
 
 ## Further reading
 

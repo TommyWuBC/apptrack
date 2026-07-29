@@ -16,10 +16,10 @@ keeps the event skeleton for timeline integrity (audit-logged).
 
 ### Raw MIME (opt-in)
 
-| Setting | Default | Behavior |
-| --- | --- | --- |
-| `STORE_RAW_MIME` | `false` | Raw MIME is not stored |
-| `RAW_MIME_RETENTION_DAYS` | `30` | When enabled, encrypted `raw_encrypted` is nulled after N days |
+| Setting                   | Default | Behavior                                                       |
+| ------------------------- | ------- | -------------------------------------------------------------- |
+| `STORE_RAW_MIME`          | `false` | Raw MIME is not stored                                         |
+| `RAW_MIME_RETENTION_DAYS` | `30`    | When enabled, encrypted `raw_encrypted` is nulled after N days |
 
 Raw MIME is encrypted with the same AES-256-GCM key as OAuth tokens. See ADR-011.
 
@@ -47,11 +47,11 @@ Server-side sessions are deleted on logout or when absolute/idle expiry is reach
 
 ## Analytics
 
-| Data | Default retention | Override |
-| --- | --- | --- |
-| `analytics_events` | ~13 months (396 days) | `ANALYTICS_RETENTION_DAYS` |
-| `analytics_sessions` | Same as events | `ANALYTICS_RETENTION_DAYS` |
-| Visitor IP | **Never stored** (INV-8) | — |
+| Data                 | Default retention        | Override                   |
+| -------------------- | ------------------------ | -------------------------- |
+| `analytics_events`   | ~13 months (396 days)    | `ANALYTICS_RETENTION_DAYS` |
+| `analytics_sessions` | Same as events           | `ANALYTICS_RETENTION_DAYS` |
+| Visitor IP           | **Never stored** (INV-8) | —                          |
 
 The retention job deletes rows older than the configured window. Site mode `off` stops new
 ingest; existing rows age out on schedule.

@@ -47,18 +47,18 @@ See [docs/setup.md](./docs/setup.md) for production Compose, backups, and OAuth.
 
 ## Common commands
 
-| Command | Purpose |
-| --- | --- |
-| `pnpm dev` | Postgres/Mailpit + server + worker + Vite |
-| `pnpm test` | Unit and integration tests (all packages) |
-| `pnpm typecheck` | TypeScript across the monorepo |
-| `pnpm lint` | ESLint |
-| `pnpm format` / `pnpm format:check` | Prettier |
-| `pnpm boundaries` | dependency-cruiser module boundary check |
-| `pnpm migrate` / `pnpm migrate:down` | Drizzle migrations |
-| `pnpm eval` | Golden classifier metrics (regression gate) |
-| `pnpm fixtures:generate` | Regenerate synthetic `.eml` fixtures |
-| `pnpm demo` | Seed screenshot-safe demo data |
+| Command                              | Purpose                                     |
+| ------------------------------------ | ------------------------------------------- |
+| `pnpm dev`                           | Postgres/Mailpit + server + worker + Vite   |
+| `pnpm test`                          | Unit and integration tests (all packages)   |
+| `pnpm typecheck`                     | TypeScript across the monorepo              |
+| `pnpm lint`                          | ESLint                                      |
+| `pnpm format` / `pnpm format:check`  | Prettier                                    |
+| `pnpm boundaries`                    | dependency-cruiser module boundary check    |
+| `pnpm migrate` / `pnpm migrate:down` | Drizzle migrations                          |
+| `pnpm eval`                          | Golden classifier metrics (regression gate) |
+| `pnpm fixtures:generate`             | Regenerate synthetic `.eml` fixtures        |
+| `pnpm demo`                          | Seed screenshot-safe demo data              |
 
 Run the full local CI check before opening a PR:
 

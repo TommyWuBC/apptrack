@@ -9,14 +9,14 @@ visitor-facing snippet in `examples/website-astro` for your portfolio site.
 
 ## Summary
 
-| Data | Stored? | Leaves your server? |
-| --- | --- | --- |
-| Gmail email content | Yes (extracted text + optional raw MIME) | Only if you enable LLM `api`/`hybrid` classifier mode |
-| OAuth tokens | Yes (encrypted) | To Google Gmail API only |
-| Passwords | Yes (argon2id hash) | Never |
-| Analytics visitor IP | **Never** (INV-8) | Never persisted |
-| Analytics coarse geo | Optional | Never to third parties |
-| LLM prompts | Only in `api`/`local` modes | To provider you configure |
+| Data                 | Stored?                                  | Leaves your server?                                   |
+| -------------------- | ---------------------------------------- | ----------------------------------------------------- |
+| Gmail email content  | Yes (extracted text + optional raw MIME) | Only if you enable LLM `api`/`hybrid` classifier mode |
+| OAuth tokens         | Yes (encrypted)                          | To Google Gmail API only                              |
+| Passwords            | Yes (argon2id hash)                      | Never                                                 |
+| Analytics visitor IP | **Never** (INV-8)                        | Never persisted                                       |
+| Analytics coarse geo | Optional                                 | Never to third parties                                |
+| LLM prompts          | Only in `api`/`local` modes              | To provider you configure                             |
 
 There is no apptrack telemetry, phone-home, or shared cloud.
 
@@ -73,12 +73,12 @@ With a connected Gmail account, the worker calls Google's API using your OAuth t
 
 `CLASSIFIER_MODE` defaults to **`deterministic`**. No email content is sent to any AI provider in this mode.
 
-| Mode | External calls | What is sent |
-| --- | --- | --- |
-| `deterministic` | None | — |
-| `local` | Your Ollama endpoint (`OLLAMA_URL`) | Subject, stripped plain text (≤4,000 chars), sender display/domain |
-| `api` | Anthropic and/or OpenAI (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) | Same minimal fields as local |
-| `hybrid` | API only for low-confidence remainder after L1/L2 | Same minimal fields |
+| Mode            | External calls                                                  | What is sent                                                       |
+| --------------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `deterministic` | None                                                            | —                                                                  |
+| `local`         | Your Ollama endpoint (`OLLAMA_URL`)                             | Subject, stripped plain text (≤4,000 chars), sender display/domain |
+| `api`           | Anthropic and/or OpenAI (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) | Same minimal fields as local                                       |
+| `hybrid`        | API only for low-confidence remainder after L1/L2               | Same minimal fields                                                |
 
 The settings UI discloses egress when non-deterministic modes are enabled. Adapters request no-retention flags where supported. Only structured extraction output is persisted — never chain-of-thought (INV-5).
 
