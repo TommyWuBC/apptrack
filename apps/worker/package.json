@@ -14,7 +14,7 @@
   "dependencies": {
     "@apptrack/db": "workspace:^",
     "@apptrack/shared": "workspace:*",
-    "pg-boss": "^12.26.1"
+    "pg-boss": "^12.26.3"
   },
   "devDependencies": {
     "tsx": "^4.19.2",
