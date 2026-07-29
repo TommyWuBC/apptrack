@@ -42,8 +42,10 @@ describe("llm adapters", () => {
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
     await client.completeJson({ system: "s", user: "u" });
-    const [url] = fetchImpl.mock.calls[0]!;
+    const [url, init] = fetchImpl.mock.calls[0]!;
     expect(String(url)).toContain("/v1/chat/completions");
+    const body = JSON.parse(String((init as RequestInit).body));
+    expect(body.store).toBe(false);
   });
 
   it("ollama posts to local /api/chat", async () => {

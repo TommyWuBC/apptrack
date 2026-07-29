@@ -2,7 +2,7 @@
   "name": "apptrack",
   "private": true,
   "type": "module",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Self-hostable, privacy-conscious job application tracker",
   "packageManager": "pnpm@9.15.0",
   "engines": {
@@ -10,7 +10,10 @@
   },
   "pnpm": {
     "overrides": {
-      "esbuild": "^0.28.1"
+      "esbuild": "^0.28.1",
+      "find-my-way": ">=9.7.0",
+      "fast-uri": ">=4.1.1",
+      "sharp": ">=0.35.0"
     }
   },
   "dependencies": {
@@ -34,6 +37,7 @@
     "eval": "tsx scripts/run-eval.ts",
     "fixtures:generate": "tsx scripts/generate-fixtures.ts",
     "test:fixtures": "vitest run --config scripts/vitest.fixtures.config.ts",
+    "test:packaging": "vitest run --config scripts/vitest.packaging.config.ts",
     "demo": "tsx scripts/seed.ts --demo",
     "e2e": "pnpm --filter @apptrack/web e2e",
     "e2e:sdk": "pnpm --filter @apptrack/analytics-sdk build && pnpm --filter @apptrack/example-website-astro e2e"

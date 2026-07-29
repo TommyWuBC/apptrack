@@ -1,7 +1,7 @@
 # AGENTS.md — apptrack
 
 **Authoritative implementation blueprint. Version 1.0.0 — 2026-07-17.**
-Working name `apptrack` is a placeholder; rename before the open-source release (tracked in §35 Deferred Decisions, D-9).
+Working name was `apptrack`; **D-9 resolved** (ADR-0013): keep name **apptrack**, license **MIT**.
 
 This file is the single source of truth for architecture, module boundaries, contracts, and process. Coding agents follow it without redesigning the system. If you believe the blueprint is wrong, follow §29 rule R-13 (document → propose → record → then implement). Do not silently deviate.
 
@@ -908,7 +908,7 @@ Semver: breaking DB/API/config change ⇒ major; new feature ⇒ minor. CHANGELO
 | D-6 | ML correlation model | rules v1 | ≥200 user-confirmed labels collected |
 | D-7 | WebSockets/live updates | SPA polling 30s | UX friction |
 | D-8 | Any model training on user data | never without explicit opt-in | product direction change (requires owner + ADR) |
-| D-9 | Project name + license (MIT vs AGPL) | "apptrack", MIT leaning | M18 |
+| D-9 | Project name + license (MIT vs AGPL) | **Decided:** keep `apptrack`, MIT (ADR-0013) | done M18 |
 | D-10 | Confidence intervals on stats | n/N small-sample guard | user feedback |
 | D-11 | OpenTelemetry tracing | request/job ids | multi-service future |
 
