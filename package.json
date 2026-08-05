@@ -20,7 +20,7 @@
     "@apptrack/core": "workspace:^",
     "@apptrack/db": "workspace:^",
     "@apptrack/shared": "workspace:*",
-    "argon2": "^0.45.0"
+    "argon2": "^0.45.1"
   },
   "scripts": {
     "dev": "tsx scripts/dev.ts",
