@@ -21,8 +21,8 @@
   "dependencies": {
     "@apptrack/shared": "workspace:*",
     "ical.js": "^2.2.1",
-    "mailparser": "^3.7.2",
-    "node-html-parser": "^9.0.0",
+    "mailparser": "^3.9.15",
+    "node-html-parser": "^9.0.1",
     "sanitize-html": "^2.17.6"
   },
   "devDependencies": {
