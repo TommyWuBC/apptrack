@@ -20,7 +20,7 @@
     "@apptrack/core": "workspace:^",
     "@apptrack/db": "workspace:^",
     "@apptrack/shared": "workspace:*",
-    "argon2": "^0.45.0"
+    "argon2": "^0.45.1"
   },
   "scripts": {
     "dev": "tsx scripts/dev.ts",
@@ -47,7 +47,7 @@
     "@types/node": "^22.10.5",
     "dependency-cruiser": "^16.9.0",
     "eslint": "^9.17.0",
-    "mailparser": "^3.7.2",
+    "mailparser": "^3.9.15",
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
     "turbo": "^2.3.3",
