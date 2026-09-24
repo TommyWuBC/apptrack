@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800" role="img" aria-label="Illustration of the apptrack application detail page: current state, reducer version, an event timeline, and the email evidence viewer for one event">
+  <style>
+    .bg { fill: #faf8f5; }
+    .panel { fill: #faf8f5; stroke: #e4dfd6; stroke-width: 1; }
+    .soft { fill: #f2efe9; stroke: #e4dfd6; stroke-width: 1; }
+    .btn { fill: #faf8f5; stroke: #e4dfd6; stroke-width: 1; }
+    .ink { fill: #2a2823; }
+    .muted { fill: #5c584f; }
+    .accent { fill: #1d3a6e; }
+    .rule { stroke: #e4dfd6; stroke-width: 1; }
+    .spine { stroke: #5c584f; stroke-width: 1; opacity: 0.45; }
+    .bar { fill: #e4dfd6; }
+    .serif { font-family: ui-serif, Georgia, 'Times New Roman', serif; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .sans { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .link { stroke: #1d3a6e; stroke-width: 1.25; fill: none; stroke-dasharray: 5 5; }
+    .activebox { fill: #e7ecf5; stroke: #1d3a6e; stroke-width: 1; }
+    .dot { fill: #1d3a6e; }
+    .halo { fill: none; stroke: #e7ecf5; stroke-width: 4; }
+  </style>
+  <rect class="bg" width="1280" height="800"/>
+
+  <text class="mono muted" x="40" y="46" font-size="12" letter-spacing="2">ILLUSTRATION · /applications/:id · DEMO FIXTURE</text>
+
+  <!-- page -->
+  <rect class="panel" x="40.5" y="66.5" width="780" height="690"/>
+
+  <!-- AppShell header -->
+  <text class="mono muted" x="72" y="104" font-size="10" letter-spacing="2.5">SELF-HOSTED</text>
+  <text class="serif ink" x="71" y="136" font-size="28">apptrack</text>
+  <g class="sans" font-size="12">
+    <text class="muted" x="406" y="132">Overview</text>
+    <rect class="activebox" x="464.5" y="116.5" width="84" height="23" rx="3"/>
+    <text class="accent" x="472" y="132">Applications</text>
+    <text class="muted" x="560" y="132">Review</text>
+    <text class="muted" x="612" y="132">Companies</text>
+    <text class="muted" x="688" y="132">Stats</text>
+    <text class="muted" x="730" y="132">Settings</text>
+  </g>
+  <line class="rule" x1="72" y1="158.5" x2="788" y2="158.5"/>
+
+  <!-- detail header -->
+  <text class="sans accent" x="72" y="188" font-size="12">← Applications</text>
+  <text class="serif ink" x="71" y="222" font-size="26">Initech</text>
+  <text class="mono muted" x="72" y="246" font-size="12">interviewing · action required</text>
+
+  <!-- collapsed panels, in page order -->
+  <g class="sans" font-size="13">
+    <rect class="panel" x="72.5" y="266.5" width="716" height="40" rx="3"/>
+    <text class="ink" x="88" y="291">Corrections</text>
+    <rect class="bar" x="560" y="282" width="110" height="8" rx="2"/>
+    <rect class="btn" x="684.5" y="276.5" width="90" height="20" rx="3"/>
+
+    <rect class="panel" x="72.5" y="316.5" width="716" height="40" rx="3"/>
+    <text class="ink" x="88" y="341">Merge, split, or reattach</text>
+    <rect class="bar" x="560" y="332" width="110" height="8" rx="2"/>
+    <rect class="btn" x="684.5" y="326.5" width="90" height="20" rx="3"/>
+
+    <rect class="panel" x="72.5" y="366.5" width="716" height="40" rx="3"/>
+    <text class="ink" x="88" y="391">Possible related visits</text>
+    <text class="muted" x="560" y="391" font-size="11">Correlation is disabled.</text>
+  </g>
+
+  <!-- timeline summary -->
+  <rect class="soft" x="72.5" y="424.5" width="716" height="58" rx="3"/>
+  <text class="sans muted" x="90" y="446" font-size="9" letter-spacing="1.5">CURRENT STATE</text>
+  <text class="mono ink" x="90" y="469" font-size="15">interviewing</text>
+  <text class="sans muted" x="270" y="446" font-size="9" letter-spacing="1.5">REDUCER</text>
+  <text class="mono ink" x="270" y="469" font-size="15">state-v1</text>
+
+  <!-- timeline -->
+  <line class="spine" x1="84" y1="504" x2="84" y2="736"/>
+
+  <g>
+    <circle class="halo" cx="84" cy="514" r="6"/>
+    <circle class="dot" cx="84" cy="514" r="4.5"/>
+    <text class="sans ink" x="104" y="519" font-size="14" font-weight="600">application_confirmation</text>
+    <text class="mono muted" x="788" y="519" font-size="11" text-anchor="end">2026-05-01 12:00</text>
+    <text class="sans muted" x="104" y="538" font-size="11">source: email</text>
+    <rect class="btn" x="104.5" y="548.5" width="150" height="22" rx="3"/>
+    <text class="sans ink" x="116" y="563" font-size="11">How was this inferred?</text>
+    <rect class="activebox" x="262.5" y="548.5" width="130" height="22" rx="3"/>
+    <text class="sans accent" x="274" y="563" font-size="11">View email evidence</text>
+  </g>
+
+  <g>
+    <circle class="halo" cx="84" cy="592" r="6"/>
+    <circle class="dot" cx="84" cy="592" r="4.5"/>
+    <text class="sans ink" x="104" y="597" font-size="14" font-weight="600">oa_invitation</text>
+    <text class="mono muted" x="788" y="597" font-size="11" text-anchor="end">2026-05-15 12:00</text>
+    <text class="sans muted" x="104" y="616" font-size="11">source: email</text>
+    <rect class="btn" x="104.5" y="626.5" width="150" height="22" rx="3"/>
+    <text class="sans ink" x="116" y="641" font-size="11">How was this inferred?</text>
+    <rect class="btn" x="262.5" y="626.5" width="130" height="22" rx="3"/>
+    <text class="sans ink" x="274" y="641" font-size="11">View email evidence</text>
+  </g>
+
+  <g>
+    <circle class="halo" cx="84" cy="670" r="6"/>
+    <circle class="dot" cx="84" cy="670" r="4.5"/>
+    <text class="sans ink" x="104" y="675" font-size="14" font-weight="600">interview_invitation</text>
+    <text class="mono muted" x="788" y="675" font-size="11" text-anchor="end">2026-06-10 15:00</text>
+    <text class="sans muted" x="104" y="694" font-size="11">source: email</text>
+    <rect class="btn" x="104.5" y="704.5" width="150" height="22" rx="3"/>
+    <text class="sans ink" x="116" y="719" font-size="11">How was this inferred?</text>
+    <rect class="btn" x="262.5" y="704.5" width="130" height="22" rx="3"/>
+    <text class="sans ink" x="274" y="719" font-size="11">View email evidence</text>
+  </g>
+
+  <!-- connector to evidence viewer -->
+  <path class="link" d="M393 560 H 838 V 250 H 856"/>
+  <circle class="dot" cx="858" cy="250" r="3"/>
+
+  <!-- evidence viewer (a modal in the real UI) -->
+  <rect class="panel" x="860.5" y="96.5" width="380" height="420" rx="4"/>
+  <text class="sans ink" x="884" y="130" font-size="16" font-weight="600">Email evidence</text>
+  <text class="mono muted" x="884" y="148" font-size="11">msg-1</text>
+  <rect class="btn" x="1164.5" y="114.5" width="52" height="22" rx="3"/>
+  <text class="sans ink" x="1177" y="129" font-size="11">Close</text>
+
+  <text class="sans ink" x="884" y="184" font-size="13" font-weight="600">Thanks for applying to Initech</text>
+  <text class="sans muted" x="884" y="202" font-size="11">Initech Recruiting &lt;noreply@greenhouse.io&gt;</text>
+
+  <rect class="soft" x="884.5" y="220.5" width="332" height="98" rx="3"/>
+  <text class="sans muted" x="900" y="242" font-size="9" letter-spacing="1.5">CLASSIFICATION</text>
+  <text class="mono ink" x="900" y="264" font-size="13">application_confirmation · 95%</text>
+  <circle class="muted" cx="904" cy="287" r="2"/>
+  <text class="sans ink" x="914" y="291" font-size="11">Matched Greenhouse application-</text>
+  <text class="sans ink" x="914" y="307" font-size="11">confirmation template</text>
+
+  <rect class="panel" x="884.5" y="334.5" width="332" height="110" rx="3"/>
+  <text class="mono muted" x="900" y="354" font-size="10">iframe sandbox="" · sanitized HTML</text>
+  <line class="rule" x1="900" y1="364.5" x2="1200" y2="364.5"/>
+  <text class="sans ink" x="900" y="390" font-size="12">Thanks for applying to the</text>
+  <text class="sans ink" x="900" y="408" font-size="12"><tspan font-weight="700">SWE Intern</tspan> role at Initech.</text>
+
+  <rect class="btn" x="884.5" y="462.5" width="150" height="24" rx="3"/>
+  <text class="sans ink" x="898" y="478" font-size="11">Mark email irrelevant</text>
+
+  <!-- margin notes -->
+  <g class="mono muted" font-size="11">
+    <text x="860" y="572">↑ email-sourced events link back to the</text>
+    <text x="874" y="590">message and the rule that fired</text>
+    <text x="860" y="626">← events are append-only; the state</text>
+    <text x="874" y="644">above is a projection replayed by</text>
+    <text x="874" y="662">reduce() — corrections overlay it</text>
+  </g>
+
+  <text class="mono muted" x="40" y="786" font-size="11" letter-spacing="1">Drawn from the demo fixtures in apps/web/src/api/demo-data.ts (fictional company). Not a screenshot.</text>
+</svg>

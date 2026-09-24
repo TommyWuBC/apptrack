@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" width="1280" height="360" role="img" aria-label="apptrack: your inbox, turned into an auditable application timeline">
+  <rect width="1280" height="360" fill="#faf8f5"/>
+  <rect x="24.5" y="24.5" width="1231" height="311" fill="none" stroke="#e4dfd6"/>
+  <text x="80" y="104" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" letter-spacing="2.5" fill="#5c584f">TOMMYWUBC / APPTRACK</text>
+  <line x1="80" y1="124" x2="140" y2="124" stroke="#1d3a6e" stroke-width="2"/>
+  <text x="78" y="200" font-family="ui-serif, Georgia, 'Times New Roman', serif" font-size="70" fill="#2a2823">apptrack</text>
+  <text x="80" y="244" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="22" fill="#5c584f">Your inbox, turned into an auditable application timeline.</text>
+  <text x="80" y="292" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" letter-spacing="1.5" fill="#5c584f">GMAIL READONLY · DETERMINISTIC-FIRST · EVENT-SOURCED · SELF-HOSTED</text>
+
+  <!-- email → event → state -->
+  <g transform="translate(830 0)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <!-- envelopes: one per event -->
+    <g fill="#faf8f5" stroke="#2a2823" stroke-width="1.5" stroke-linejoin="round">
+      <rect x="12" y="92" width="36" height="24"/>
+      <path d="M12 92 L30 106 L48 92" fill="none"/>
+      <rect x="112" y="92" width="36" height="24"/>
+      <path d="M112 92 L130 106 L148 92" fill="none"/>
+      <rect x="212" y="92" width="36" height="24" fill="#e7ecf5" stroke="#1d3a6e"/>
+      <path d="M212 92 L230 106 L248 92" fill="none" stroke="#1d3a6e"/>
+    </g>
+    <!-- the email that never arrives -->
+    <g fill="none" stroke="#c8553d" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.85">
+      <rect x="342" y="92" width="36" height="24"/>
+      <path d="M342 92 L360 106 L378 92"/>
+    </g>
+
+    <!-- drop lines: email → event -->
+    <g stroke="#5c584f" stroke-width="1" stroke-dasharray="2 4">
+      <line x1="30" y1="122" x2="30" y2="176"/>
+      <line x1="130" y1="122" x2="130" y2="176"/>
+      <line x1="230" y1="122" x2="230" y2="174"/>
+    </g>
+
+    <!-- timeline -->
+    <line x1="0" y1="186" x2="230" y2="186" stroke="#2a2823" stroke-width="1.5"/>
+    <line x1="230" y1="186" x2="352" y2="186" stroke="#c8553d" stroke-width="1.5" stroke-dasharray="5 5"/>
+    <circle cx="30" cy="186" r="6" fill="#faf8f5" stroke="#2a2823" stroke-width="1.5"/>
+    <circle cx="130" cy="186" r="6" fill="#faf8f5" stroke="#2a2823" stroke-width="1.5"/>
+    <circle cx="230" cy="186" r="7" fill="#1d3a6e"/>
+    <circle cx="230" cy="186" r="13" fill="none" stroke="#1d3a6e" stroke-width="1"/>
+    <circle cx="360" cy="186" r="8" fill="#faf8f5" stroke="#c8553d" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+    <g font-size="11" letter-spacing="1.2" fill="#5c584f">
+      <text x="30" y="220" text-anchor="middle">CONFIRMED</text>
+      <text x="130" y="220" text-anchor="middle">OA</text>
+      <text x="230" y="220" text-anchor="middle" fill="#1d3a6e">INTERVIEW</text>
+      <text x="360" y="220" text-anchor="middle" fill="#c8553d">GHOSTED?</text>
+      <text x="295" y="176" text-anchor="middle" font-size="10" fill="#c8553d">60 DAYS</text>
+    </g>
+
+    <!-- caption rule -->
+    <line x1="0" y1="258" x2="380" y2="258" stroke="#e4dfd6"/>
+    <text x="0" y="282" font-size="11" letter-spacing="1.5" fill="#5c584f">EMAIL → EVENT → STATE</text>
+    <text x="380" y="282" font-size="11" letter-spacing="1.5" fill="#5c584f" text-anchor="end">SILENCE → INFERENCE</text>
+  </g>
+</svg>
