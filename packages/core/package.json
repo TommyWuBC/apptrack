@@ -21,13 +21,13 @@
   "dependencies": {
     "@apptrack/shared": "workspace:*",
     "ical.js": "^2.2.1",
-    "mailparser": "^3.7.2",
-    "node-html-parser": "^9.0.0",
-    "sanitize-html": "^2.17.6"
+    "mailparser": "^3.9.38",
+    "node-html-parser": "^9.0.4",
+    "sanitize-html": "^2.18.0"
   },
   "devDependencies": {
-    "@types/mailparser": "^3.4.5",
-    "@types/sanitize-html": "^2.16.1",
+    "@types/mailparser": "^3.9.0",
+    "@types/sanitize-html": "^2.16.2",
     "fast-check": "^4.1.1",
     "typescript": "^5.7.2",
     "vitest": "^4.1.10"
